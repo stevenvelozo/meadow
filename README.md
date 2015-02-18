@@ -1,6 +1,5 @@
-# meadow
-Meadow Javascript data broker.
+# Meadow
+A Javascript Data Broker.
 
-# DO NOT USE THIS YET.
+_Do not use this yet._  You've been warned.
 
-It is still being turned into a Module and I'm still deciding which pattern to use that's more "standard" to js coding guidelines.

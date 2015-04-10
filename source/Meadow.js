@@ -40,7 +40,7 @@ var Meadow = function()
 		{
 			_Scope = pScope;
 			return this;
-		}
+		};
 
 
 		/**
@@ -53,7 +53,7 @@ var Meadow = function()
 		{
 			_Schema.setSchema(pSchema);
 			return this;
-		}
+		};
 
 
 		/**
@@ -103,4 +103,4 @@ var Meadow = function()
 	return createNew();
 };
 
-module.exports = Meadow();
+module.exports = new Meadow();

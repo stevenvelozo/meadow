@@ -13,7 +13,7 @@
 * @class MeadowSchema
 * @constructor
 */
-var libValidator = require('is-my-json-valid')
+var libValidator = require('is-my-json-valid');
 
 var MeadowSchema = function()
 {
@@ -72,7 +72,7 @@ var MeadowSchema = function()
 				type: 'object',
 				required: []
 			});
-			_Validate = libValidator(_Schema, { greedy:true, verbose:true })
+			_Validate = libValidator(_Schema, { greedy:true, verbose:true });
 		};
 		setSchema(pOriginalSchema);
 
@@ -123,4 +123,4 @@ var MeadowSchema = function()
 	return createNew();
 };
 
-module.exports = MeadowSchema();
+module.exports = new MeadowSchema();

@@ -22,12 +22,25 @@ var Meadow = function()
 		{
 			return {new: createNew};
 		}
+		var _Fable = pFable;
+		// Make sure there is a valid data broker set
+		_Fable.settingsManager.fill({FableDefaultBroker:'None'});
 
 		// The scope of this broker.
 		var _Scope = (typeof(pScope) === 'string') ? pScope : 'Unknown';
 
 		// The schema for this broker
 		var _Schema = require('./Meadow-Schema.js').new(pSchema);
+
+		// The data provider
+		var _Provider = false;
+
+		// The default identifier for this broker.
+		// This is what is used for the automated endpoint queries
+		// For example the 198 in GET http://myapi.com/Widget/198
+		//
+		// Our development model prefers IDWidget as the column name for the default identifier.
+		var _DefaultIdentifier = 'ID'+_Scope;
 
 
 		/**

@@ -1,45 +1,15 @@
 /**
-* Meadow Provider - No Data
+* Meadow Provider - MySQL
 *
 * @license MIT
 *
-
-Expects query parameters in the foxhound format:
-{
-		scope: false,        // The scope of the data
-								// TSQL: the "Table" or "View"
-								// MongoDB: the "Collection"
-
-		dataElements: false, // The data elements to return
-								// TSQL: the "Columns"
-								// MongoDB: the "Fields"
-
-		begin: false,        // Record index to start at
-								// TSQL: n in LIMIT 1,n
-								// MongoDB: n in Skip(n)
-
-		cap: false,          // Maximum number of records to return
-								// TSQL: n in LIMIT n
-								// MongoDB: n in limit(n)
-
-		filter: false,       // Data filter expression
-								// TSQL: the WHERE clause
-								// MongoDB: a find() expression
-
-		sort: false          // The sort order
-								// TSQL: ORDER BY
-								// MongoDB: sort()
-
-		records: []          // The records to be created or changed
-								// (OPTIONAL)
-
-		result: []           // The result of the last query run
-								// (OPTIONAL)
-}
-
 * @author Steven Velozo <steven@velozo.com>
 * @module Meadow-Schema
 */
+
+
+var libMySQL = require('mysql2');
+var libFoxHound = require('foxhound');
 
 var MeadowProvider = function()
 {
@@ -52,8 +22,44 @@ var MeadowProvider = function()
 		}
 		var _Fable = pFable;
 
+		/**
+		 * Build a connection pool, shared within this provider.
+		 * This may be more performant as a shared object.
+		 */
+		var _SQLConnectionPool = libMySQL.createPool
+		(
+			{
+				connectionLimit: _Fable.settings.MySQL.ConnectionPoolLimit,
+				host: _Fable.settings.MySQL.Server,
+				port: _Fable.settings.MySQL.Port,
+				user: _Fable.settings.MySQL.User,
+				password: _Fable.settings.MySQL.Password,
+				database: _Fable.settings.MySQL.Database
+			}
+		);
+
+		/**
+		 * Get a raw MySQL connection object
+		 *
+		 * @method getMySQLConnection
+		 */
+		var getMySQLConnection = function()
+		{
+			return mysql.createConnection
+			(
+				{
+					user: _Settings.MySQL.User,
+					password: _Settings.MySQL.Password,
+					host: _Settings.MySQL.Server,
+					ssl: 'Amazon RDS'
+				}
+			);
+		};
+
 		var createRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			// Meadow providers expect an extra array in the query, "records" when creating
 			pQueryParameters.Result = (
 				{
@@ -61,12 +67,53 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		// This is a synchronous read, good for a few records.
 		// TODO: Add a pipe-able read for huge sets
 		var readRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
+			_CommonServices.getMySQLConnectionPool().query
+			(
+				// We are using foreignID as the version within the old schema, to eliminate the need for changes.
+				"SELECT HDLT_OBSERVATIONS.id, HDLT_OBSERVATIONS.name, HDLT_OBSERVATIONS.type, HDLT_OBSERVATIONS.description, HDLT_OBSERVATIONS.definition, HDLT_OBSERVATIONS.projectID, HDLT_OBSERVATIONS.foreignID, HDLT_OBSERVATIONS.created_at, HDLT_OBSERVATIONS.updated_at, HDLT_OBSERVATIONS.deleted, HDLT_OBSERVATIONS.deletedByID, HDLT_OBSERVATIONS.createdByID, HDLT_OBSERVATIONS.parent, HDLT_OBSERVATIONS.description, HDLT_OBSERVATIONS.gpsLocation, HDLT_OBSERVATIONS.attributedLocation, HDLT_OBSERVATIONS.definition, HDLT_OBSERVATIONS.complete, HDLT_OBSERVATIONS.designatedTime, trueDesignatedTime FROM HDLT_OBSERVATIONS LEFT JOIN HDLT_USER_PROJECT_XREF ON HDLT_USER_PROJECT_XREF.projectID = HDLT_OBSERVATIONS.projectID WHERE HDLT_OBSERVATIONS.projectID = ? AND HDLT_OBSERVATIONS.deleted = 0 AND HDLT_USER_PROJECT_XREF.userID = ? ORDER BY HDLT_OBSERVATIONS.id DESC",
+				[tmpIDProject, tmpIDUser],
+				function(pError, pRows, pFields)
+				{
+					if (pError)
+					{
+						_CommonServices.log.warn('Error in getObservations Attempt DB Call: ', {RequestID:pRequest.RequestUUID,Error:pError});
+						return _CommonServices.sendError('Observation list failure.', pRequest, pResponse, fNext);
+					}
+
+					if (pRows.length < 1)
+					{
+						_CommonServices.log.warn('Failed Observation list: No observations for project '+tmpIDProject, {RequestID:pRequest.RequestUUID});
+						pResponse.send([]);
+						return tmpNext();
+					}
+					else
+					{
+						var tmpObservationSet = createObservationSet();
+						asyncMarshalObservationResults(tmpObservationSet, pRows,
+							function()
+							{
+								// Populate the artifacts from the observation details
+								libObservationLegacyAdapter.marshalDBLegacyObservationDetails(tmpObservationSet,
+									function ()
+									{
+										_CommonServices.log.info('Successfully delivered Observation list', {RequestID:pRequest.RequestUUID,Action:'ListObservations'});
+										pResponse.send(tmpObservationSet.Observations);
+										return tmpNext();
+									});
+							});
+					}
+				}
+			);
 			// This returns nothing because it's the none data provider!
 			pQueryParameters.Result = (
 				{
@@ -74,10 +121,14 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var updateRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			// Meadow providers expect an extra array in the query, "records" when updating
 			pQueryParameters.Result = (
 				{
@@ -85,16 +136,22 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var deleteRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			pQueryParameters.Result = (
 				{
 					type:'None',
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var tmpNewProvider = (

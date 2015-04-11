@@ -54,6 +54,8 @@ var MeadowProvider = function()
 
 		var createRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			// Meadow providers expect an extra array in the query, "records" when creating
 			pQueryParameters.Result = (
 				{
@@ -61,12 +63,16 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		// This is a synchronous read, good for a few records.
 		// TODO: Add a pipe-able read for huge sets
 		var readRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			// This returns nothing because it's the none data provider!
 			pQueryParameters.Result = (
 				{
@@ -74,10 +80,14 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var updateRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			// Meadow providers expect an extra array in the query, "records" when updating
 			pQueryParameters.Result = (
 				{
@@ -85,16 +95,22 @@ var MeadowProvider = function()
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var deleteRecords = function(pQueryParameters, fCallback)
 		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallback : function() {};
+
 			pQueryParameters.Result = (
 				{
 					type:'None',
 					affected:0,
 					result: {}
 				});
+
+			tmpCallBack(pQueryParameters, false);
 		};
 
 		var tmpNewProvider = (

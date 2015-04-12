@@ -55,7 +55,11 @@ var MeadowSchema = function()
 				"required": ["id", "name", "price"]
 			}
 		*/
+		// The schema
 		var _Schema = false;
+		// The "default" empty object
+		var _Default = false;
+		// The cached validator
 		var _Validate = false;
 
 
@@ -76,6 +80,11 @@ var MeadowSchema = function()
 		};
 		setSchema(pOriginalSchema);
 
+		var setDefault = function(pDefault)
+		{
+			_Default = (typeof(pDefault) === 'object') ? pDefault : {};
+		};
+		setDefault();
 
 		/**
 		* Validate an object against the current schema
@@ -99,6 +108,7 @@ var MeadowSchema = function()
 		var tmpNewMeadowSchemaObject = (
 		{
 			setSchema: setSchema,
+			setDefault: setDefault,
 			validateObject: validateObject,
 
 			new: createNew
@@ -113,6 +123,19 @@ var MeadowSchema = function()
 		Object.defineProperty(tmpNewMeadowSchemaObject, 'schema',
 			{
 				get: function() { return _Schema; },
+				enumerable: true
+			});
+
+
+		/**
+		 * Default Object
+		 *
+		 * @property defaultObject
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowSchemaObject, 'defaultObject',
+			{
+				get: function() { return _Default; },
 				enumerable: true
 			});
 

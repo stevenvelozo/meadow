@@ -137,6 +137,32 @@ suite
 							.to.equal(false);
 					}
 				);
+				test
+				(
+					'Change provider',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						Expect(testMeadow.providerName)
+							.to.equal('None');
+					}
+				);
+				test
+				(
+					'Try to change to a bad provider',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						Expect(testMeadow.providerName)
+							.to.equal('None');
+						testMeadow.setProvider();
+						Expect(testMeadow.providerName)
+							.to.equal('None');
+						testMeadow.setProvider('BADPROVIDERNAME');
+						Expect(testMeadow.providerName)
+							.to.equal('None');
+					}
+				);
 			}
 		);
 	}

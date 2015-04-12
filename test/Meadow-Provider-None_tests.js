@@ -91,7 +91,7 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
 						testMeadow.doCreate(testMeadow.query.clone().addRecord({ID:10}),
-							function(pError, pRecord, pQuery)
+							function(pError, pQuery, pRecord)
 							{
 								Expect(pQuery.parameters.result.executed).to.equal(true);
 								fDone();
@@ -110,7 +110,7 @@ suite
 						Expect(tmpQuery.parameters.result.executed)
 							.to.equal(false);
 						testMeadow.doRead(tmpQuery,
-							function(pError, pRecord, pQuery)
+							function(pError, pQuery, pRecord)
 							{
 								Expect(tmpQuery.parameters.result.executed).to.equal(true);
 								fDone();
@@ -125,7 +125,7 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
 						testMeadow.doReads(testMeadow.query,
-							function(pError, pRecord, pQuery)
+							function(pError, pQuery, pRecord)
 							{
 								Expect(pQuery.parameters.result.executed).to.equal(true);
 								fDone();
@@ -139,11 +139,11 @@ suite
 					function(fDone)
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
-						testMeadow.doUpdate(testMeadow.query,
-							function(pError, pRecord, pQuery)
+						testMeadow.doUpdate(testMeadow.query.clone().addRecord({IDFableTest:5}),
+							function(pError, pQuery, pRecord)
 							{
 								// Can't really test update with NONE
-								Expect(pError).to.equal('No record submitted');
+								
 								fDone();
 							}
 						)
@@ -156,7 +156,7 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
 						testMeadow.doDelete(testMeadow.query,
-							function(pError, pRecord, pQuery)
+							function(pError, pQuery, pRecord)
 							{
 								Expect(pQuery.parameters.result.executed).to.equal(true);
 								fDone();
@@ -171,8 +171,9 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
 						testMeadow.doCount(testMeadow.query,
-							function(pError, pRecord, pQuery, pQueryRead)
+							function(pError, pQuery, pRecord)
 							{
+								libFable.log.info(pError, pRecord)
 								Expect(pQuery.parameters.result.executed).to.equal(true);
 								fDone();
 							}

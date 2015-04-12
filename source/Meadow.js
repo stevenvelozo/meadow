@@ -137,10 +137,11 @@ var Meadow = function()
 
 		/**
 		 * Create a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 *
+		 * TODO: Add a second behavior that creates records without returning them and takes an array of records.
 		 */
 		var doCreate = function(pQuery, fCallBack)
 		{
-			// Read the record(s) from the source
 			libAsync.waterfall(
 				[
 					// Step 1: Get the record from the data source
@@ -160,14 +161,14 @@ var Meadow = function()
 								(pQuery.parameters.result.value === false)
 							)
 						{
-							return fStageComplete(pQuery.result.error, false, pQuery);
+							return fStageComplete('Creation failed', pQuery, false);
 						}
 
 						var tmpIDRecord = pQuery.result.value;
-						fStageComplete(pQuery.result.error, tmpIDRecord, pQuery);
+						fStageComplete(pQuery.result.error, pQuery, tmpIDRecord);
 					},
 					// Step 3: Read the record
-					function (pIDRecord, pQuery, fStageComplete)
+					function (pQuery, pIDRecord, fStageComplete)
 					{
 						var tmpQueryRead = pQuery.clone().addFilter(_DefaultIdentifier, pIDRecord);
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
@@ -177,26 +178,27 @@ var Meadow = function()
 					function (pQuery, pQueryRead, fStageComplete)
 					{
 						if (
-								// The query wasn't run yet
-								(pQueryRead.parameters.result.executed == false) || 
 								// The value is not an array
 								(!Array.isArray(pQueryRead.parameters.result.value)) ||
 								// There is not at least one record returned
 								(pQueryRead.parameters.result.value.length < 1)
 							)
 						{
-							return fStageComplete(pQueryRead.result.error, false, pQuery, pQueryRead);
+							return fStageComplete('No record found after create.', pQuery, pQueryRead, false);
 						}
 
 						var tmpRecord = marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
-						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, tmpRecord, pQuery, pQueryRead);
+						fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
 					}
 				],
-				function(pError, pRecord, pQuery, pQueryRead)
+				function(pError, pQuery, pQueryRead, pRecord)
 				{
+					if (pError)
+					{
+						_Fable.log.warn('Error during the create waterfall', {Error:pError, Query: pQuery.query});
+					}
 					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pRecord, pQuery, pQueryRead);
+					fCallBack(pError, pQuery, pQueryRead, pRecord);
 				}
 			);
 
@@ -208,7 +210,7 @@ var Meadow = function()
 		 */
 		var doRead = function(pQuery, fCallBack)
 		{
-			// Read the record(s) from the source
+			// Read the record from the source
 			libAsync.waterfall(
 				[
 					// Step 1: Get the record from the data source
@@ -222,26 +224,28 @@ var Meadow = function()
 					function (pQuery, fStageComplete)
 					{
 						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
 								// The value is not an array
 								(!Array.isArray(pQuery.parameters.result.value)) ||
 								// There is not at least one record returned
 								(pQuery.parameters.result.value.length < 1)
 							)
 						{
-							return fStageComplete(pQuery.result.error, false, pQuery);
+							return fStageComplete('Invalid query result in Read', pQuery, false);
 						}
 
 						var tmpRecord = marshalRecordFromSourceToObject(pQuery.result.value[0]);
 						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, tmpRecord, pQuery);
+						fStageComplete(pQuery.result.error, pQuery, tmpRecord);
 					}
 				],
-				function(pError, pRecord, pQuery)
+				function(pError, pQuery, pRecord)
 				{
+					if (pError)
+					{
+						_Fable.log.warn('Error during the read waterfall', {Error:pError, Query: pQuery.query});
+					}
 					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pRecord, pQuery);
+					fCallBack(pError, pQuery, pRecord);
 				}
 			);
 
@@ -263,19 +267,17 @@ var Meadow = function()
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
 						_Provider.Read(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
 					},
-					// Step 2: Marshal the records into a POJO asynchronously
+					// Step 2: Marshal all the records into a POJO asynchronously
 					function (pQuery, fStageComplete)
 					{
 						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
 								// The value is not an array
 								(!Array.isArray(pQuery.parameters.result.value)) ||
 								// There is not at least one record returned
 								(pQuery.parameters.result.value.length < 1)
 							)
 						{
-							return fStageComplete(pQuery.result.error, false, pQuery);
+							return fStageComplete('No records read.', pQuery, false);
 						}
 
 						var tmpRecords = [];
@@ -291,15 +293,18 @@ var Meadow = function()
 							function()
 							{
 								// Now complete the waterfall
-								fStageComplete(pQuery.result.error, tmpRecords, pQuery);
+								fStageComplete(pQuery.result.error, pQuery, tmpRecords);
 							}
 						);
 					}
 				],
-				function(pError, pRecord, pQuery)
+				function(pError, pQuery, pRecord)
 				{
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pRecord, pQuery);
+					if (pError)
+					{
+						_Fable.log.warn('Error during the read multiple waterfall', {Error:pError, Query: pQuery.query});
+					}
+					fCallBack(pError, pQuery, pRecord);
 				}
 			);
 
@@ -315,20 +320,26 @@ var Meadow = function()
 			// Update the record(s) from the source
 			libAsync.waterfall(
 				[
-					// Step 1: Get the record from the data source
+					// Step 1: Update the record
 					function (fStageComplete)
 					{
 						var tmpQuery = pQuery;
 
+						// Make sure the user submitted a record
 						if (!pQuery.query.records)
 						{
-							return fStageComplete('No record submitted', false, pQuery);
+							return fStageComplete('No record submitted', pQuery, false);
+						}
+						// Make sure there is a default identifier
+						if (!pQuery.query.records[0].hasOwnProperty(_DefaultIdentifier))
+						{
+							return fStageComplete('Automated update missing default identifier', pQuery, false);
 						}
 						tmpQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
 						_Provider.Update(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
 					},
-					// Step 2: Marshal the record into a POJO
+					// Step 2: Check that the record was updated
 					function (pQuery, fStageComplete)
 					{
 						if (
@@ -338,15 +349,15 @@ var Meadow = function()
 								(typeof(pQuery.parameters.result.value) !== 'object')
 							)
 						{
-							return fStageComplete(pQuery.result.error, false, pQuery);
+							return fStageComplete('No record created.', pQuery, false);
 						}
 
-						// TODO: Add error handling for marshaling
 						fStageComplete(pQuery.result.error, pQuery);
 					},
 					// Step 3: Read the record
 					function (pQuery, fStageComplete)
 					{
+						// We can clone the query, since it has the criteria for the update in it already
 						var tmpQueryRead = pQuery.clone();
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
 						_Provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
@@ -354,27 +365,33 @@ var Meadow = function()
 					// Step 4: Marshal the record into a POJO
 					function (pQuery, pQueryRead, fStageComplete)
 					{
+						// This is a theoretical error ... it is pretty much impossible to simulate because 
+						// the waterfall error handling in step 3 catches problems in the underlying update.
+						// Therefore we'll leave the guard commented out for now.  But here for moral support.
+						/*
 						if (
-								// The query wasn't run yet
-								(pQueryRead.parameters.result.executed == false) || 
 								// The value is not an array
 								(!Array.isArray(pQueryRead.parameters.result.value)) ||
 								// There is not at least one record returned
 								(pQueryRead.parameters.result.value.length < 1)
 							)
 						{
-							return fStageComplete(pQueryRead.result.error, false, pQuery, pQueryRead);
+							return fStageComplete('There was an issue loading a record after save.', pQuery, pQueryRead, false);
 						}
+						*/
 
 						var tmpRecord = marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
 						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, tmpRecord, pQuery, pQueryRead);
+						fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
 					}
 				],
-				function(pError, pRecord, pQuery, pQueryRead)
+				function(pError, pQuery, pQueryRead, pRecord)
 				{
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pRecord, pQuery, pQueryRead);
+					if (pError)
+					{
+						_Fable.log.warn('Error during Update waterfall', {Error:pError, Query: pQuery.query});
+					}
+					fCallBack(pError, pQuery, pQueryRead, pRecord);
 				}
 			);
 
@@ -387,21 +404,25 @@ var Meadow = function()
 		 */
 		var doDelete = function(pQuery, fCallBack)
 		{
+			// TODO: Check if this recordset has implicit delete tracking
 			// Delete the record(s) from the source
 			libAsync.waterfall(
 				[
-					// Step 1: Get the record from the data source
+					// Step 1: Delete the record
 					function (fStageComplete)
 					{
 						var tmpQuery = pQuery;
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Delete(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery.result.value, tmpQuery); });
+						_Provider.Delete(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery, tmpQuery.result.value); });
 					}
 				],
-				function(pError, pRecord, pQuery)
+				function(pError, pQuery, pRecord)
 				{
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pRecord, pQuery);
+					if (pError)
+					{
+						_Fable.log.warn('Error during Count waterfall', {Error:pError, Query: pQuery.query});
+					}
+					fCallBack(pError, pQuery, pRecord);
 				}
 			);
 
@@ -427,23 +448,19 @@ var Meadow = function()
 					function (pQuery, fStageComplete)
 					{
 						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
 								// The value is not a number
 								(typeof(pQuery.parameters.result.value) !== 'number')
 							)
 						{
-							return fStageComplete(pQuery.result.error, false, pQuery);
+							return fStageComplete('Count did not return valid results.', pQuery, false);
 						}
 
-						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, pQuery.result.value, pQuery);
+						fStageComplete(pQuery.result.error, pQuery, pQuery.result.value);
 					}
 				],
-				function(pError, pCount, pQuery)
+				function(pError, pQuery, pCount)
 				{
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pCount, pQuery);
+					fCallBack(pError, pQuery, pCount);
 				}
 			);
 

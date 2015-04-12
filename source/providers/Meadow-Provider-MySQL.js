@@ -66,9 +66,6 @@ var MeadowProvider = function()
 				pQuery.query.parameters,
 				function(pError, pRows, pFields)
 				{
-					if (pError)
-						_Fable.log.error(pError);
-					//_Fable.log.trace('Got response from create: ',pRows)
 					tmpResult.error = pError;
 					tmpResult.value = pRows.insertId;
 					tmpResult.executed = true;
@@ -141,7 +138,15 @@ var MeadowProvider = function()
 				function(pError, pRows, pFields)
 				{
 					tmpResult.error = pError;
-					tmpResult.value = pRows.affectedRows;
+					tmpResult.value = false;
+					try
+					{
+						tmpResult.value = pRows.affectedRows;
+					}
+					catch(pErrorGettingRowcount)
+					{
+						_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+					}
 					tmpResult.executed = true;
 					fCallback();
 				}
@@ -163,18 +168,17 @@ var MeadowProvider = function()
 				pQuery.query.parameters,
 				function(pError, pRows, pFields)
 				{
-					if (pError)
-					{
-						tmpResult.executed = false;
-						_Fable.log.error('Error: '+pError);
-					}
+					tmpResult.executed = true;
 					tmpResult.error = pError;
 					tmpResult.value = false;
-					if (typeof(pRows[0]['RowCount']) === 'number')
+					try
 					{
 						tmpResult.value = pRows[0]['RowCount'];
 					}
-					tmpResult.executed = true;
+					catch(pErrorGettingRowcount)
+					{
+						_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+					}
 					fCallback();
 				}
 			);

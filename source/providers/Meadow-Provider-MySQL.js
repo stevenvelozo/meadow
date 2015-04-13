@@ -21,8 +21,6 @@ var MeadowProvider = function()
 		}
 		var _Fable = pFable;
 
-		var libFoxHound = require('foxhound').new(_Fable);
-
 		/**
 		 * Build a connection pool, shared within this provider.
 		 * This may be more performant as a shared object.

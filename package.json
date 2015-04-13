@@ -1,12 +1,12 @@
 {
   "name": "meadow",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
     "start": "node source/Meadow.js",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
-    "test": "./node_modules/mocha/bin/_mocha -g MySQL -u tdd -R spec"
+    "test": "./node_modules/mocha/bin/_mocha -u tdd -R spec"
   },
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
     "bunyan": "1.3.3",
     "fable": "^0.1.6",
     "flake-idgen": "1.0.0",
-    "foxhound": "0.0.5",
+    "foxhound": "0.0.8",
     "is-my-json-valid": "^2.10.1",
     "mysql2": "0.15.2",
     "underscore": "1.7.0"

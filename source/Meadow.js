@@ -16,11 +16,12 @@
 var libAsync = require('async');
 var libUnderscore = require('underscore')
 
+// Multi server query generation
 var libFoxHound = require('foxhound');
 
 var Meadow = function()
 {
-	function createNew(pFable, pScope, pSchema)
+	function createNew(pFable, pScope, pJsonSchema, pSchema)
 	{
 		// If a valid Fable object isn't passed in, return a constructor
 		if ((typeof(pFable) !== 'object') || (!pFable.hasOwnProperty('fable')))
@@ -31,11 +32,13 @@ var Meadow = function()
 		// Make sure there is a valid data broker set
 		_Fable.settingsManager.fill({MeadowProvider:'None'});
 
+		var _IDUser = 0;
+
 		// The scope of this broker.
 		var _Scope = (typeof(pScope) === 'string') ? pScope : 'Unknown';
 
 		// The schema for this broker
-		var _Schema = require('./Meadow-Schema.js').new(pSchema);
+		var _Schema = require('./Meadow-Schema.js').new(pJsonSchema, pSchema);
 		// The query for this broker
 		var _Query = libFoxHound.new(_Fable).setScope(_Scope);
 
@@ -50,6 +53,56 @@ var Meadow = function()
 		// Our development model prefers IDWidget as the column name for the default identifier.
 		var _DefaultIdentifier = 'ID'+_Scope;
 
+
+		/**
+		* Load the schema and metadata from a package file
+		*
+		* @method loadFromPackage
+		* @return {Object} Returns a new Meadow, or false if it failed
+		*/
+		var loadFromPackage = function(pPackage)
+		{
+			// Use the package loader to grab the configuration objects and clone a new Meadow.
+			var tmpPackage = false;
+			try
+			{
+				tmpPackage = require(pPackage);
+			}
+			catch(pError)
+			{
+				_Fable.log.error('Error loading Fable package', {Package:pPackage});
+				return false;
+			}
+
+			// Spool up a new Meadow object
+			var tmpNewMeadow = createNew(_Fable);
+
+			// Safely set the parameters
+			if (typeof(tmpPackage.Scope) === 'string')
+			{
+				tmpNewMeadow.setScope(tmpPackage.Scope);
+			}
+			if (typeof(tmpPackage.DefaultIdentifier) === 'string')
+			{
+				tmpNewMeadow.setDefaultIdentifier(tmpPackage.DefaultIdentifier);
+			}
+			if (Array.isArray(tmpPackage.Schema))
+			{
+				tmpNewMeadow.setSchema(tmpPackage.Schema);
+			}
+			if (typeof(tmpPackage.JsonSchema) === 'object')
+			{
+				tmpNewMeadow.setJsonSchema(tmpPackage.JsonSchema);
+			}
+			if (typeof(tmpPackage.DefaultObject) === 'object')
+			{
+				tmpNewMeadow.setDefault(tmpPackage.DefaultObject)
+			}
+
+			return tmpNewMeadow;
+		}
+
+
 		/**
 		* Set the scope
 		*
@@ -60,6 +113,19 @@ var Meadow = function()
 		{
 			_Scope = pScope;
 			_Query.setScope(pScope);
+			return this;
+		};
+
+
+		/**
+		* Set the user ID for inserts and updates
+		*
+		* @method setIDUser
+		* @return {Object} Returns the current Meadow for chaining.
+		*/
+		var setIDUser = function(pIDUser)
+		{
+			_IDUser = pIDUser;
 			return this;
 		};
 
@@ -112,6 +178,18 @@ var Meadow = function()
 		};
 
 		/**
+		* Set the Jsonschema to be something else
+		*
+		* @method setJsonSchema
+		* @return {Object} This is chainable.
+		*/
+		var setJsonSchema = function(pJsonSchema)
+		{
+			_Schema.setJsonSchema(pJsonSchema);
+			return this;
+		};
+
+		/**
 		* Set the default object to be something else
 		*
 		* @method setDefault
@@ -147,9 +225,16 @@ var Meadow = function()
 					// Step 1: Get the record from the data source
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
+						pQuery.query.IDUser = _IDUser;
+						// Make sure the user submitted a record
+						if (!pQuery.query.records)
+						{
+							return fStageComplete('No record submitted', pQuery, false);
+						}
+						// Merge in the default record with the passed-in record for completeness
+						pQuery.query.records[0] = libUnderscore.extend(_Schema.defaultObject, pQuery.query.records[0]);
 						// This odd lambda is to use the async waterfall without spilling logic into the provider create code complexity
-						_Provider.Create(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
+						_Provider.Create(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
@@ -216,9 +301,8 @@ var Meadow = function()
 					// Step 1: Get the record from the data source
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
+						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
@@ -263,9 +347,8 @@ var Meadow = function()
 					// Step 1: Get a record from the data source
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
+						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal all the records into a POJO asynchronously
 					function (pQuery, fStageComplete)
@@ -323,8 +406,7 @@ var Meadow = function()
 					// Step 1: Update the record
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
-
+						pQuery.query.IDUser = _IDUser;
 						// Make sure the user submitted a record
 						if (!pQuery.query.records)
 						{
@@ -335,9 +417,22 @@ var Meadow = function()
 						{
 							return fStageComplete('Automated update missing default identifier', pQuery, false);
 						}
-						tmpQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
+
+						// Now see if there is anything in the schema that is an Update action that isn't in this query
+						for (var i = 0; i < _Schema.schema.length; i++)
+						{
+							switch (_Schema.schema[i].Type)
+							{
+								case 'UpdateIDUser':
+								case 'UpdateDate':
+									pQuery.query.records[0][_Schema.schema[i].Column] = false;
+									break;
+							}
+						}
+						// Set the update filter
+						pQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Update(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
+						_Provider.Update(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Check that the record was updated
 					function (pQuery, fStageComplete)
@@ -357,7 +452,7 @@ var Meadow = function()
 					// Step 3: Read the record
 					function (pQuery, fStageComplete)
 					{
-						// We can clone the query, since it has the criteria for the update in it already
+						// We can clone the query, since it has the criteria for the update in it already (filters survive a clone)
 						var tmpQueryRead = pQuery.clone();
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
 						_Provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
@@ -411,9 +506,8 @@ var Meadow = function()
 					// Step 1: Delete the record
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Delete(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery, tmpQuery.result.value); });
+						_Provider.Delete(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery, pQuery.result.value); });
 					}
 				],
 				function(pError, pQuery, pRecord)
@@ -440,9 +534,8 @@ var Meadow = function()
 					// Step 1: Get the record from the data source
 					function (fStageComplete)
 					{
-						var tmpQuery = pQuery;
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Count(tmpQuery, function(){ fStageComplete(tmpQuery.result.error, tmpQuery); });
+						_Provider.Count(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
@@ -473,8 +566,7 @@ var Meadow = function()
 		 */
 		var marshalRecordFromSourceToObject = function(pRecord)
 		{
-			// Create an object from the query and fill out its values
-			// By default create an object from the default prototype and then clone in each value defined in the schema.
+			// Create an object from the default schema object
 			var tmpNewObject = libUnderscore.extend({}, _Schema.defaultObject);
 			// Now marshal the values from pRecord into tmpNewObject, based on schema
 			_Provider.marshalRecordFromSourceToObject(tmpNewObject, pRecord, _Schema.schema);
@@ -495,14 +587,19 @@ var Meadow = function()
 			doDelete: doDelete,
 			doCount: doCount,
 
-			setScope: setScope,
-			setProvider: setProvider,
+			validateObject: _Schema.validateObject,
 
-			// Schema management functions
+			setProvider: setProvider,
+			setIDUser: setIDUser,
+
+			// Schema management
+			loadFromPackage: loadFromPackage,
+			//
+			setScope: setScope,
 			setSchema: setSchema,
+			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
-			validateObject: _Schema.validateObject,
 
 			// Factory
 			new: createNew
@@ -533,14 +630,37 @@ var Meadow = function()
 			});
 
 		/**
-		 * Query
+		 * Json Schema
+		 *
+		 * @property schema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'jsonSchema',
+			{
+				get: function() { return _Schema.jsonSchema; },
+				enumerable: true
+			});
+
+		/**
+		 * Query (FoxHound) object
+		 *
+		 * This always returns a cloned query, so it's safe to get queries with a simple:
+		 *   var tmpQuery = libSomeFableObject.query;
+		 *
+		 * and not expect leakage of basic (cap, begin, filter, dataelements) cloned values.
 		 *
 		 * @property query
 		 * @type object
 		 */
 		Object.defineProperty(tmpNewMeadowObject, 'query',
 			{
-				get: function() { return _Query; },
+				get: function()
+						{
+							var tmpQuery = _Query.clone();
+							// Set the default schema
+							tmpQuery.query.schema = _Schema.schema;
+							return tmpQuery;
+						},
 				enumerable: true
 			});
 

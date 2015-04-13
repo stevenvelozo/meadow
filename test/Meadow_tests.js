@@ -12,7 +12,7 @@ var Assert = Chai.assert;
 
 var libFable = require('fable');
 
-var _AnimalSchema = (
+var _TestAnimalJsonSchema = (
 {
 	"title": "Animal",
 	"description": "A creature that lives in a meadow.",
@@ -91,10 +91,10 @@ suite
 					'Initialize with values',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
 						Expect(testMeadow.scope)
 							.to.equal('Animal');
-						Expect(testMeadow.schema.title)
+						Expect(testMeadow.jsonSchema.title)
 							.to.equal('Animal');
 					}
 				);
@@ -105,7 +105,7 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable)
 							.setScope('Animal')
-							.setSchema(_AnimalSchema);
+							.setSchema(_TestAnimalJsonSchema);
 						Expect(testMeadow.scope)
 							.to.equal('Animal');
 						var tmpValidationResults = testMeadow.validateObject({id:10, type:'bunny', name:'foofoo', age:3});
@@ -118,7 +118,7 @@ suite
 					'Validate a proper animal',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
 						var tmpValidationResults = testMeadow.validateObject({id:10, type:'bunny', name:'foofoo', age:3});
 						Expect(tmpValidationResults.Valid)
 							.to.equal(true);
@@ -129,7 +129,7 @@ suite
 					'Validate a messed up animal',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
 						// Our zombie needs a name!
 						var tmpValidationResults = testMeadow.validateObject({id:9, type:'zombie', age:3});
 						libFable.log.info('Bad Unnamed Zombie Validation Results', tmpValidationResults);
@@ -142,7 +142,7 @@ suite
 					'Change provider',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
 						Expect(testMeadow.providerName)
 							.to.equal('None');
 					}
@@ -152,7 +152,7 @@ suite
 					'Try to change to a bad provider',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _AnimalSchema);
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
 						Expect(testMeadow.providerName)
 							.to.equal('None');
 						testMeadow.setProvider();
@@ -161,6 +161,36 @@ suite
 						testMeadow.setProvider('BADPROVIDERNAME');
 						Expect(testMeadow.providerName)
 							.to.equal('None');
+					}
+				);
+				test
+				(
+					'Try to load from a json package',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable).loadFromPackage(__dirname+'/Animal.json');
+						Expect(testMeadow.scope)
+							.to.equal('FableTest');
+					}
+				);
+				test
+				(
+					'Try to load from an empty json package',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable).loadFromPackage(__dirname+'/EmptyPackage.json');
+						Expect(testMeadow.scope)
+							.to.equal('Unknown');
+					}
+				);
+				test
+				(
+					'Try to load from a bad json package',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable).loadFromPackage(__dirname+'/BadAnimal.json');
+						Expect(testMeadow)
+							.to.equal(false);
 					}
 				);
 			}

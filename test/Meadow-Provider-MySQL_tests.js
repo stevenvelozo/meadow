@@ -31,29 +31,39 @@ var tmpFableSettings = 	(
 
 var libFable = require('fable').new(tmpFableSettings);
 
-
-var _AnimalSchema = (
+var _AnimalJsonSchema = (
 {
-	"title": "Animal",
-	"description": "A creature that lives in a meadow.",
-	"type": "object",
-	"properties": {
-		"IDAnimal": {
-			"description": "The unique identifier for an animal",
-			"type": "integer"
+	title: "Animal",
+	description: "A creature that lives in a meadow.",
+	type: "object",
+	properties: {
+		IDAnimal: {
+			description: "The unique identifier for an animal",
+			type: "integer"
 		},
-		"Name": {
-			"description": "The animal's name",
-			"type": "string"
+		Name: {
+			description: "The animal's name",
+			type: "string"
 		},
-		"Type": {
-			"description": "The type of the animal",
-			"type": "string"
+		Type: {
+			description: "The type of the animal",
+			type: "string"
 		}
 	},
-	"required": ["IDAnimal", "Name", "CreatingIDUser"]
+	required: ["IDAnimal", "Name", "CreatingIDUser"]
 });
-
+var _AnimalSchema = (
+[
+	{ Column: "IDAnimal",        Type:"AutoIdentity" },
+	{ Column: "GUIDAnimal",      Type:"AutoGUID" },
+	{ Column: "CreateDate",      Type:"CreateDate" },
+	{ Column: "CreatingIDUser",  Type:"CreateIDUser" },
+	{ Column: "UpdateDate",        Type:"UpdateDate" },
+	{ Column: "UpdatingIDUser", Type:"UpdateIDUser" },
+	{ Column: "Deleted",         Type:"Deleted" },
+	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
+	{ Column: "DeleteDate",      Type:"DeleteDate" }
+]);
 var _AnimalDefault = (
 {
 	IDAnimal: null,
@@ -81,6 +91,17 @@ suite
 		var getAnimalInsert = function(pName, pType)
 		{
 			return "INSERT INTO `FableTest` (`IDAnimal`, `GUIDAnimal`, `CreateDate`, `CreatingIDUser`, `UpdateDate`, `UpdatingIDUser`, `Deleted`, `DeleteDate`, `DeletingIDUser`, `Name`, `Type`) VALUES (NULL, '00000000-0000-0000-0000-000000000000', NOW(), 1, NOW(), 1, 0, NULL, 0, '"+pName+"', '"+pType+"'); ";
+		};
+
+		var newMeadow = function()
+		{
+			return require('../source/Meadow.js')
+				.new(libFable, 'FableTest')
+				.setProvider('MySQL')
+				.setSchema(_AnimalSchema)
+				.setJsonSchema(_AnimalJsonSchema)
+				.setDefaultIdentifier('IDAnimal')
+				.setDefault(_AnimalDefault)
 		};
 
 		setup
@@ -182,13 +203,9 @@ suite
 					'Create a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
-
-						var tmpQuery = testMeadow.query.clone()
+						var testMeadow = newMeadow().setIDUser(90210);
+				
+						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
 							.addRecord({Name:'Blastoise', Type:'Pokemon'});
 
 						testMeadow.doCreate(tmpQuery,
@@ -197,6 +214,8 @@ suite
 								// We should have a record ....
 								Expect(pRecord.Name)
 									.to.equal('Blastoise');
+								Expect(pRecord.CreatingIDUser)
+									.to.equal(90210);
 								fDone();
 							}
 						)
@@ -207,13 +226,11 @@ suite
 					'Read a record from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone()
+						var tmpQuery = testMeadow.query
 							.addFilter('IDAnimal', 1);
+
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -232,10 +249,7 @@ suite
 					'Read all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
 						testMeadow.doReads(testMeadow.query,
 							function(pError, pQuery, pRecords)
@@ -261,13 +275,9 @@ suite
 					'Update a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone()
+						var tmpQuery = testMeadow.query
 							.addRecord({IDAnimal:2, Type:'Human'});
 						
 						testMeadow.doUpdate(tmpQuery,
@@ -286,13 +296,9 @@ suite
 					'Delete a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().addFilter('IDAnimal',3);
+						var tmpQuery = testMeadow.query.addFilter('IDAnimal',3);
 						
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
@@ -310,10 +316,7 @@ suite
 					'Count all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
 						Expect(testMeadow.query.parameters.result.executed)
 							.to.equal(false);
@@ -325,6 +328,28 @@ suite
 									.to.equal(5);
 								Expect(pQuery.parameters.result.executed)
 									.to.equal(true);
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Perform operations with a schema-based instantiation',
+					function(fDone)
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable)
+							.loadFromPackage(__dirname+'/Animal.json').setProvider('MySQL');
+				
+						var tmpQuery = testMeadow.query
+							.addRecord({Name:'Grommet', Type:'Dog'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have a record ....
+								Expect(pRecord.Name)
+									.to.equal('Grommet');
 								fDone();
 							}
 						)
@@ -342,13 +367,10 @@ suite
 					'Create a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
+							.setLogLevel(5)
 							.addRecord({Name:'MewTwo', Type:'Pokemon'});
 
 						testMeadow.doCreate(tmpQuery,
@@ -367,13 +389,12 @@ suite
 					'Read a record from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
+							.setLogLevel(5)
 							.addFilter('IDAnimal', 1);
+
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -392,10 +413,7 @@ suite
 					'Read all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
 						testMeadow.doReads(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecords)
@@ -421,13 +439,10 @@ suite
 					'Update a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
+								.setLogLevel(5)
 								.addRecord({IDAnimal:2, Type:'HumanGirl'});
 						
 						testMeadow.doUpdate(tmpQuery,
@@ -446,13 +461,10 @@ suite
 					'Delete a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
+								.setLogLevel(5)
 								.addFilter('IDAnimal',4);
 						
 						testMeadow.doDelete(tmpQuery,
@@ -471,21 +483,14 @@ suite
 					'Count all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						Expect(testMeadow.query.parameters.result.executed)
-							.to.equal(false);
 						testMeadow.doCount(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 5 records
+								// There should be 6 records
 								Expect(pRecord)
-									.to.equal(5);
-								Expect(pQuery.parameters.result.executed)
-									.to.equal(true);
+									.to.equal(6);
 								fDone();
 							}
 						)
@@ -503,17 +508,13 @@ suite
 					'Count all records from the database from a nonexistent table',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'BadTable')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						Expect(testMeadow.query.parameters.result.executed)
-							.to.equal(false);
-						testMeadow.doCount(testMeadow.query.setLogLevel(5),
+						testMeadow.doCount(testMeadow.query.setScope('BadTable'),
 							function(pError, pQuery, pRecord)
 							{
-								//libFable.log.fatal('Error',{Error: pError, Record: pRecord, Query: pQuery})
+								Expect(pError)
+									.to.be.an('object');
 								fDone();
 							}
 						)
@@ -524,12 +525,9 @@ suite
 					'Create a record in the database with an invalid default identifier',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow().setDefaultIdentifier('BadIdentifier');
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Scaley', Type:'Chameleon'});
 
 						testMeadow.doCreate(tmpQuery,
@@ -548,13 +546,9 @@ suite
 					'Create a record in the database with the wrong default identifier',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setDefaultIdentifier('Type')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow().setDefaultIdentifier('Type');
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Tina', Type:'Chameleon'});
 
 						testMeadow.doCreate(tmpQuery,
@@ -570,16 +564,31 @@ suite
 				);
 				test
 				(
+					'Create a record in the database with no record',
+					function(fDone)
+					{
+						var testMeadow = newMeadow().setDefaultIdentifier('Type');
+
+						testMeadow.doCreate(testMeadow.query,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
+								Expect(pError)
+									.to.equal('No record submitted');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Read a record from the database with no data returned',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone()
-							.addFilter('IDAnimal', 0);
+						var tmpQuery = testMeadow.query
+							.addFilter('IDAnimal', 5000);
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -597,13 +606,11 @@ suite
 					'Read records from the database with no data returned',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone()
-							.addFilter('IDAnimal', 0);
+						var tmpQuery = testMeadow.query
+							.addFilter('IDAnimal', 5000);
+
 						testMeadow.doReads(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -621,19 +628,14 @@ suite
 					'Delete with a bad query',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
 								.addFilter('IDAnimalHouse',4);
 						
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
-								// It returns the number of rows deleted
 								Expect(pError)
 									.to.be.an('object');
 								fDone();
@@ -646,18 +648,11 @@ suite
 					'Update a record in the database without passing a record in',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5);
-						
-						testMeadow.doUpdate(tmpQuery,
+						testMeadow.doUpdate(testMeadow.query,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
-								// We should have a record ....
 								Expect(pError)
 									.to.equal('No record submitted');
 								fDone();
@@ -670,19 +665,14 @@ suite
 					'Update a record in the database with a bad record passed in (no default identifier)',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest')
-							.setProvider('MySQL')
-							.setSchema(_AnimalSchema)
-							.setDefaultIdentifier('IDAnimal')
-							.setDefault(_AnimalDefault);
+						var testMeadow = newMeadow();
 
-						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Bill'});
 						
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
-								// We should have a record ....
 								Expect(pError)
 									.to.equal('Automated update missing default identifier');
 								fDone();

@@ -13,27 +13,31 @@ var Assert = Chai.assert;
 var libFable = require('fable');
 var libFoxHound = require('foxhound');
 
-var _AnimalSchema = (
+var _AnimalJsonSchema = (
 {
-	"title": "Animal",
-	"description": "A creature that lives in a meadow.",
-	"type": "object",
-	"properties": {
-		"IDAnimal": {
-			"description": "The unique identifier for an animal",
-			"type": "integer"
+	title: "Animal",
+	description: "A creature that lives in a meadow.",
+	type: "object",
+	properties: {
+		IDAnimal: {
+			description: "The unique identifier for an animal",
+			type: "integer"
 		},
-		"Name": {
-			"description": "The animal's name",
-			"type": "string"
+		Name: {
+			description: "The animal's name",
+			type: "string"
 		},
-		"Type": {
-			"description": "The type of the animal",
-			"type": "string"
+		Type: {
+			description: "The type of the animal",
+			type: "string"
 		}
 	},
-	"required": ["IDAnimal", "Name", "CreatingIDUser"]
+	required: ["IDAnimal", "Name", "CreatingIDUser"]
 });
+var _AnimalSchema =
+{
+
+}
 var _AnimalDefault = (
 {
 	IDAnimal: null,
@@ -56,6 +60,11 @@ suite
 	'Meadow-Provider-None',
 	function()
 	{
+		var newMeadow = function()
+		{
+			return require('../source/Meadow.js').new(libFable, 'FableTest');
+		};
+
 		setup
 		(
 			function()
@@ -89,7 +98,7 @@ suite
 					'Create a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						testMeadow.doCreate(testMeadow.query.clone().addRecord({ID:10}),
 							function(pError, pQuery, pRecord)
 							{
@@ -104,7 +113,7 @@ suite
 					'Read a record from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						var tmpQuery = testMeadow.query.clone()
 										.addFilter('IDAnimal', 1);
 						Expect(tmpQuery.parameters.result.executed)
@@ -123,7 +132,7 @@ suite
 					'Read all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						testMeadow.doReads(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
@@ -138,7 +147,7 @@ suite
 					'Update a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						testMeadow.doUpdate(testMeadow.query.clone().addRecord({IDFableTest:5}),
 							function(pError, pQuery, pRecord)
 							{
@@ -154,7 +163,7 @@ suite
 					'Delete a record in the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						testMeadow.doDelete(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
@@ -169,7 +178,7 @@ suite
 					'Count all records from the database',
 					function(fDone)
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable, 'FableTest');
+						var testMeadow = newMeadow();
 						testMeadow.doCount(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{

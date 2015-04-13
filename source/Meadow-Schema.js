@@ -17,10 +17,26 @@ var libValidator = require('is-my-json-valid');
 
 var MeadowSchema = function()
 {
-	function createNew(pOriginalSchema)
+	function createNew(pOriginalJsonSchema, pOriginalSchema)
 	{
-		/* The container object JsonSchema
-		 * http://json-schema.org/examples.html
+		// The schema
+		/*
+		 * An example:
+			[
+				{ "Column": "IDAnimal", "Type":"AutoIdentity" },
+				{ "Column": "GUIDAnimal", "Type":"AutoGUID" },
+				{ "Column": "Created", "Type":"CreateDate" },
+				{ "Column": "CreatingIDUser", "Type":"CreateIDUser" },
+				{ "Column": "Modified", "Type":"UpdateDate" },
+				{ "Column": "ModifyingIDUser", "Type":"UpdateIDUser" },
+				{ "Column": "Deleted", "Type":"Deleted" },
+				{ "Column": "DeletingIDUser", "Type":"DeleteIDUser" },
+				{ "Column": "DeleteDate", "Type":"DeleteDate" }
+			]
+		 */
+		var _Schema = false;
+		// The JSONSchema spec schema
+		/* http://json-schema.org/examples.html
 		 * http://json-schema.org/latest/json-schema-core.html
 		 *
 		 * An example:
@@ -55,8 +71,7 @@ var MeadowSchema = function()
 				"required": ["id", "name", "price"]
 			}
 		*/
-		// The schema
-		var _Schema = false;
+		var _JsonSchema = false;
 		// The "default" empty object
 		var _Default = false;
 		// The cached validator
@@ -65,6 +80,11 @@ var MeadowSchema = function()
 
 		/**
 		* Set the schema to be something else after the object is created.
+		*
+		* Our schemas are really instructions for what to do when.  We track:
+		*   - Column
+		*   - Type (e.g. AutoIdentity, AutoGUID, CreateDate, CreateIDUser, UpdateDate, UpdateIDUser, DeleteDate, Deleted, DeleteIDUser)
+		*   - Optionally Special Instractions
 		*
 		* @method setSchema
 		*/
@@ -76,9 +96,25 @@ var MeadowSchema = function()
 				type: 'object',
 				required: []
 			});
-			_Validate = libValidator(_Schema, { greedy:true, verbose:true });
 		};
 		setSchema(pOriginalSchema);
+
+		/**
+		* Set the json schema to be something else after the object is created.
+		*
+		* @method setJsonSchema
+		*/
+		var setJsonSchema = function(pJsonSchema)
+		{
+			_JsonSchema = (typeof(pJsonSchema) === 'object') ? pJsonSchema : (
+			{
+				title: 'Unknown',
+				type: 'object',
+				required: []
+			});
+			_Validate = libValidator(_JsonSchema, { greedy:true, verbose:true });
+		};
+		setJsonSchema(pOriginalJsonSchema);
 
 		var setDefault = function(pDefault)
 		{
@@ -108,6 +144,7 @@ var MeadowSchema = function()
 		var tmpNewMeadowSchemaObject = (
 		{
 			setSchema: setSchema,
+			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			validateObject: validateObject,
 
@@ -123,6 +160,19 @@ var MeadowSchema = function()
 		Object.defineProperty(tmpNewMeadowSchemaObject, 'schema',
 			{
 				get: function() { return _Schema; },
+				enumerable: true
+			});
+
+
+		/**
+		 * JsonSchema
+		 *
+		 * @property jsonSchema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowSchemaObject, 'jsonSchema',
+			{
+				get: function() { return _JsonSchema; },
 				enumerable: true
 			});
 

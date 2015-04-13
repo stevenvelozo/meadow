@@ -1,0 +1,16 @@
+{
+	"Scope": "Package",
+
+	"DefaultIdentifier": "IDPackage",
+
+	"Schema": [],
+
+	"DefaultObject": {},
+
+	"JsonSchema": {
+		"title": "Package",
+		"type": "object",
+		"properties": {},
+		"required": []
+	}
+}

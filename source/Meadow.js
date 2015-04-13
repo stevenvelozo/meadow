@@ -630,6 +630,18 @@ var Meadow = function()
 			});
 
 		/**
+		 * Default Identifier
+		 *
+		 * @property schema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'defaultIdentifier',
+			{
+				get: function() { return _DefaultIdentifier; },
+				enumerable: true
+			});
+
+		/**
 		 * Json Schema
 		 *
 		 * @property schema

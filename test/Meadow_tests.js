@@ -82,6 +82,8 @@ suite
 						var testMeadow = require('../source/Meadow.js').new(libFable);
 						Expect(testMeadow).to.have.a.property('scope')
 						.that.is.a('string'); // Scope is always a string
+						Expect(testMeadow).to.have.a.property('defaultIdentifier')
+						.that.is.a('string');
 						Expect(testMeadow).to.have.a.property('schema')
 						.that.is.a('object');
 					}

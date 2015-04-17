@@ -309,12 +309,10 @@ var Meadow = function()
 					{
 						if (
 								// The value is not an array
-								(!Array.isArray(pQuery.parameters.result.value)) ||
-								// There is not at least one record returned
 								(pQuery.parameters.result.value.length < 1)
 							)
 						{
-							return fStageComplete('Invalid query result in Read', pQuery, false);
+							return fStageComplete(false, pQuery, false);
 						}
 
 						var tmpRecord = marshalRecordFromSourceToObject(pQuery.result.value[0]);
@@ -353,16 +351,6 @@ var Meadow = function()
 					// Step 2: Marshal all the records into a POJO asynchronously
 					function (pQuery, fStageComplete)
 					{
-						if (
-								// The value is not an array
-								(!Array.isArray(pQuery.parameters.result.value)) ||
-								// There is not at least one record returned
-								(pQuery.parameters.result.value.length < 1)
-							)
-						{
-							return fStageComplete('No records read.', pQuery, false);
-						}
-
 						var tmpRecords = [];
 
 						libAsync.each
@@ -381,13 +369,13 @@ var Meadow = function()
 						);
 					}
 				],
-				function(pError, pQuery, pRecord)
+				function(pError, pQuery, pRecords)
 				{
 					if (pError)
 					{
 						_Fable.log.warn('Error during the read multiple waterfall', {Error:pError, Query: pQuery.query});
 					}
-					fCallBack(pError, pQuery, pRecord);
+					fCallBack(pError, pQuery, pRecords);
 				}
 			);
 
@@ -431,6 +419,12 @@ var Meadow = function()
 						}
 						// Set the update filter
 						pQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
+
+						// Sanity check on update
+						if ((pQuery.parameters.filter === false) || (pQuery.parameters.filter.length < 1))
+						{
+							return fStageComplete('Automated update missing filters... aborting!', pQuery, false);
+						}
 						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
 						_Provider.Update(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
@@ -444,7 +438,7 @@ var Meadow = function()
 								(typeof(pQuery.parameters.result.value) !== 'object')
 							)
 						{
-							return fStageComplete('No record created.', pQuery, false);
+							return fStageComplete('No record updated.', pQuery, false);
 						}
 
 						fStageComplete(pQuery.result.error, pQuery);
@@ -512,10 +506,6 @@ var Meadow = function()
 				],
 				function(pError, pQuery, pRecord)
 				{
-					if (pError)
-					{
-						_Fable.log.warn('Error during Count waterfall', {Error:pError, Query: pQuery.query});
-					}
 					fCallBack(pError, pQuery, pRecord);
 				}
 			);

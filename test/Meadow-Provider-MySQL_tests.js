@@ -564,6 +564,26 @@ suite
 				);
 				test
 				(
+					'Create a record in the database with bad fields',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.addRecord({Name:'Tina', TypeWriter:'Chameleon'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pError)
+									.to.be.an('object');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Create a record in the database with no record',
 					function(fDone)
 					{
@@ -592,8 +612,6 @@ suite
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
-								Expect(pError)
-									.to.equal('Invalid query result in Read');
 								Expect(pRecord)
 									.to.equal(false);
 								fDone();
@@ -614,10 +632,48 @@ suite
 						testMeadow.doReads(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
+								Expect(pRecord.length)
+									.to.equal(0);
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Read records from the database with an invalid query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.addFilter('IDAnimalFarmGeorge', 5000);
+
+						testMeadow.doReads(tmpQuery,
+							function(pError, pQuery, pRecord)
+							{
 								Expect(pError)
-									.to.equal('No records read.');
-								Expect(pRecord)
-									.to.equal(false);
+									.to.be.an('object');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Read a single record from the database with an invalid query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.addFilter('IDAnimalFarmGeorge', 5000);
+
+						testMeadow.doRead(tmpQuery,
+							function(pError, pQuery, pRecord)
+							{
+								Expect(pError)
+									.to.be.an('object');
 								fDone();
 							}
 						)
@@ -638,6 +694,45 @@ suite
 							{
 								Expect(pError)
 									.to.be.an('object');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Update a record in the database with a bad filter',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+								.setLogLevel(5)
+								.addRecord({IDAnimal:undefined, Type:'HumanGirl'});
+						
+						testMeadow.doUpdate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have a record ....
+								Expect(pError)
+									.to.equal('Automated update missing filters... aborting!');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Update a record in the database without passing a record in',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.doUpdate(testMeadow.query,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pError)
+									.to.equal('No record submitted');
 								fDone();
 							}
 						)

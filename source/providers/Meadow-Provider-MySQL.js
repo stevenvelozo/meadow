@@ -65,7 +65,16 @@ var MeadowProvider = function()
 				function(pError, pRows, pFields)
 				{
 					tmpResult.error = pError;
-					tmpResult.value = pRows.insertId;
+					tmpResult.value = false;
+					try
+					{
+						tmpResult.value = pRows.insertId;
+					}
+					catch(pErrorGettingRowcount)
+					{
+						_Fable.log.warn('Error getting insert ID during create query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+					}
+						
 					tmpResult.executed = true;
 					fCallback();
 				}

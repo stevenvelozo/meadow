@@ -233,22 +233,17 @@ var Meadow = function()
 						}
 						// Merge in the default record with the passed-in record for completeness
 						pQuery.query.records[0] = libUnderscore.extend(_Schema.defaultObject, pQuery.query.records[0]);
-						// This odd lambda is to use the async waterfall without spilling logic into the provider create code complexity
+						// This odd lambda is to use the async waterfall without spilling logic into the provider create code 
 						_Provider.Create(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
 					{
-						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
-								// The value is not set (it should be set to the value for our DefaultIdentifier)
-								(pQuery.parameters.result.value === false)
-							)
+						if (pQuery.parameters.result.value === false)
 						{
+							// The value is not set (it should be set to the value for our DefaultIdentifier)
 							return fStageComplete('Creation failed', pQuery, false);
 						}
-
 						var tmpIDRecord = pQuery.result.value;
 						fStageComplete(pQuery.result.error, pQuery, tmpIDRecord);
 					},
@@ -262,13 +257,9 @@ var Meadow = function()
 					// Step 4: Marshal the record into a POJO
 					function (pQuery, pQueryRead, fStageComplete)
 					{
-						if (
-								// The value is not an array
-								(!Array.isArray(pQueryRead.parameters.result.value)) ||
-								// There is not at least one record returned
-								(pQueryRead.parameters.result.value.length < 1)
-							)
+						if (pQueryRead.parameters.result.value.length < 1)
 						{
+							// There is not at least one record returned
 							return fStageComplete('No record found after create.', pQuery, pQueryRead, false);
 						}
 
@@ -301,22 +292,19 @@ var Meadow = function()
 					// Step 1: Get the record from the data source
 					function (fStageComplete)
 					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
+						// This odd lambda is to use the async waterfall without spilling logic into the provider read code 
 						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
 					{
-						if (
-								// The value is not an array
-								(pQuery.parameters.result.value.length < 1)
-							)
+						if (pQuery.parameters.result.value.length < 1)
 						{
+							// The value is not an array
 							return fStageComplete(false, pQuery, false);
 						}
 
 						var tmpRecord = marshalRecordFromSourceToObject(pQuery.result.value[0]);
-						// TODO: Add error handling for marshaling
 						fStageComplete(pQuery.result.error, pQuery, tmpRecord);
 					}
 				],
@@ -345,7 +333,7 @@ var Meadow = function()
 					// Step 1: Get a record from the data source
 					function (fStageComplete)
 					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
+						// This odd lambda is to use the async waterfall without spilling logic into the provider read code 
 						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Marshal all the records into a POJO asynchronously
@@ -419,25 +407,20 @@ var Meadow = function()
 						}
 						// Set the update filter
 						pQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
-
 						// Sanity check on update
 						if ((pQuery.parameters.filter === false) || (pQuery.parameters.filter.length < 1))
 						{
 							return fStageComplete('Automated update missing filters... aborting!', pQuery, false);
 						}
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
+						// This odd lambda is to use the async waterfall without spilling logic into the provider read code 
 						_Provider.Update(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 					},
 					// Step 2: Check that the record was updated
 					function (pQuery, fStageComplete)
 					{
-						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
-								// The value is not an object
-								(typeof(pQuery.parameters.result.value) !== 'object')
-							)
+						if (typeof(pQuery.parameters.result.value) !== 'object')
 						{
+							// The value is not an object
 							return fStageComplete('No record updated.', pQuery, false);
 						}
 
@@ -448,27 +431,12 @@ var Meadow = function()
 					{
 						// We can clone the query, since it has the criteria for the update in it already (filters survive a clone)
 						var tmpQueryRead = pQuery.clone();
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
+						// This odd lambda is to use the async waterfall without spilling logic into the provider read code 
 						_Provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
 					},
 					// Step 4: Marshal the record into a POJO
 					function (pQuery, pQueryRead, fStageComplete)
 					{
-						// This is a theoretical error ... it is pretty much impossible to simulate because 
-						// the waterfall error handling in step 3 catches problems in the underlying update.
-						// Therefore we'll leave the guard commented out for now.  But here for moral support.
-						/*
-						if (
-								// The value is not an array
-								(!Array.isArray(pQueryRead.parameters.result.value)) ||
-								// There is not at least one record returned
-								(pQueryRead.parameters.result.value.length < 1)
-							)
-						{
-							return fStageComplete('There was an issue loading a record after save.', pQuery, pQueryRead, false);
-						}
-						*/
-
 						var tmpRecord = marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
 						// TODO: Add error handling for marshaling
 						fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
@@ -530,11 +498,9 @@ var Meadow = function()
 					// Step 2: Marshal the record into a POJO
 					function (pQuery, fStageComplete)
 					{
-						if (
-								// The value is not a number
-								(typeof(pQuery.parameters.result.value) !== 'number')
-							)
+						if (typeof(pQuery.parameters.result.value) !== 'number')
 						{
+							// The value is not a number
 							return fStageComplete('Count did not return valid results.', pQuery, false);
 						}
 

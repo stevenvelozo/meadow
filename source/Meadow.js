@@ -14,7 +14,7 @@
 * @constructor
 */
 var libAsync = require('async');
-var libUnderscore = require('underscore')
+var libUnderscore = require('underscore');
 
 // Multi server query generation
 var libFoxHound = require('foxhound');
@@ -41,6 +41,8 @@ var Meadow = function()
 		var _Schema = require('./Meadow-Schema.js').new(pJsonSchema, pSchema);
 		// The query for this broker
 		var _Query = libFoxHound.new(_Fable).setScope(_Scope);
+		// The custom query loader
+		var _RawQueries = require('./Meadow-RawQuery.js').new(_Fable);
 
 		// The data provider
 		var _Provider = false;
@@ -214,340 +216,59 @@ var Meadow = function()
 		}
 
 		/**
-		 * Create a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
-		 *
-		 * TODO: Add a second behavior that creates records without returning them and takes an array of records.
+		 * Create a record
 		 */
+		var _CreateBehavior = require('./behaviors/Meadow-Create.js');
 		var doCreate = function(pQuery, fCallBack)
 		{
-			libAsync.waterfall(
-				[
-					// Step 1: Get the record from the data source
-					function (fStageComplete)
-					{
-						pQuery.query.IDUser = _IDUser;
-						// Make sure the user submitted a record
-						if (!pQuery.query.records)
-						{
-							return fStageComplete('No record submitted', pQuery, false);
-						}
-						// Merge in the default record with the passed-in record for completeness
-						pQuery.query.records[0] = libUnderscore.extend(_Schema.defaultObject, pQuery.query.records[0]);
-						// This odd lambda is to use the async waterfall without spilling logic into the provider create code complexity
-						_Provider.Create(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
-					},
-					// Step 2: Marshal the record into a POJO
-					function (pQuery, fStageComplete)
-					{
-						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
-								// The value is not set (it should be set to the value for our DefaultIdentifier)
-								(pQuery.parameters.result.value === false)
-							)
-						{
-							return fStageComplete('Creation failed', pQuery, false);
-						}
-
-						var tmpIDRecord = pQuery.result.value;
-						fStageComplete(pQuery.result.error, pQuery, tmpIDRecord);
-					},
-					// Step 3: Read the record
-					function (pQuery, pIDRecord, fStageComplete)
-					{
-						var tmpQueryRead = pQuery.clone().addFilter(_DefaultIdentifier, pIDRecord);
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
-					},
-					// Step 4: Marshal the record into a POJO
-					function (pQuery, pQueryRead, fStageComplete)
-					{
-						if (
-								// The value is not an array
-								(!Array.isArray(pQueryRead.parameters.result.value)) ||
-								// There is not at least one record returned
-								(pQueryRead.parameters.result.value.length < 1)
-							)
-						{
-							return fStageComplete('No record found after create.', pQuery, pQueryRead, false);
-						}
-
-						var tmpRecord = marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
-						fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
-					}
-				],
-				function(pError, pQuery, pQueryRead, pRecord)
-				{
-					if (pError)
-					{
-						_Fable.log.warn('Error during the create waterfall', {Error:pError, Query: pQuery.query});
-					}
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pQuery, pQueryRead, pRecord);
-				}
-			);
-
-			return this;
+			return _CreateBehavior(this, pQuery, fCallBack);
 		}
 
 		/**
-		 * Read a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 * Read a record
 		 */
+		var _ReadBehavior = require('./behaviors/Meadow-Read.js');
 		var doRead = function(pQuery, fCallBack)
 		{
-			// Read the record from the source
-			libAsync.waterfall(
-				[
-					// Step 1: Get the record from the data source
-					function (fStageComplete)
-					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
-					},
-					// Step 2: Marshal the record into a POJO
-					function (pQuery, fStageComplete)
-					{
-						if (
-								// The value is not an array
-								(pQuery.parameters.result.value.length < 1)
-							)
-						{
-							return fStageComplete(false, pQuery, false);
-						}
-
-						var tmpRecord = marshalRecordFromSourceToObject(pQuery.result.value[0]);
-						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, pQuery, tmpRecord);
-					}
-				],
-				function(pError, pQuery, pRecord)
-				{
-					if (pError)
-					{
-						_Fable.log.warn('Error during the read waterfall', {Error:pError, Query: pQuery.query});
-					}
-					// Call the callback passed in with the record as the first parameter, query second.
-					fCallBack(pError, pQuery, pRecord);
-				}
-			);
-
-			return this;
+			return _ReadBehavior(this, pQuery, fCallBack);
 		}
 
 		/**
-		 * Read many records asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 * Read multiple records
 		 */
+		var _ReadsBehavior = require('./behaviors/Meadow-Reads.js');
 		var doReads = function(pQuery, fCallBack)
 		{
-			// Read the record(s) from the source
-			libAsync.waterfall(
-				[
-					// Step 1: Get a record from the data source
-					function (fStageComplete)
-					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
-					},
-					// Step 2: Marshal all the records into a POJO asynchronously
-					function (pQuery, fStageComplete)
-					{
-						var tmpRecords = [];
-
-						libAsync.each
-						(
-							pQuery.parameters.result.value,
-							function(pRow, pQueueCallback)
-							{
-								tmpRecords.push(marshalRecordFromSourceToObject(pRow));
-								pQueueCallback();
-							},
-							function()
-							{
-								// Now complete the waterfall
-								fStageComplete(pQuery.result.error, pQuery, tmpRecords);
-							}
-						);
-					}
-				],
-				function(pError, pQuery, pRecords)
-				{
-					if (pError)
-					{
-						_Fable.log.warn('Error during the read multiple waterfall', {Error:pError, Query: pQuery.query});
-					}
-					fCallBack(pError, pQuery, pRecords);
-				}
-			);
-
-			return this;
+			return _ReadsBehavior(this, pQuery, fCallBack);
 		}
 
 
 		/**
-		 * Update a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 * Update a record
 		 */
+		var _UpdateBehavior = require('./behaviors/Meadow-Update.js');
 		var doUpdate = function(pQuery, fCallBack)
 		{
-			// Update the record(s) from the source
-			libAsync.waterfall(
-				[
-					// Step 1: Update the record
-					function (fStageComplete)
-					{
-						pQuery.query.IDUser = _IDUser;
-						// Make sure the user submitted a record
-						if (!pQuery.query.records)
-						{
-							return fStageComplete('No record submitted', pQuery, false);
-						}
-						// Make sure there is a default identifier
-						if (!pQuery.query.records[0].hasOwnProperty(_DefaultIdentifier))
-						{
-							return fStageComplete('Automated update missing default identifier', pQuery, false);
-						}
-
-						// Now see if there is anything in the schema that is an Update action that isn't in this query
-						for (var i = 0; i < _Schema.schema.length; i++)
-						{
-							switch (_Schema.schema[i].Type)
-							{
-								case 'UpdateIDUser':
-								case 'UpdateDate':
-									pQuery.query.records[0][_Schema.schema[i].Column] = false;
-									break;
-							}
-						}
-						// Set the update filter
-						pQuery.addFilter(_DefaultIdentifier, pQuery.query.records[0][_DefaultIdentifier]);
-
-						// Sanity check on update
-						if ((pQuery.parameters.filter === false) || (pQuery.parameters.filter.length < 1))
-						{
-							return fStageComplete('Automated update missing filters... aborting!', pQuery, false);
-						}
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Update(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
-					},
-					// Step 2: Check that the record was updated
-					function (pQuery, fStageComplete)
-					{
-						if (
-								// The query wasn't run yet
-								(pQuery.parameters.result.executed == false) || 
-								// The value is not an object
-								(typeof(pQuery.parameters.result.value) !== 'object')
-							)
-						{
-							return fStageComplete('No record updated.', pQuery, false);
-						}
-
-						fStageComplete(pQuery.result.error, pQuery);
-					},
-					// Step 3: Read the record
-					function (pQuery, fStageComplete)
-					{
-						// We can clone the query, since it has the criteria for the update in it already (filters survive a clone)
-						var tmpQueryRead = pQuery.clone();
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
-					},
-					// Step 4: Marshal the record into a POJO
-					function (pQuery, pQueryRead, fStageComplete)
-					{
-						// This is a theoretical error ... it is pretty much impossible to simulate because 
-						// the waterfall error handling in step 3 catches problems in the underlying update.
-						// Therefore we'll leave the guard commented out for now.  But here for moral support.
-						/*
-						if (
-								// The value is not an array
-								(!Array.isArray(pQueryRead.parameters.result.value)) ||
-								// There is not at least one record returned
-								(pQueryRead.parameters.result.value.length < 1)
-							)
-						{
-							return fStageComplete('There was an issue loading a record after save.', pQuery, pQueryRead, false);
-						}
-						*/
-
-						var tmpRecord = marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
-						// TODO: Add error handling for marshaling
-						fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
-					}
-				],
-				function(pError, pQuery, pQueryRead, pRecord)
-				{
-					if (pError)
-					{
-						_Fable.log.warn('Error during Update waterfall', {Error:pError, Query: pQuery.query});
-					}
-					fCallBack(pError, pQuery, pQueryRead, pRecord);
-				}
-			);
-
-			return this;
+			return _UpdateBehavior(this, pQuery, fCallBack);
 		}
 
 
 		/**
-		 * Delete a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 * Delete a record
 		 */
+		var _DeleteBehavior = require('./behaviors/Meadow-Delete.js');
 		var doDelete = function(pQuery, fCallBack)
 		{
-			// TODO: Check if this recordset has implicit delete tracking
-			// Delete the record(s) from the source
-			libAsync.waterfall(
-				[
-					// Step 1: Delete the record
-					function (fStageComplete)
-					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Delete(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery, pQuery.result.value); });
-					}
-				],
-				function(pError, pQuery, pRecord)
-				{
-					fCallBack(pError, pQuery, pRecord);
-				}
-			);
-
-			return this;
+			return _DeleteBehavior(this, pQuery, fCallBack);
 		}
 
 		/**
-		 * Count a record asynchronously, calling fCallBack with the marshalled record(s) or error in them at end
+		 * Count multiple records
 		 */
+		var _CountBehavior = require('./behaviors/Meadow-Count.js');
 		var doCount = function(pQuery, fCallBack)
 		{
-			// Count the record(s) from the source
-			libAsync.waterfall(
-				[
-					// Step 1: Get the record from the data source
-					function (fStageComplete)
-					{
-						// This odd lambda is to use the async waterfall without spilling logic into the provider read code complexity
-						_Provider.Count(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
-					},
-					// Step 2: Marshal the record into a POJO
-					function (pQuery, fStageComplete)
-					{
-						if (
-								// The value is not a number
-								(typeof(pQuery.parameters.result.value) !== 'number')
-							)
-						{
-							return fStageComplete('Count did not return valid results.', pQuery, false);
-						}
-
-						fStageComplete(pQuery.result.error, pQuery, pQuery.result.value);
-					}
-				],
-				function(pError, pQuery, pCount)
-				{
-					fCallBack(pError, pQuery, pCount);
-				}
-			);
-
-			return this;
+			return _CountBehavior(this, pQuery, fCallBack);
 		}
 
 		/**
@@ -560,8 +281,8 @@ var Meadow = function()
 			var tmpNewObject = libUnderscore.extend({}, _Schema.defaultObject);
 			// Now marshal the values from pRecord into tmpNewObject, based on schema
 			_Provider.marshalRecordFromSourceToObject(tmpNewObject, pRecord, _Schema.schema);
+			// This turns on magical validation
 			//_Fable.log.trace('Validation', {Value:tmpNewObject, Validation:_Schema.validateObject(tmpNewObject)})
-			// Now return the new object
 			return tmpNewObject;
 		}
 
@@ -578,13 +299,12 @@ var Meadow = function()
 			doCount: doCount,
 
 			validateObject: _Schema.validateObject,
+			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
 
 			setProvider: setProvider,
 			setIDUser: setIDUser,
 
-			// Schema management
 			loadFromPackage: loadFromPackage,
-			//
 			setScope: setScope,
 			setSchema: setSchema,
 			setJsonSchema: setJsonSchema,
@@ -620,6 +340,18 @@ var Meadow = function()
 			});
 
 		/**
+		 * Entity Schema
+		 *
+		 * @property schema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'schemaFull',
+			{
+				get: function() { return _Schema; },
+				enumerable: true
+			});
+
+		/**
 		 * Default Identifier
 		 *
 		 * @property schema
@@ -644,6 +376,20 @@ var Meadow = function()
 			});
 
 		/**
+		 * User Identifier
+		 *
+		 * Used to stamp user identity into Create/Update operations.
+		 *
+		 * @property userIdentifier
+		 * @type string
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'userIdentifier',
+			{
+				get: function() { return _IDUser; },
+				enumerable: true
+			});
+
+		/**
 		 * Query (FoxHound) object
 		 *
 		 * This always returns a cloned query, so it's safe to get queries with a simple:
@@ -663,6 +409,33 @@ var Meadow = function()
 							tmpQuery.query.schema = _Schema.schema;
 							return tmpQuery;
 						},
+				enumerable: true
+			});
+
+		/**
+		 * Raw Queries
+		 *
+		 * @property rawQueries
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'rawQueries',
+			{
+				get: function()
+						{
+							return _RawQueries;
+						},
+				enumerable: true
+			});
+
+		/**
+		 * Provider
+		 *
+		 * @property provider
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'provider',
+			{
+				get: function() { return _Provider; },
 				enumerable: true
 			});
 

@@ -564,26 +564,6 @@ suite
 				);
 				test
 				(
-					'Create a record in the database with bad fields',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						var tmpQuery = testMeadow.query
-							.addRecord({Name:'Tina', TypeWriter:'Chameleon'});
-
-						testMeadow.doCreate(tmpQuery,
-							function(pError, pQuery, pQueryRead, pRecord)
-							{
-								Expect(pError)
-									.to.be.an('object');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
 					'Create a record in the database with no record',
 					function(fDone)
 					{
@@ -770,6 +750,180 @@ suite
 							{
 								Expect(pError)
 									.to.equal('Automated update missing default identifier');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Set a raw Query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+						testMeadow.rawQueries.setQuery('Read', 'SELECT Something from SomethingElse;');
+
+						Expect(testMeadow.rawQueries.getQuery('Read'))
+							.to.equal('SELECT Something from SomethingElse;');
+						fDone();
+					}
+				);
+				test
+				(
+					'Load a raw Query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
+							function(pSuccess)
+							{
+								Expect(testMeadow.rawQueries.getQuery('Read'))
+									.to.contain('SELECT');
+								fDone();
+							});
+					}
+				);
+				test
+				(
+					'Load a bad raw Query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-BADAnimalReadQuery.sql',
+							function(pSuccess)
+							{
+								Expect(testMeadow.rawQueries.getQuery('Read'))
+									.to.equal('');
+								fDone();
+							});
+					}
+				);
+				test
+				(
+					'Load a raw query with no callback',
+					function()
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql');
+					}
+				);
+				test
+				(
+					'Check for a query that is not there',
+					function()
+					{
+						var testMeadow = newMeadow();
+						Expect(testMeadow.rawQueries.getQuery('Read'))
+							.to.equal(false);
+					}
+				);
+				test
+				(
+					'Read a record from a custom query',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
+							function(pSuccess)
+							{
+								// Now try to read the record
+								testMeadow.doRead(testMeadow.query.addFilter('IDAnimal', 2),
+									function(pError, pQuery, pRecord)
+									{
+										Expect(pRecord.AnimalTypeCustom)
+											.to.equal('Bunny');
+										fDone();
+									}
+								)
+							});
+					}
+				);
+				test
+				(
+					'Read records from a custom query, then delete one, then read them again then update and create.',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+						testMeadow.setDefaultIdentifier('IDAnimal');
+						testMeadow.rawQueries.setQuery('Delete', 'DELETE FROM FableTest WHERE IDAnimal = 1;')
+						testMeadow.rawQueries.setQuery('Count', 'SELECT 1337 AS RowCount;')
+						testMeadow.rawQueries.setQuery('Read', 'SELECT IDAnimal, Type AS AnimalTypeCustom FROM FableTest <%= Where %>')
+						testMeadow.rawQueries.setQuery('Update', "UPDATE FableTest SET Type = 'FrogLeg' <%= Where %>")
+
+						// And this, my friends, is why we use async.js
+						testMeadow.rawQueries.loadQuery('Reads', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
+							function(pSuccess)
+							{
+								// Now try to read the record
+								testMeadow.doReads(testMeadow.query.addFilter('IDAnimal', 2),
+									function(pError, pQuery, pRecords)
+									{
+										Expect(pRecords[1].AnimalTypeCustom)
+											.to.equal('HumanGirl');
+										testMeadow.doDelete(testMeadow.query.addFilter('IDAnimal', 2),
+											function(pError, pQuery, pRecord)
+											{
+												// It returns the number of rows deleted
+												Expect(pRecord)
+													.to.equal(1);
+												testMeadow.doCount(testMeadow.query.addFilter('IDAnimal', 2),
+													function(pError, pQuery, pRecord)
+													{
+														// It returns the number of rows deleted
+														Expect(pRecord)
+															.to.equal(1337);
+														var tmpQuery = testMeadow.query
+																.addRecord({IDAnimal:5, Type:'Bartfast'});
+														
+														testMeadow.doUpdate(tmpQuery,
+															function(pError, pQuery, pQueryRead, pRecord)
+															{
+																// We should have a record ....
+																Expect(pRecord.AnimalTypeCustom)
+																	.to.equal('Bartfast');
+																var tmpQuery = testMeadow.query
+																	.addRecord({Name:'Bambi', Type:'CustomSheep'});
+
+																testMeadow.doCreate(tmpQuery,
+																	function(pError, pQuery, pQueryRead, pRecord)
+																	{
+																		// We should have a record ....
+																		Expect(pRecord.AnimalTypeCustom)
+																			.to.equal('CustomSheep');
+																		fDone();
+																	}
+																)
+															}
+														)
+													}
+												)
+											}
+										)
+									}
+								)
+							}
+						);
+					}
+				);
+				test
+				(
+					'Create a record in the database with bad fields',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+// NOTE: Bad fields passed in are polluting the schema forever.
+						var tmpQuery = testMeadow.query
+							.addRecord({Name:'Tina', TypeWriter:'Chameleon'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pError)
+									.to.be.an('object');
 								fDone();
 							}
 						)

@@ -23,7 +23,9 @@ var meadowBehaviorDelete = function(pMeadow, pQuery, fCallBack)
 			function (fStageComplete)
 			{
 				if (pMeadow.rawQueries.checkQuery('Delete'))
+				{
 					pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Delete');
+				}
 				pMeadow.provider.Delete(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery, pQuery.result.value); });
 			}
 		],
@@ -34,6 +36,6 @@ var meadowBehaviorDelete = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorDelete;

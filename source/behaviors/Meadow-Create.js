@@ -39,7 +39,7 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 			{
 				if (
 						// The query wasn't run yet
-						(pQuery.parameters.result.executed == false) || 
+						(pQuery.parameters.result.executed === false) || 
 						// The value is not set (it should be set to the value for our DefaultIdentifier)
 						(pQuery.parameters.result.value === false)
 					)
@@ -55,7 +55,9 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 			{
 				var tmpQueryRead = pQuery.clone().addFilter(pMeadow.defaultIdentifier, pIDRecord);
 				if (pMeadow.rawQueries.checkQuery('Read'))
+				{
 					tmpQueryRead.parameters.queryOverride = pMeadow.rawQueries.getQuery('Read');
+				}
 				pMeadow.provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
 			},
 			// Step 4: Marshal the record into a POJO
@@ -86,6 +88,6 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorCreate;

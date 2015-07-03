@@ -16,9 +16,10 @@ var MeadowProvider = function()
 		{
 			return {new: createNew};
 		}
-		var _Fable = pFable;
+		//var _Fable = pFable;
 
-		var marshalRecordFromSourceToObject = function(pObject, pRecord, pSchema)
+		//var marshalRecordFromSourceToObject = function(pObject, pRecord, pSchema)
+		var marshalRecordFromSourceToObject = function()
 		{
 			// Do nothing ... this is the NONE provider after all
 		};

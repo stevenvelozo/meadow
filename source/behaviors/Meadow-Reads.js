@@ -22,7 +22,9 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 			function (fStageComplete)
 			{
 				if (pMeadow.rawQueries.checkQuery('Reads'))
+				{
 					pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Reads');
+				}
 				pMeadow.provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 			},
 			// Step 2: Marshal all the records into an array of POJOs
@@ -57,6 +59,6 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorReads;

@@ -22,7 +22,9 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 			function (fStageComplete)
 			{
 				if (pMeadow.rawQueries.checkQuery('Count'))
+				{
 					pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Count');
+				}
 				pMeadow.provider.Count(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 			},
 			// Step 2: Validate the resulting value
@@ -44,6 +46,6 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorCount;

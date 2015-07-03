@@ -43,13 +43,17 @@ var MeadowProvider = function()
 			return tmpSQLConnection;
 		};
 
-		var marshalRecordFromSourceToObject = function(pObject, pRecord, pSchema)
+		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
+		var marshalRecordFromSourceToObject = function(pObject, pRecord)
 		{
 			// For now, crudely assign everything in pRecord to pObject
+			// This is safe in this context, and we don't want to slow down marshalling with millions of hasOwnProperty checks
+			/*jshint -W089 */
 			for(var tmpColumn in pRecord)
 			{
 				pObject[tmpColumn] = pRecord[tmpColumn];
 			}
+			/*jshint +W089 */
 		};
 
 		var Create = function(pQuery, fCallback)
@@ -60,14 +64,17 @@ var MeadowProvider = function()
 
 			// TODO: Test the query before executing
 			if (pQuery.logLevel > 0)
+			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
 
 			var tmpSQLConnection = getSQLConnection();
 			tmpSQLConnection.query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
-				function(pError, pRows, pFields)
+				// The MySQL library also returns the Fields as the third parameter
+				function(pError, pRows)
 				{
 					tmpResult.error = pError;
 					tmpResult.value = false;
@@ -96,14 +103,17 @@ var MeadowProvider = function()
 			pQuery.setDialect('MySQL').buildReadQuery();
 
 			if (pQuery.logLevel > 0)
+			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
 
 			var tmpSQLConnection = getSQLConnection();
 			tmpSQLConnection.query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
-				function(pError, pRows, pFields)
+				// The MySQL library also returns the Fields as the third parameter
+				function(pError, pRows)
 				{
 					tmpResult.error = pError;
 					tmpResult.value = pRows;
@@ -121,14 +131,17 @@ var MeadowProvider = function()
 			pQuery.setDialect('MySQL').buildUpdateQuery();		
 
 			if (pQuery.logLevel > 0)
+			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
 
 			var tmpSQLConnection = getSQLConnection();
 			tmpSQLConnection.query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
-				function(pError, pRows, pFields)
+				// The MySQL library also returns the Fields as the third parameter
+				function(pError, pRows)
 				{
 					tmpResult.error = pError;
 					tmpResult.value = pRows;
@@ -146,14 +159,17 @@ var MeadowProvider = function()
 			pQuery.setDialect('MySQL').buildDeleteQuery();		
 
 			if (pQuery.logLevel > 0)
+			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
 
 			var tmpSQLConnection = getSQLConnection();
 			tmpSQLConnection.query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
-				function(pError, pRows, pFields)
+				// The MySQL library also returns the Fields as the third parameter
+				function(pError, pRows)
 				{
 					tmpResult.error = pError;
 					tmpResult.value = false;
@@ -179,21 +195,24 @@ var MeadowProvider = function()
 			pQuery.setDialect('MySQL').buildCountQuery();
 
 			if (pQuery.logLevel > 0)
+			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
 
 			var tmpSQLConnection = getSQLConnection();
 			tmpSQLConnection.query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
-				function(pError, pRows, pFields)
+				// The MySQL library also returns the Fields as the third parameter
+				function(pError, pRows)
 				{
 					tmpResult.executed = true;
 					tmpResult.error = pError;
 					tmpResult.value = false;
 					try
 					{
-						tmpResult.value = pRows[0]['RowCount'];
+						tmpResult.value = pRows[0].RowCount;
 					}
 					catch(pErrorGettingRowcount)
 					{

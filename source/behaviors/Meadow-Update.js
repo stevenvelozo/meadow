@@ -7,7 +7,6 @@
 * @module Meadow
 */
 var libAsync = require('async');
-var libUnderscore = require('underscore');
 
 /**
 * Meadow Behavior - Update a single record
@@ -64,7 +63,7 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 			{
 				if (
 						// The query wasn't run yet
-						(pQuery.parameters.result.executed == false) || 
+						(pQuery.parameters.result.executed === false) || 
 						// The value is not an object
 						(typeof(pQuery.parameters.result.value) !== 'object')
 					)
@@ -81,7 +80,9 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 				var tmpQueryRead = pQuery.clone();
 				// Make sure to load the record with the custom query if necessary.
 				if (pMeadow.rawQueries.checkQuery('Read'))
+				{
 					tmpQueryRead.parameters.queryOverride = pMeadow.rawQueries.getQuery('Read');
+				}
 				pMeadow.provider.Read(tmpQueryRead, function(){ fStageComplete(tmpQueryRead.result.error, pQuery, tmpQueryRead); });
 			},
 			// Step 4: Marshal the record into a POJO
@@ -102,6 +103,6 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorUpdate;

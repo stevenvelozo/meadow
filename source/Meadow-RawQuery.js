@@ -6,7 +6,6 @@
 * @author Steven Velozo <steven@velozo.com>
 * @module Meadow-RawQuery
 */
-var libAsync = require('async');
 var libFS = require('fs');
 /**
 * Meadow Raw Query Library
@@ -48,7 +47,6 @@ var MeadowRawQuery = function()
 		{
 			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallBack : function() {};
 
-			var _DALQueryRead;
 			libFS.readFile(pFileName, 'utf8',
 				function (pError, pData)
 				{
@@ -91,7 +89,9 @@ var MeadowRawQuery = function()
 		{
 			// This allows us to add hooks at the higher layer (from routing)
 			if (_Queries.hasOwnProperty(pQueryTag))
+			{
 				return _Queries[pQueryTag];
+			}
 
 			// Return false if there is no query for that tag.
 			return false;

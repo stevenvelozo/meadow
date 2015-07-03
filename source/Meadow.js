@@ -13,7 +13,6 @@
 * @class Meadow
 * @constructor
 */
-var libAsync = require('async');
 var libUnderscore = require('underscore');
 
 // Multi server query generation
@@ -44,6 +43,14 @@ var Meadow = function()
 		// The custom query loader
 		var _RawQueries = require('./Meadow-RawQuery.js').new(_Fable);
 
+		// The core behaviors.. abstracted into their own modules to encapsulate complexity
+		var _CreateBehavior = require('./behaviors/Meadow-Create.js');
+		var _ReadBehavior = require('./behaviors/Meadow-Read.js');
+		var _ReadsBehavior = require('./behaviors/Meadow-Reads.js');
+		var _UpdateBehavior = require('./behaviors/Meadow-Update.js');
+		var _DeleteBehavior = require('./behaviors/Meadow-Delete.js');
+		var _CountBehavior = require('./behaviors/Meadow-Count.js');
+
 		// The data provider
 		var _Provider = false;
 		var _ProviderName = false;
@@ -57,52 +64,13 @@ var Meadow = function()
 
 
 		/**
-		* Load the schema and metadata from a package file
-		*
-		* @method loadFromPackage
-		* @return {Object} Returns a new Meadow, or false if it failed
-		*/
+		 * Load a Meadow Package JSON, create a Meadow object from it.
+		 */
+		var _MeadowPackageLoader = require('./Meadow-PackageLoader.js');
 		var loadFromPackage = function(pPackage)
 		{
-			// Use the package loader to grab the configuration objects and clone a new Meadow.
-			var tmpPackage = false;
-			try
-			{
-				tmpPackage = require(pPackage);
-			}
-			catch(pError)
-			{
-				_Fable.log.error('Error loading Fable package', {Package:pPackage});
-				return false;
-			}
-
-			// Spool up a new Meadow object
-			var tmpNewMeadow = createNew(_Fable);
-
-			// Safely set the parameters
-			if (typeof(tmpPackage.Scope) === 'string')
-			{
-				tmpNewMeadow.setScope(tmpPackage.Scope);
-			}
-			if (typeof(tmpPackage.DefaultIdentifier) === 'string')
-			{
-				tmpNewMeadow.setDefaultIdentifier(tmpPackage.DefaultIdentifier);
-			}
-			if (Array.isArray(tmpPackage.Schema))
-			{
-				tmpNewMeadow.setSchema(tmpPackage.Schema);
-			}
-			if (typeof(tmpPackage.JsonSchema) === 'object')
-			{
-				tmpNewMeadow.setJsonSchema(tmpPackage.JsonSchema);
-			}
-			if (typeof(tmpPackage.DefaultObject) === 'object')
-			{
-				tmpNewMeadow.setDefault(tmpPackage.DefaultObject)
-			}
-
-			return tmpNewMeadow;
-		}
+			return _MeadowPackageLoader(this, pPackage);
+		};
 
 
 		/**
@@ -213,63 +181,57 @@ var Meadow = function()
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
 			return this;
-		}
+		};
 
 		/**
 		 * Create a record
 		 */
-		var _CreateBehavior = require('./behaviors/Meadow-Create.js');
 		var doCreate = function(pQuery, fCallBack)
 		{
 			return _CreateBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 		/**
 		 * Read a record
 		 */
-		var _ReadBehavior = require('./behaviors/Meadow-Read.js');
 		var doRead = function(pQuery, fCallBack)
 		{
 			return _ReadBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 		/**
 		 * Read multiple records
 		 */
-		var _ReadsBehavior = require('./behaviors/Meadow-Reads.js');
 		var doReads = function(pQuery, fCallBack)
 		{
 			return _ReadsBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 
 		/**
 		 * Update a record
 		 */
-		var _UpdateBehavior = require('./behaviors/Meadow-Update.js');
 		var doUpdate = function(pQuery, fCallBack)
 		{
 			return _UpdateBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 
 		/**
 		 * Delete a record
 		 */
-		var _DeleteBehavior = require('./behaviors/Meadow-Delete.js');
 		var doDelete = function(pQuery, fCallBack)
 		{
 			return _DeleteBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 		/**
 		 * Count multiple records
 		 */
-		var _CountBehavior = require('./behaviors/Meadow-Count.js');
 		var doCount = function(pQuery, fCallBack)
 		{
 			return _CountBehavior(this, pQuery, fCallBack);
-		}
+		};
 
 		/**
 		 * Take the stored representation of our object and stuff the proper values 
@@ -284,7 +246,7 @@ var Meadow = function()
 			// This turns on magical validation
 			//_Fable.log.trace('Validation', {Value:tmpNewObject, Validation:_Schema.validateObject(tmpNewObject)})
 			return tmpNewObject;
-		}
+		};
 
 		/**
 		* Container Object for our Factory Pattern
@@ -420,10 +382,7 @@ var Meadow = function()
 		 */
 		Object.defineProperty(tmpNewMeadowObject, 'rawQueries',
 			{
-				get: function()
-						{
-							return _RawQueries;
-						},
+				get: function() { return _RawQueries; },
 				enumerable: true
 			});
 

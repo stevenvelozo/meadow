@@ -23,7 +23,9 @@ var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 			{
 				// If there is a Read override query, use it!
 				if (pMeadow.rawQueries.checkQuery('Read'))
+				{
 					pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Read');
+				}
 				pMeadow.provider.Read(pQuery, function(){ fStageComplete(pQuery.result.error, pQuery); });
 			},
 			// Step 2: Marshal the record into a POJO
@@ -51,6 +53,6 @@ var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 	);
 
 	return pMeadow;
-}
+};
 
 module.exports = meadowBehaviorRead;

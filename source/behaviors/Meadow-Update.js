@@ -61,13 +61,9 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 			// Step 2: Check that the record was updated
 			function (pQuery, fStageComplete)
 			{
-				if (
-						// The query wasn't run yet
-						(pQuery.parameters.result.executed === false) || 
-						// The value is not an object
-						(typeof(pQuery.parameters.result.value) !== 'object')
-					)
+				if (typeof(pQuery.parameters.result.value) !== 'object')
 				{
+					// The value is not an object
 					return fStageComplete('No record updated.', pQuery, false);
 				}
 

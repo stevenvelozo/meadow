@@ -37,12 +37,8 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 			// Step 2: Setup a read operation
 			function (pQuery, fStageComplete)
 			{
-				if (
-						// The query wasn't run yet
-						(pQuery.parameters.result.executed === false) || 
-						// The value is not set (it should be set to the value for our DefaultIdentifier)
-						(pQuery.parameters.result.value === false)
-					)
+				// The value is not set (it should be set to the value for our DefaultIdentifier)
+				if (pQuery.parameters.result.value === false)
 				{
 					return fStageComplete('Creation failed', pQuery, false);
 				}
@@ -63,12 +59,8 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 			// Step 4: Marshal the record into a POJO
 			function (pQuery, pQueryRead, fStageComplete)
 			{
-				if (
-						// The value is not an array
-						(!Array.isArray(pQueryRead.parameters.result.value)) ||
-						// There is not at least one record returned
-						(pQueryRead.parameters.result.value.length < 1)
-					)
+				// Ensure there is not at least one record returned
+				if (pQueryRead.parameters.result.value.length < 1)
 				{
 					return fStageComplete('No record found after create.', pQuery, pQueryRead, false);
 				}

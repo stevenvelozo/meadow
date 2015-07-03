@@ -30,9 +30,9 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 			// Step 2: Validate the resulting value
 			function (pQuery, fStageComplete)
 			{
-				// Validate that the return value is a number
 				if (typeof(pQuery.parameters.result.value) !== 'number')
 				{
+					// The return value is a number.. something is wrong.
 					return fStageComplete('Count did not return valid results.', pQuery, false);
 				}
 

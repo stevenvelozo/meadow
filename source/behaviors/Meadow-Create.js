@@ -28,7 +28,7 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 					return fStageComplete('No record submitted', pQuery, false);
 				}
 				// Merge in the default record with the passed-in record for completeness
-				pQuery.query.records[0] = libUnderscore.extend(pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);
+				pQuery.query.records[0] = libUnderscore.extend({}, pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);
 				// Create override is too complex ... punting for now
 				// if (pMeadow.rawQueries.checkQuery('Create'))
 				//	pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Create');

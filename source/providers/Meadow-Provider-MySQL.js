@@ -27,20 +27,22 @@ var MeadowProvider = function()
 		 */
 		var getSQLConnection = function()
 		{
-			var tmpSQLConnection = libMySQL.createConnection
-			(
-				{
-					connectionLimit: _Fable.settings.MySQL.ConnectionPoolLimit,
-					host: _Fable.settings.MySQL.Server,
-					port: _Fable.settings.MySQL.Port,
-					user: _Fable.settings.MySQL.User,
-					password: _Fable.settings.MySQL.Password,
-					database: _Fable.settings.MySQL.Database,
-					namedPlaceholders: true
-				}
-			);
-			tmpSQLConnection.config.namedPlaceholders = true;
-			return tmpSQLConnection;
+			if (typeof(_Fable.MeadowMySQLConnectionPool) !== 'object')
+			{
+				_Fable.MeadowMySQLConnectionPool = libMySQL.createPool
+				(
+					{
+						connectionLimit: _Fable.settings.MySQL.ConnectionPoolLimit,
+						host: _Fable.settings.MySQL.Server,
+						port: _Fable.settings.MySQL.Port,
+						user: _Fable.settings.MySQL.User,
+						password: _Fable.settings.MySQL.Password,
+						database: _Fable.settings.MySQL.Database,
+						namedPlaceholders: true
+					}
+				);
+			}
+			return _Fable.MeadowMySQLConnectionPool;
 		};
 
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
@@ -60,7 +62,7 @@ var MeadowProvider = function()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildCreateQuery();		
+			pQuery.setDialect('MySQL').buildCreateQuery();
 
 			// TODO: Test the query before executing
 			if (pQuery.logLevel > 0)
@@ -68,8 +70,7 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			var tmpSQLConnection = getSQLConnection();
-			tmpSQLConnection.query
+			getSQLConnection().query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
@@ -86,9 +87,8 @@ var MeadowProvider = function()
 					{
 						_Fable.log.warn('Error getting insert ID during create query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
 					}
-						
+
 					tmpResult.executed = true;
-					tmpSQLConnection.end();
 					fCallback();
 				}
 			);
@@ -107,8 +107,7 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			var tmpSQLConnection = getSQLConnection();
-			tmpSQLConnection.query
+			getSQLConnection().query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
@@ -118,7 +117,6 @@ var MeadowProvider = function()
 					tmpResult.error = pError;
 					tmpResult.value = pRows;
 					tmpResult.executed = true;
-					tmpSQLConnection.end();
 					fCallback();
 				}
 			);
@@ -128,15 +126,14 @@ var MeadowProvider = function()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildUpdateQuery();		
+			pQuery.setDialect('MySQL').buildUpdateQuery();
 
 			if (pQuery.logLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			var tmpSQLConnection = getSQLConnection();
-			tmpSQLConnection.query
+			getSQLConnection().query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
@@ -146,7 +143,6 @@ var MeadowProvider = function()
 					tmpResult.error = pError;
 					tmpResult.value = pRows;
 					tmpResult.executed = true;
-					tmpSQLConnection.end();
 					fCallback();
 				}
 			);
@@ -156,15 +152,14 @@ var MeadowProvider = function()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildDeleteQuery();		
+			pQuery.setDialect('MySQL').buildDeleteQuery();
 
 			if (pQuery.logLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			var tmpSQLConnection = getSQLConnection();
-			tmpSQLConnection.query
+			getSQLConnection().query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
@@ -182,7 +177,6 @@ var MeadowProvider = function()
 						_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
 					}
 					tmpResult.executed = true;
-					tmpSQLConnection.end();
 					fCallback();
 				}
 			);
@@ -199,8 +193,7 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			var tmpSQLConnection = getSQLConnection();
-			tmpSQLConnection.query
+			getSQLConnection().query
 			(
 				pQuery.query.body,
 				pQuery.query.parameters,
@@ -218,7 +211,6 @@ var MeadowProvider = function()
 					{
 						_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
 					}
-					tmpSQLConnection.end();
 					fCallback();
 				}
 			);

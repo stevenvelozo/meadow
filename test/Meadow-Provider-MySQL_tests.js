@@ -204,13 +204,14 @@ suite
 					function(fDone)
 					{
 						var testMeadow = newMeadow().setIDUser(90210);
-				
+
 						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
 							.addRecord({Name:'Blastoise', Type:'Pokemon'});
 
 						testMeadow.doCreate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
+								console.log('BADTHING'+pError)
 								// We should have a record ....
 								Expect(pRecord.Name)
 									.to.equal('Blastoise');
@@ -279,7 +280,7 @@ suite
 
 						var tmpQuery = testMeadow.query
 							.addRecord({IDAnimal:2, Type:'Human'});
-						
+
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
@@ -299,7 +300,7 @@ suite
 						var testMeadow = newMeadow();
 
 						var tmpQuery = testMeadow.query.addFilter('IDAnimal',3);
-						
+
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -340,7 +341,7 @@ suite
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable)
 							.loadFromPackage(__dirname+'/Animal.json').setProvider('MySQL');
-				
+
 						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Grommet', Type:'Dog'});
 
@@ -444,7 +445,7 @@ suite
 						var tmpQuery = testMeadow.query
 								.setLogLevel(5)
 								.addRecord({IDAnimal:2, Type:'HumanGirl'});
-						
+
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
@@ -466,7 +467,7 @@ suite
 						var tmpQuery = testMeadow.query
 								.setLogLevel(5)
 								.addFilter('IDAnimal',4);
-						
+
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -668,7 +669,7 @@ suite
 
 						var tmpQuery = testMeadow.query
 								.addFilter('IDAnimalHouse',4);
-						
+
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
@@ -689,7 +690,7 @@ suite
 						var tmpQuery = testMeadow.query
 								.setLogLevel(5)
 								.addRecord({IDAnimal:undefined, Type:'HumanGirl'});
-						
+
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
@@ -744,7 +745,7 @@ suite
 
 						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Bill'});
-						
+
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
@@ -878,7 +879,7 @@ suite
 															.to.equal(1337);
 														var tmpQuery = testMeadow.query
 																.addRecord({IDAnimal:5, Type:'Bartfast'});
-														
+
 														testMeadow.doUpdate(tmpQuery,
 															function(pError, pQuery, pQueryRead, pRecord)
 															{

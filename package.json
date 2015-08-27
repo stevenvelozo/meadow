@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "fable": "^0.1.6",
     "foxhound": "0.0.11",
     "is-my-json-valid": "^2.10.1",
-    "mysql2": "0.15.2",
+    "mysql2": "0.15.8",
     "underscore": "1.7.0"
   }
 }

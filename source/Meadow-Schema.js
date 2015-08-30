@@ -1,89 +1,91 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Schema Module
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow-Schema
-*/
-
-/**
-* Meadow Schema Library
-*
-* @class MeadowSchema
-* @constructor
+* @author <steven@velozo.com>
 */
 var libValidator = require('is-my-json-valid');
 
+/**
+* @class MeadowSchema
+*/
 var MeadowSchema = function()
 {
 	function createNew(pOriginalJsonSchema, pOriginalSchema)
 	{
-		// The schema
-		/*
-		 * An example:
-			[
-				{ "Column": "IDAnimal", "Type":"AutoIdentity" },
-				{ "Column": "GUIDAnimal", "Type":"AutoGUID" },
-				{ "Column": "Created", "Type":"CreateDate" },
-				{ "Column": "CreatingIDUser", "Type":"CreateIDUser" },
-				{ "Column": "Modified", "Type":"UpdateDate" },
-				{ "Column": "ModifyingIDUser", "Type":"UpdateIDUser" },
-				{ "Column": "Deleted", "Type":"Deleted" },
-				{ "Column": "DeletingIDUser", "Type":"DeleteIDUser" },
-				{ "Column": "DeleteDate", "Type":"DeleteDate" }
-			]
+		/* ^ An Example Meadow Schema Object
+		    [
+		    	{ "Column": "IDAnimal", "Type":"AutoIdentity" },
+		    	{ "Column": "GUIDAnimal", "Type":"AutoGUID" },
+		    	{ "Column": "Created", "Type":"CreateDate" },
+		    	{ "Column": "CreatingIDUser", "Type":"CreateIDUser" },
+		    	{ "Column": "Modified", "Type":"UpdateDate" },
+		    	{ "Column": "ModifyingIDUser", "Type":"UpdateIDUser" },
+		    	{ "Column": "Deleted", "Type":"Deleted" },
+		    	{ "Column": "DeletingIDUser", "Type":"DeleteIDUser" },
+		    	{ "Column": "DeleteDate", "Type":"DeleteDate" }
+		    ]
+		*/
+		/* #### The Meadow Schema
+		 *
+		 * Meadow uses this description object to create queries, broker data and generate interfaces.
 		 */
 		var _Schema = false;
-		// The JSONSchema spec schema
-		/* http://json-schema.org/examples.html
-		 * http://json-schema.org/latest/json-schema-core.html
-		 *
-		 * An example:
-			{
-				"$schema": "http://json-schema.org/draft-04/schema#",
-				"title": "Product",
-				"description": "A product from Acme's catalog",
-				"type": "object",
-				"properties": {
-					"id": {
-						"description": "The unique identifier for a product",
-						"type": "integer"
-					},
-					"name": {
-						"description": "Name of the product",
-						"type": "string"
-					},
-					"price": {
-						"type": "number",
-						"minimum": 0,
-						"exclusiveMinimum": true
-					},
-					"tags": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						},
-						"minItems": 1,
-						"uniqueItems": true
-					}
-				},
-				"required": ["id", "name", "price"]
-			}
+
+		/* ^ An Example JSONSchema Object:
+		    	{
+		    		"$schema": "http://json-schema.org/draft-04/schema#",
+		    		"title": "Product",
+		    		"description": "A product from Acme's catalog",
+		    		"type": "object",
+		    		"properties": {
+		    			"id": {
+		    				"description": "The unique identifier for a product",
+		    				"type": "integer"
+		    			},
+		    			"name": {
+		    				"description": "Name of the product",
+		    				"type": "string"
+		    			},
+		    			"price": {
+		    				"type": "number",
+		    				"minimum": 0,
+		    				"exclusiveMinimum": true
+		    			},
+		    			"tags": {
+		    				"type": "array",
+		    				"items": {
+		    					"type": "string"
+		    				},
+		    				"minItems": 1,
+		    				"uniqueItems": true
+		    			}
+		    		},
+		    		"required": ["id", "name", "price"]
+		    	}
 		*/
+		/* #### A JSONSchema Description
+		 *
+		 * http://json-schema.org/examples.html
+		 *
+		 * http://json-schema.org/latest/json-schema-core.html
+		 */
 		var _JsonSchema = false;
-		// The "default" empty object
+
+		/* #### An "empty" ORM object
+		 * This is the basis for being filled out by the marshalling code.
+		 */
 		var _Default = false;
-		// The cached validator
+
+		// The cached validator, which uses the JSONSchema
 		var _Validate = false;
 
 
 		/**
-		* Set the schema to be something else after the object is created.
+		* Set the Meadow schema
 		*
-		* Our schemas are really instructions for what to do when.  We track:
+		* Our schemas are really instructions for *what* to do *when*.  We track:
 		*   - Column
-		*   - Type (e.g. AutoIdentity, AutoGUID, CreateDate, CreateIDUser, UpdateDate, UpdateIDUser, DeleteDate, Deleted, DeleteIDUser)
+		*   - Type _(e.g. AutoIdentity, AutoGUID, CreateDate, CreateIDUser, UpdateDate, UpdateIDUser, DeleteDate, Deleted, DeleteIDUser)_
 		*   - Optionally Special Instractions
 		*
 		* @method setSchema
@@ -100,7 +102,7 @@ var MeadowSchema = function()
 		setSchema(pOriginalSchema);
 
 		/**
-		* Set the json schema to be something else after the object is created.
+		* Set the JSONSchema
 		*
 		* @method setJsonSchema
 		*/
@@ -116,6 +118,11 @@ var MeadowSchema = function()
 		};
 		setJsonSchema(pOriginalJsonSchema);
 
+		/**
+		* Set the Default ORM object
+		*
+		* @method setDefault
+		*/
 		var setDefault = function(pDefault)
 		{
 			_Default = (typeof(pDefault) === 'object') ? pDefault : {};
@@ -125,7 +132,7 @@ var MeadowSchema = function()
 		/**
 		* Validate an object against the current schema
 		*
-		* @method setSchema
+		* @method validateObject
 		*/
 		var validateObject = function(pObject)
 		{
@@ -152,7 +159,7 @@ var MeadowSchema = function()
 		});
 
 		/**
-		 * Schema
+		 * The Meadow Schema
 		 *
 		 * @property schema
 		 * @type object
@@ -165,7 +172,7 @@ var MeadowSchema = function()
 
 
 		/**
-		 * JsonSchema
+		 * The JsonSchema
 		 *
 		 * @property jsonSchema
 		 * @type object

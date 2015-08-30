@@ -1,13 +1,8 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Provider - MySQL
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow-Schema
+* @author <steven@velozo.com>
 */
-
-
 var libMySQL = require('mysql2');
 
 var MeadowProvider = function()

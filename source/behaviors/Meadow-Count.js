@@ -1,10 +1,7 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Behavior - Count
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow
+* @author <steven@velozo.com>
 */
 var libAsync = require('async');
 

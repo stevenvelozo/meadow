@@ -1,23 +1,16 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Data Broker Library
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow
+* @author <steven@velozo.com>
 */
+var libUnderscore = require('underscore');
+var libFoxHound = require('foxhound');
 
 /**
 * Meadow Data Broker Library
 *
 * @class Meadow
-* @constructor
 */
-var libUnderscore = require('underscore');
-
-// Multi server query generation
-var libFoxHound = require('foxhound');
-
 var Meadow = function()
 {
 	function createNew(pFable, pScope, pJsonSchema, pSchema)
@@ -103,7 +96,7 @@ var Meadow = function()
 		/**
 		* Set the Provider for Query execution.
 		*
-		* This function expects a string, case sensitive, which matches the 
+		* This function expects a string, case sensitive, which matches the
 		* provider filename
 		*
 		* @method setProvider
@@ -234,7 +227,7 @@ var Meadow = function()
 		};
 
 		/**
-		 * Take the stored representation of our object and stuff the proper values 
+		 * Take the stored representation of our object and stuff the proper values
 		 * into our record, translating where necessary.
 		 */
 		var marshalRecordFromSourceToObject = function(pRecord)

@@ -1,10 +1,7 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Provider - No Data
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow-Schema
+* @author <steven@velozo.com>
 */
 
 var MeadowProvider = function()
@@ -65,7 +62,7 @@ var MeadowProvider = function()
 		var tmpNewProvider = (
 		{
 			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
-			
+
 			Create: Create,
 			Read: Read,
 			Update: Update,

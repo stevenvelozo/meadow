@@ -1,29 +1,24 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Raw Query Module
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow-RawQuery
+* @author <steven@velozo.com>
 */
 var libFS = require('fs');
+
 /**
-* Meadow Raw Query Library
+* ### Meadow Raw Query Library
 *
 * This library loads and stores raw queries for FoxHound to use.
-* You can overload the default query that is built for each of:
+* You can overload the default query that is built for each of
+* the following query archetypes:
 *
-* Create
-* Read
-* Reads
-* Update
-* Delete
-* Count
+* `Create`, `Read`, `Reads`, `Update`, `Delete`, `Count`
+*
+* You can also load other custom queries and give them an
+* arbitrary name.
 *
 * @class MeadowRawQuery
-* @constructor
 */
-
 var MeadowRawQuery = function()
 {
 	function createNew(pMeadow)
@@ -39,7 +34,7 @@ var MeadowRawQuery = function()
 
 
 		/**
-		* Load a Query from File
+		* Load a Custom Query from a File
 		*
 		* @method doLoadQuery
 		*/
@@ -54,6 +49,7 @@ var MeadowRawQuery = function()
 					{
 						_Meadow.fable.log.error('Problem loading custom query file.', {QueryTag:pQueryTag, FileName:pFileName, Error:pError});
 						// There is some debate whether we should leave the queries entry unset or set it to empty so nothing happens.
+						// If this were to set the query to `false` instead of `''`, FoxHound would be used to generate a query.
 						doSetQuery(pQueryTag, '');
 						tmpCallBack(false);
 					}
@@ -69,7 +65,7 @@ var MeadowRawQuery = function()
 
 
 		/**
-		* Set a Custom Query from a String
+		* Sets a Custom Query from a String
 		*
 		* @method doSetQuery
 		*/
@@ -81,19 +77,17 @@ var MeadowRawQuery = function()
 
 
 		/**
-		* Return a Custom Query
+		* Returns a Custom Query if one has been set for this tag
 		*
 		* @method doGetQuery
 		*/
 		function doGetQuery(pQueryTag)
 		{
-			// This allows us to add hooks at the higher layer (from routing)
 			if (_Queries.hasOwnProperty(pQueryTag))
 			{
 				return _Queries[pQueryTag];
 			}
 
-			// Return false if there is no query for that tag.
 			return false;
 		}
 

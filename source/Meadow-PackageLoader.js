@@ -1,10 +1,7 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
-* Meadow Behavior - Package Loader
-*
 * @license MIT
-*
-* @author Steven Velozo <steven@velozo.com>
-* @module Meadow
+* @author <steven@velozo.com>
 */
 
 /**

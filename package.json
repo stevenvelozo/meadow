@@ -7,8 +7,8 @@
     "start": "node source/Meadow.js",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
     "test": "./node_modules/mocha/bin/_mocha -u tdd -R spec",
-    "doc": "./node_modules/groc/bin/groc --style retold ./README.md ./source/**/*.js ./source/*.js",
-    "doc-stage-retold": "./node_modules/groc/bin/groc --style retold -o ../retold/meadow ./README.md ./source/**/*.js ./source/*.js"
+    "doc": "./node_modules/groc/bin/groc --index-page-title Overview ./README.md ./source/**/*.js ./source/*.js",
+    "doc-stage-retold": "./node_modules/groc/bin/groc --index-page-title Overview  -o ../retold/meadow ./README.md ./source/**/*.js ./source/*.js"
   },
   "repository": {
     "type": "git",

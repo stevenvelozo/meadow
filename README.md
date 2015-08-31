@@ -49,10 +49,10 @@ var meadow = require('meadow').new(fable, 'Customers')
 		.setDefaultIdentifier('customerID');
 
 // Construct a query, filtering to a specific customer, number 17
-var queryCustomer = testMeadow.query.addFilter('customerID', 17);
+var queryDescription = meadow.query.addFilter('customerID', 17);
 
 // Now pass the read query into the customer DAL, with a callback
-testMeadow.doRead(queryCustomer,
+meadow.doRead(queryDescription,
 		function(error, query, customer)
 		{
 			// The customer parameter will contain a javascript object if there is:

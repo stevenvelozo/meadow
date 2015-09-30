@@ -81,6 +81,12 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 			// Step 4: Marshal the record into a POJO
 			function (pQuery, pQueryRead, fStageComplete)
 			{
+				if (pQueryRead.result.value.length === 0)
+				{
+					//No record found to update
+					return fStageComplete('No record found to update!', pQueryRead.result, false);
+				}
+				
 				var tmpRecord = pMeadow.marshalRecordFromSourceToObject(pQueryRead.result.value[0]);
 				fStageComplete(pQuery.result.error, pQuery, pQueryRead, tmpRecord);
 			}

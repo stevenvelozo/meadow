@@ -758,6 +758,26 @@ suite
 				);
 				test
 				(
+					'Update a record in the database that does not exist',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.addRecord({IDAnimal:983924});
+
+						testMeadow.doUpdate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pError)
+									.to.equal('No record found to update!');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Set a raw Query',
 					function(fDone)
 					{

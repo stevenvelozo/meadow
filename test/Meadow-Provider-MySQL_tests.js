@@ -224,6 +224,31 @@ suite
 				);
 				test
 				(
+					'Create a record in the database with Deleted bit already set',
+					function(fDone)
+					{
+						var testMeadow = newMeadow().setIDUser(90210);
+
+						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+							.setDisableDeleteTracking(true)
+							.addRecord({Name:'Blastoise', Type:'Pokemon', Deleted: true});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								console.log('BADTHING'+pError)
+								// We should have a record ....
+								Expect(pRecord.Name)
+									.to.equal('Blastoise');
+								Expect(pRecord.CreatingIDUser)
+									.to.equal(90210);
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Read a record from the database',
 					function(fDone)
 					{

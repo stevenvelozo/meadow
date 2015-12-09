@@ -539,8 +539,8 @@ suite
 						testMeadow.doCount(testMeadow.query.setScope('BadTable'),
 							function(pError, pQuery, pRecord)
 							{
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal("ER_NO_SUCH_TABLE");
 								fDone();
 							}
 						)
@@ -560,8 +560,8 @@ suite
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
 								// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal('ER_BAD_FIELD_ERROR');
 								fDone();
 							}
 						)
@@ -658,8 +658,8 @@ suite
 						testMeadow.doReads(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal('ER_BAD_FIELD_ERROR');
 								fDone();
 							}
 						)
@@ -678,8 +678,8 @@ suite
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal('ER_BAD_FIELD_ERROR');
 								fDone();
 							}
 						)
@@ -698,8 +698,8 @@ suite
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal('ER_BAD_FIELD_ERROR');
 								fDone();
 							}
 						)
@@ -968,8 +968,8 @@ suite
 						testMeadow.doCreate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
-								Expect(pError)
-									.to.be.an('object');
+								Expect(pError.code)
+									.to.equal('ER_BAD_FIELD_ERROR');
 								fDone();
 							}
 						)

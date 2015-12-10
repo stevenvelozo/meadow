@@ -165,6 +165,18 @@ var Meadow = function()
 		};
 
 		/**
+		* Set the authorizer set
+		*
+		* @method setAuthorizer
+		* @return {Object} This is chainable.
+		*/
+		var setAuthorizer = function(pAuthorizer)
+		{
+			_Schema.setAuthorizer(pAuthorizer);
+			return this;
+		};
+
+		/**
 		* Set the default identifier
 		*
 		* @method setDefaultIdentifier
@@ -265,6 +277,7 @@ var Meadow = function()
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
+			setAuthorizer: setAuthorizer,
 
 			// Factory
 			new: createNew

@@ -50,5 +50,23 @@
 			}
 		},
 		"required": ["IDAnimal", "Name", "CreatingIDUser"]
-	}
+	},
+
+	"Authorization": {
+        "SomeSecurity": {
+            "Create": "Deny",
+            "Read": "Deny",
+            "Reads": "Deny",
+            "ReadsBy": "Deny",
+            "ReadMax": "Deny",
+            "ReadSelectList": "Deny",
+            "Update": "Deny",
+            "Delete": "Deny",
+            "Count": "Deny",
+            "CountBy": "Deny",
+            "Schema": "Deny",
+            "Validate": "Deny",
+            "New": "Deny"
+        }
+    }
 }

@@ -49,6 +49,11 @@ var loadFromPackage = function(pMeadow, pPackage)
 		tmpNewMeadow.setDefault(tmpPackage.DefaultObject);
 	}
 
+	if (typeof(tmpPackage.Authorization) === 'object')
+	{
+		tmpNewMeadow.setAuthorizer(tmpPackage.Authorization);
+	}
+
 	return tmpNewMeadow;
 };
 

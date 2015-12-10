@@ -239,6 +239,25 @@ var Meadow = function()
 		};
 
 		/**
+		 * Get the role name for an index
+		 */
+		var _RoleNames = [
+			"Unauthenticated",
+			"User",
+			"Manager",
+			"Director",
+			"Executive",
+			"Administrator"
+		];
+		var getRoleName = function(pRoleIndex)
+		{
+			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)
+				return 'Unauthenticated';
+
+			return _RoleNames[pRoleIndex];
+		}
+
+		/**
 		 * Take the stored representation of our object and stuff the proper values
 		 * into our record, translating where necessary.
 		 */
@@ -278,6 +297,8 @@ var Meadow = function()
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
 			setAuthorizer: setAuthorizer,
+
+			getRoleName: getRoleName,
 
 			// Factory
 			new: createNew

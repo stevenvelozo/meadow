@@ -367,6 +367,12 @@ suite
 						var testMeadow = require('../source/Meadow.js').new(libFable)
 							.loadFromPackage(__dirname+'/Animal.json').setProvider('MySQL');
 
+						// Make sure the authentication stuff got loaded
+						Expect(testMeadow.schemaFull.authorizer.User)
+							.to.be.an('object');
+						Expect(testMeadow.schemaFull.authorizer.User.Create)
+							.to.equal('Allow');
+
 						var tmpQuery = testMeadow.query
 							.addRecord({Name:'Grommet', Type:'Dog'});
 

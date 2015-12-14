@@ -79,6 +79,9 @@ var MeadowSchema = function()
 		// The cached validator, which uses the JSONSchema
 		var _Validate = false;
 
+		// The authorizers available to this meadow object
+		var _Authorizers = {};
+
 
 		/**
 		* Set the Meadow schema
@@ -130,6 +133,17 @@ var MeadowSchema = function()
 		setDefault();
 
 		/**
+		* Set the authorizer set
+		*
+		* @method setAuthorizer
+		* @return {Object} This is chainable.
+		*/
+		var setAuthorizer = function(pAuthorizer)
+		{
+			_Authorizers = (typeof(pAuthorizer) === 'object') ? pAuthorizer : {};
+		};
+
+		/**
 		* Validate an object against the current schema
 		*
 		* @method validateObject
@@ -153,6 +167,7 @@ var MeadowSchema = function()
 			setSchema: setSchema,
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
+			setAuthorizer: setAuthorizer,
 			validateObject: validateObject,
 
 			new: createNew
@@ -193,6 +208,19 @@ var MeadowSchema = function()
 		Object.defineProperty(tmpNewMeadowSchemaObject, 'defaultObject',
 			{
 				get: function() { return _Default; },
+				enumerable: true
+			});
+
+
+		/**
+		 * Authorizer
+		 *
+		 * @property defaultObject
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowSchemaObject, 'authorizer',
+			{
+				get: function() { return _Authorizers; },
 				enumerable: true
 			});
 

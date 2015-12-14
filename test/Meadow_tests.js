@@ -102,6 +102,22 @@ suite
 				);
 				test
 				(
+					'Try out some role names',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
+						Expect(testMeadow.getRoleName(0))
+							.to.equal('Unauthenticated');
+						Expect(testMeadow.getRoleName(100))
+							.to.equal('Unauthenticated');
+						Expect(testMeadow.getRoleName(-100))
+							.to.equal('Unauthenticated');
+						Expect(testMeadow.getRoleName(1))
+							.to.equal('User');
+					}
+				);
+				test
+				(
 					'Alternative initialization',
 					function()
 					{

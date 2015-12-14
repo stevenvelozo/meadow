@@ -165,6 +165,18 @@ var Meadow = function()
 		};
 
 		/**
+		* Set the authorizer set
+		*
+		* @method setAuthorizer
+		* @return {Object} This is chainable.
+		*/
+		var setAuthorizer = function(pAuthorizer)
+		{
+			_Schema.setAuthorizer(pAuthorizer);
+			return this;
+		};
+
+		/**
 		* Set the default identifier
 		*
 		* @method setDefaultIdentifier
@@ -227,6 +239,25 @@ var Meadow = function()
 		};
 
 		/**
+		 * Get the role name for an index
+		 */
+		var _RoleNames = [
+			"Unauthenticated",
+			"User",
+			"Manager",
+			"Director",
+			"Executive",
+			"Administrator"
+		];
+		var getRoleName = function(pRoleIndex)
+		{
+			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)
+				return 'Unauthenticated';
+
+			return _RoleNames[pRoleIndex];
+		}
+
+		/**
 		 * Take the stored representation of our object and stuff the proper values
 		 * into our record, translating where necessary.
 		 */
@@ -265,6 +296,9 @@ var Meadow = function()
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
+			setAuthorizer: setAuthorizer,
+
+			getRoleName: getRoleName,
 
 			// Factory
 			new: createNew

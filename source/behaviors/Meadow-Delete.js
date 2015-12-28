@@ -28,6 +28,10 @@ var meadowBehaviorDelete = function(pMeadow, pQuery, fCallBack)
 		],
 		function(pError, pQuery, pRecord)
 		{
+			if (pError)
+			{
+				pMeadow.fable.log.warn('Error during the delete waterfall', {Error:pError, Message: pError.message, Query: pQuery.query});
+			}
 			fCallBack(pError, pQuery, pRecord);
 		}
 	);

@@ -38,6 +38,10 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 		],
 		function(pError, pQuery, pCount)
 		{
+			if (pError)
+			{
+				pMeadow.fable.log.warn('Error during the count waterfall', {Error:pError, Message: pError.message, Query: pQuery.query});
+			}
 			fCallBack(pError, pQuery, pCount);
 		}
 	);

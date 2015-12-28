@@ -95,7 +95,7 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 		{
 			if (pError)
 			{
-				pMeadow.fable.log.warn('Error during Update waterfall', {Error:pError, Query: pQuery.query});
+				pMeadow.fable.log.warn('Error during Update waterfall', {Error:pError, Message: pError.message, Query: pQuery.query});
 			}
 			fCallBack(pError, pQuery, pQueryRead, pRecord);
 		}

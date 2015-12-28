@@ -72,7 +72,7 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 		{
 			if (pError)
 			{
-				pMeadow.fable.log.warn('Error during the create waterfall', {Error:pError, Query: pQuery.query});
+				pMeadow.fable.log.warn('Error during the create waterfall', {Error:pError, Message: pError.message, Query: pQuery.query, Stack: pError.stack});
 			}
 			fCallBack(pError, pQuery, pQueryRead, pRecord);
 		}

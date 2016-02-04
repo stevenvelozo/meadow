@@ -33,7 +33,7 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 				var tmpProfileTime = new Date().getTime() - tmpProfileStart.getTime();
 				if (tmpProfileTime > (pMeadow.fable.settings['QueryThresholdWarnTime'] || 200))
 				{
-					pMeadow.fable.log.warn('Slow Read query took ' + tmpProfileTime + 'ms', {Query: { Body: (pQuery.query ? pQuery.query.body : '') }});
+					pMeadow.logSlowQuery(tmpProfileTime, pQuery);
 				}
 
 				var tmpRecords = [];

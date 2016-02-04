@@ -167,6 +167,15 @@ suite
 				);
 				test
 				(
+					'Test log slow query method',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(libFable, 'Animal', _TestAnimalJsonSchema);
+						testMeadow.logSlowQuery(100, testMeadow.query);
+					}
+				);
+				test
+				(
 					'Try to change to a bad provider',
 					function()
 					{

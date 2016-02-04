@@ -273,6 +273,30 @@ var Meadow = function()
 		};
 
 		/**
+		 * Method to log slow queries in a consistent pattern
+		 */
+		var logSlowQuery = function(pProfileTime, pQuery)
+		{
+			var tmpQuery = pQuery.query || {body: '', parameters: {}};
+			var tmpFullQuery = tmpQuery.body;
+			for (key in tmpQuery.parameters)
+			{
+				tmpFullQuery = tmpFullQuery.replace(':' + key, tmpQuery.parameters[key]);
+			}
+
+			_Fable.log.warn('Slow Read query took ' + pProfileTime + 'ms',
+				{
+					Provider: _ProviderName,
+					Query:
+					{
+						Body: tmpQuery.body,
+						Parameters: tmpQuery.parameters,
+						FullQuery: tmpFullQuery
+					}
+				});
+		}
+
+		/**
 		* Container Object for our Factory Pattern
 		*/
 		var tmpNewMeadowObject = (
@@ -299,6 +323,8 @@ var Meadow = function()
 			setAuthorizer: setAuthorizer,
 
 			getRoleName: getRoleName,
+
+			logSlowQuery: logSlowQuery,
 
 			// Factory
 			new: createNew

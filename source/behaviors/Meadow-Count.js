@@ -33,7 +33,7 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 				var tmpProfileTime = new Date().getTime() - tmpProfileStart.getTime();
 				if (tmpProfileTime > (pMeadow.fable.settings['QueryThresholdWarnTime'] || 200))
 				{
-					pMeadow.fable.log.warn('Slow Count query took ' + tmpProfileTime + 'ms', {Query: { Body: (pQuery.query ? pQuery.query.body : '') }});
+					pMeadow.logSlowQuery(tmpProfileTime, pQuery);
 				}
 
 				if (typeof(pQuery.parameters.result.value) !== 'number')

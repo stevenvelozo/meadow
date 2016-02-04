@@ -12,6 +12,8 @@ var libAsync = require('async');
 */
 var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 {
+	var tmpProfileStart = new Date(); //for profiling query time
+
 	// Count the record(s) from the source
 	libAsync.waterfall(
 		[
@@ -27,6 +29,13 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 			// Step 2: Validate the resulting value
 			function (pQuery, fStageComplete)
 			{
+				// Check if query time exceeded threshold in settings. Log if slow.
+				var tmpProfileTime = new Date().getTime() - tmpProfileStart.getTime();
+				if (tmpProfileTime > (pMeadow.fable.settings['QueryThresholdWarnTime'] || 200))
+				{
+					pMeadow.logSlowQuery(tmpProfileTime, pQuery);
+				}
+
 				if (typeof(pQuery.parameters.result.value) !== 'number')
 				{
 					// The return value is a number.. something is wrong.

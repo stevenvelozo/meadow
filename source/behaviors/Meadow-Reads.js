@@ -12,6 +12,8 @@ var libAsync = require('async');
 */
 var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 {
+	var tmpProfileStart = new Date(); //for profiling query time
+
 	// Read the record(s) from the source
 	libAsync.waterfall(
 		[
@@ -27,6 +29,13 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 			// Step 2: Marshal all the records into an array of POJOs
 			function (pQuery, fStageComplete)
 			{
+				// Check if query time exceeded threshold in settings. Log if slow.
+				var tmpProfileTime = new Date().getTime() - tmpProfileStart.getTime();
+				if (tmpProfileTime > (pMeadow.fable.settings['QueryThresholdWarnTime'] || 200))
+				{
+					pMeadow.logSlowQuery(tmpProfileTime, pQuery);
+				}
+
 				var tmpRecords = [];
 
 				libAsync.each

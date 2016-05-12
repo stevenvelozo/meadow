@@ -101,7 +101,6 @@ suite
 				.setSchema(_AnimalSchema)
 				.setJsonSchema(_AnimalJsonSchema)
 				.setDefaultIdentifier('IDAnimal')
-				.setDefaultGUIdentifier('GUIDAnimal')
 				.setDefault(_AnimalDefault)
 		};
 

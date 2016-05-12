@@ -186,18 +186,7 @@ var Meadow = function()
 		var setDefaultIdentifier = function(pDefaultIdentifier)
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
-			return this;
-		};
-
-		/**
-		* Set the default globally-unique identifier field name
-		*
-		* @method setDefaultGUIdentifier
-		* @return {Object} This is chainable.
-		*/
-		var setDefaultGUIdentifier = function(pDefaultGUIdentifier)
-		{
-			_DefaultGUIdentifier = pDefaultGUIdentifier;
+			_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
 			return this;
 		};
 
@@ -333,7 +322,6 @@ var Meadow = function()
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
-			setDefaultGUIdentifier: setDefaultGUIdentifier,
 			setAuthorizer: setAuthorizer,
 
 			getRoleName: getRoleName,

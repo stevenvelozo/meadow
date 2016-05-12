@@ -54,6 +54,7 @@ var Meadow = function()
 		//
 		// Our development model prefers IDWidget as the column name for the default identifier.
 		var _DefaultIdentifier = 'ID'+_Scope;
+		var _DefaultGUIdentifier = 'GUID'+_Scope;
 
 
 		/**
@@ -189,6 +190,18 @@ var Meadow = function()
 		};
 
 		/**
+		* Set the default globally-unique identifier field name
+		*
+		* @method setDefaultGUIdentifier
+		* @return {Object} This is chainable.
+		*/
+		var setDefaultGUIdentifier = function(pDefaultGUIdentifier)
+		{
+			_DefaultGUIdentifier = pDefaultGUIdentifier;
+			return this;
+		};
+
+		/**
 		 * Create a record
 		 */
 		var doCreate = function(pQuery, fCallBack)
@@ -320,6 +333,7 @@ var Meadow = function()
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,
 			setDefaultIdentifier: setDefaultIdentifier,
+			setDefaultGUIdentifier: setDefaultGUIdentifier,
 			setAuthorizer: setAuthorizer,
 
 			getRoleName: getRoleName,
@@ -375,6 +389,18 @@ var Meadow = function()
 		Object.defineProperty(tmpNewMeadowObject, 'defaultIdentifier',
 			{
 				get: function() { return _DefaultIdentifier; },
+				enumerable: true
+			});
+
+		/**
+		 * Default GUIdentifier
+		 *
+		 * @property schema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'defaultGUIdentifier',
+			{
+				get: function() { return _DefaultGUIdentifier; },
 				enumerable: true
 			});
 

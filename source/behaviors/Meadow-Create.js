@@ -39,7 +39,6 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 					pMeadow.provider.Read(tmpQueryRead, function()
 						{
 							var tmpError = tmpQueryRead.error;
-							console.log('======><',tmpQueryRead.result.value);
 
 							if (!tmpError &&
 								tmpQueryRead.result.value.length > 0)
@@ -49,7 +48,7 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 
 							if (tmpError)
 							{
-								return fStageComplete(tmpError, tmpQueryRead, tmpQueryRead, tmpQueryRead.result.value);
+								return fStageComplete(tmpError, tmpQueryRead, tmpQueryRead, null);
 							}
 							else
 							{

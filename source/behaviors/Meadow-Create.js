@@ -15,15 +15,57 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 {
 	libAsync.waterfall(
 		[
-			// Step 1: Create the record in the data source
+			// Step 0: If GUID is specified, make sure the record does not already exist
 			function (fStageComplete)
 			{
-				pQuery.query.IDUser = pMeadow.userIdentifier;
 				// Make sure the user submitted a record
 				if (!pQuery.query.records)
 				{
 					return fStageComplete('No record submitted', pQuery, false);
 				}
+
+				if (pQuery.query.records[0][pMeadow.defaultGUIdentifier] &&
+					pQuery.query.records[0][pMeadow.defaultGUIdentifier].length >= 5) //see Foxhound mysql build create query: GUID min len must be 5
+				{
+					var tmpGUIDRecord = pQuery.query.records[0][pMeadow.defaultGUIdentifier];
+
+					var tmpQueryRead = pQuery.clone().addFilter(pMeadow.defaultGUIdentifier, tmpGUIDRecord)
+												 .setDisableDeleteTracking(true); //this check is to guarantee uniqueness across the entire table, so always do this
+
+					if (pMeadow.rawQueries.checkQuery('Read'))
+					{
+						tmpQueryRead.parameters.queryOverride = pMeadow.rawQueries.getQuery('Read');
+					}
+					pMeadow.provider.Read(tmpQueryRead, function()
+						{
+							var tmpError = tmpQueryRead.error;
+
+							if (!tmpError &&
+								tmpQueryRead.result.value.length > 0)
+							{
+								tmpError = 'Record with GUID ' + tmpGUIDRecord + ' already exists!';
+							}
+
+							if (tmpError)
+							{
+								return fStageComplete(tmpError, tmpQueryRead, tmpQueryRead, null);
+							}
+							else
+							{
+								return fStageComplete();
+							}
+						});
+				}
+				else
+				{
+					return fStageComplete();
+				}
+			},
+			// Step 1: Create the record in the data source
+			function (fStageComplete)
+			{
+				pQuery.query.IDUser = pMeadow.userIdentifier;
+				
 				// Merge in the default record with the passed-in record for completeness
 				pQuery.query.records[0] = libUnderscore.extend({}, pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);
 				// Create override is too complex ... punting for now

@@ -418,6 +418,49 @@ suite
 				);
 				test
 				(
+					'Create a record in the database with a predefined GUID',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.setLogLevel(5)
+							.addRecord({Name:'MewThree', GUIDAnimal:'0x12345', Type:'Pokemon'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have a record ....
+								Expect(pRecord.Name)
+									.to.equal('MewThree');
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Create a record in the database with a previously predefined GUID -- expect failure',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.setLogLevel(5)
+							.addRecord({Name:'MewThree', GUIDAnimal:'0x12345', Type:'Pokemon'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pError)
+									.to.equal("Record with GUID 0x12345 already exists!");
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Read a record from the database',
 					function(fDone)
 					{
@@ -520,9 +563,32 @@ suite
 						testMeadow.doCount(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 6 records
+								// There should be 7 records
 								Expect(pRecord)
-									.to.equal(6);
+									.to.equal(7);
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Read a record from the database that had a defined GUID',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						var tmpQuery = testMeadow.query
+							.addFilter('GUIDAnimal', '0x12345');
+
+						testMeadow.doRead(tmpQuery,
+							function(pError, pQuery, pRecord)
+							{
+								// We should have a record ....
+								Expect(pRecord.IDAnimal)
+									.to.equal(10);
+								Expect(pRecord.Name)
+									.to.equal('MewThree');
 								fDone();
 							}
 						)

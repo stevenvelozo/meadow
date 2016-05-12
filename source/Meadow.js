@@ -54,6 +54,7 @@ var Meadow = function()
 		//
 		// Our development model prefers IDWidget as the column name for the default identifier.
 		var _DefaultIdentifier = 'ID'+_Scope;
+		var _DefaultGUIdentifier = 'GUID'+_Scope;
 
 
 		/**
@@ -185,6 +186,7 @@ var Meadow = function()
 		var setDefaultIdentifier = function(pDefaultIdentifier)
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
+			_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
 			return this;
 		};
 
@@ -375,6 +377,18 @@ var Meadow = function()
 		Object.defineProperty(tmpNewMeadowObject, 'defaultIdentifier',
 			{
 				get: function() { return _DefaultIdentifier; },
+				enumerable: true
+			});
+
+		/**
+		 * Default GUIdentifier
+		 *
+		 * @property schema
+		 * @type object
+		 */
+		Object.defineProperty(tmpNewMeadowObject, 'defaultGUIdentifier',
+			{
+				get: function() { return _DefaultGUIdentifier; },
 				enumerable: true
 			});
 

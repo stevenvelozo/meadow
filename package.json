@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {

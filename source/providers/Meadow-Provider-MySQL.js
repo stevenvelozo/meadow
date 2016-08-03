@@ -15,6 +15,9 @@ var MeadowProvider = function()
 			return {new: createNew};
 		}
 		var _Fable = pFable;
+		var _GlobalLogLevel = 0;
+		if (_Fable.settings.MySQL)
+			 _GlobalLogLevel = _Fable.settings.MySQL.GlobalLogLevel || 0;
 
 		/**
 		 * Build a connection pool, shared within this provider.
@@ -60,7 +63,8 @@ var MeadowProvider = function()
 			pQuery.setDialect('MySQL').buildCreateQuery();
 
 			// TODO: Test the query before executing
-			if (pQuery.logLevel > 0)
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
@@ -97,7 +101,8 @@ var MeadowProvider = function()
 
 			pQuery.setDialect('MySQL').buildReadQuery();
 
-			if (pQuery.logLevel > 0)
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
@@ -123,7 +128,8 @@ var MeadowProvider = function()
 
 			pQuery.setDialect('MySQL').buildUpdateQuery();
 
-			if (pQuery.logLevel > 0)
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
@@ -149,7 +155,8 @@ var MeadowProvider = function()
 
 			pQuery.setDialect('MySQL').buildDeleteQuery();
 
-			if (pQuery.logLevel > 0)
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
@@ -183,7 +190,8 @@ var MeadowProvider = function()
 
 			pQuery.setDialect('MySQL').buildCountQuery();
 
-			if (pQuery.logLevel > 0)
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
 			{
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}

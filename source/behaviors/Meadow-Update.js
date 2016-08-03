@@ -18,7 +18,14 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 			// Step 1: Update the record
 			function (fStageComplete)
 			{
-				pQuery.query.IDUser = pMeadow.userIdentifier;
+				if (!pQuery.query.IDUser)
+				{
+					// The user ID is not already set, set it magically.
+					if (typeof(pQuery.userID) === 'number' && (pQuery.userID % 1) === 0 && pQuery.userID >= 0)
+						pQuery.query.IDUser = pQuery.userID;
+					else
+						pQuery.query.IDUser = pMeadow.userIdentifier;
+				}
 				// Make sure the developer submitted a record
 				if (!pQuery.query.records)
 				{

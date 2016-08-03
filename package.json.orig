@@ -1,6 +1,10 @@
 {
   "name": "meadow",
+<<<<<<< HEAD
   "version": "1.0.14",
+=======
+  "version": "1.0.13",
+>>>>>>> stevenvelozo/master
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -35,7 +39,11 @@
   "dependencies": {
     "async": "1.5.0",
     "fable": "~1.0.1",
+<<<<<<< HEAD
+    "foxhound": "~1.0.8",
+=======
     "foxhound": "~1.0.9",
+>>>>>>> stevenvelozo/master
     "is-my-json-valid": "2.12.3",
     "mysql2": "0.15.8",
     "underscore": "1.8.3"

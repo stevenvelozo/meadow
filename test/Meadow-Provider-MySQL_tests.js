@@ -594,6 +594,29 @@ suite
 						)
 					}
 				);
+				test
+				(
+					'Create a record in the database with a defined creating user',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+						var tmpQuery = testMeadow.query
+							.setIDUser(800)
+							.addRecord({Name:'MewSix', GUIDAnimal:'0x123456', Type:'Pokemon'});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have a record ....
+								Expect(pRecord.Name)
+									.to.equal('MewSix');
+								Expect(pRecord.CreatingIDUser)
+									.to.equal(800);
+								fDone();
+							}
+						)
+					}
+				);
 			}
 		);
 		suite

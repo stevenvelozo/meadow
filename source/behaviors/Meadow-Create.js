@@ -64,7 +64,14 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 			// Step 1: Create the record in the data source
 			function (fStageComplete)
 			{
-				pQuery.query.IDUser = pMeadow.userIdentifier;
+				if (!pQuery.query.IDUser)
+				{
+					// The user ID is not already set, set it magically.
+					if (typeof(pQuery.userID) === 'number' && (pQuery.userID % 1) === 0 && pQuery.userID >= 0)
+						pQuery.query.IDUser = pQuery.userID;
+					else
+						pQuery.query.IDUser = pMeadow.userIdentifier;
+				}
 				
 				// Merge in the default record with the passed-in record for completeness
 				pQuery.query.records[0] = libUnderscore.extend({}, pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);

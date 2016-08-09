@@ -205,6 +205,9 @@ suite
 					{
 						var testMeadow = newMeadow().setIDUser(90210);
 
+						// Ensure this query is "slow"...
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
+
 						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
 							.addRecord({Name:'Blastoise', Type:'Pokemon'});
 
@@ -217,6 +220,7 @@ suite
 									.to.equal('Blastoise');
 								Expect(pRecord.CreatingIDUser)
 									.to.equal(90210);
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
 								fDone();
 							}
 						)
@@ -254,6 +258,8 @@ suite
 					{
 						var testMeadow = newMeadow();
 
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
+
 						var tmpQuery = testMeadow.query
 							.addFilter('IDAnimal', 1);
 
@@ -265,6 +271,9 @@ suite
 									.to.equal(1);
 								Expect(pRecord.Name)
 									.to.equal('Foo Foo');
+
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
 								fDone();
 							}
 						)
@@ -303,6 +312,8 @@ suite
 					{
 						var testMeadow = newMeadow();
 
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
+
 						var tmpQuery = testMeadow.query
 							.addRecord({IDAnimal:2, Type:'Human'});
 
@@ -312,6 +323,9 @@ suite
 								// We should have a record ....
 								Expect(pRecord.Type)
 									.to.equal('Human');
+
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
 								fDone();
 							}
 						)
@@ -324,6 +338,7 @@ suite
 					{
 						var testMeadow = newMeadow();
 
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
 						var tmpQuery = testMeadow.query.addFilter('IDAnimal',3);
 
 						testMeadow.doDelete(tmpQuery,
@@ -332,6 +347,9 @@ suite
 								// It returns the number of rows deleted
 								Expect(pRecord)
 									.to.equal(1);
+
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
 								fDone();
 							}
 						)
@@ -343,6 +361,7 @@ suite
 					function(fDone)
 					{
 						var testMeadow = newMeadow();
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
 
 						Expect(testMeadow.query.parameters.result.executed)
 							.to.equal(false);
@@ -354,6 +373,7 @@ suite
 									.to.equal(5);
 								Expect(pQuery.parameters.result.executed)
 									.to.equal(true);
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
 								fDone();
 							}
 						)

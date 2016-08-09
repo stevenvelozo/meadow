@@ -248,7 +248,7 @@ var MeadowProvider = function()
 				tmpResult.error = undefined;
 				tmpResult.executed = false;
 
-				tmpResult.value =  {affectedRows: fQuery(pQuery.query.parameters)};
+				tmpResult.value =  fQuery(pQuery.query.parameters);
 
 				tmpResult.executed = true;
 			}
@@ -275,12 +275,20 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			// No iops so this is not async
-			var tmpRecords = fQuery(pQuery.query.parameters);
+			try
+			{
+				tmpResult.error = undefined;
+				tmpResult.executed = false;
 
-			tmpResult.error = undefined;
-			tmpResult.value = tmpRecords;
-			tmpResult.executed = true;
+				tmpResult.value =  fQuery(pQuery.query.parameters)[0].RowCount;
+
+				tmpResult.executed = true;
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+			}
+
 			fCallback();
 		};
 

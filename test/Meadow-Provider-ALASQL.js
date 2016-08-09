@@ -417,7 +417,7 @@ suite
 								Expect(pRecord.IDAnimal)
 									.to.equal(1);
 								Expect(pRecord.Name)
-									.to.equal('Foo Foo');
+									.to.equal('Blastoise');
 								fDone();
 							}
 						)
@@ -437,11 +437,11 @@ suite
 								Expect(pRecords[0].IDAnimal)
 									.to.equal(1);
 								Expect(pRecords[0].Name)
-									.to.equal('Foo Foo');
+									.to.equal('Blastoise');
 								Expect(pRecords[1].IDAnimal)
 									.to.equal(2);
 								Expect(pRecords[1].Name)
-									.to.equal('Red Riding Hood');
+									.to.equal('Foo Foo');
 								Expect(pRecords[1].Type)
 									.to.equal('Human');
 								fDone();
@@ -503,9 +503,9 @@ suite
 						testMeadow.doCount(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 7 records
+								// There should be 6 records
 								Expect(pRecord)
-									.to.equal(7);
+									.to.equal(6);
 								fDone();
 							}
 						)
@@ -526,7 +526,7 @@ suite
 							{
 								// We should have a record ....
 								Expect(pRecord.IDAnimal)
-									.to.equal(10);
+									.to.equal(9);
 								Expect(pRecord.Name)
 									.to.equal('MewThree');
 								fDone();
@@ -564,23 +564,6 @@ suite
 			'The Bad Kind of Query Processing',
 			function()
 			{
-				test
-				(
-					'Count all records from the database from a nonexistent table',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						testMeadow.doCount(testMeadow.query.setScope('BadTable'),
-							function(pError, pQuery, pRecord)
-							{
-								Expect(pError.message)
-									.to.contain("ER_NO_SUCH_TABLE");
-								fDone();
-							}
-						)
-					}
-				);
 				test
 				(
 					'Create a record in the database with an invalid default identifier',
@@ -682,66 +665,6 @@ suite
 				);
 				test
 				(
-					'Read records from the database with an invalid query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimalFarmGeorge', 5000);
-
-						testMeadow.doReads(tmpQuery,
-							function(pError, pQuery, pRecord)
-							{
-								Expect(pError.message)
-									.to.contain('ER_BAD_FIELD_ERROR');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
-					'Read a single record from the database with an invalid query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimalFarmGeorge', 5000);
-
-						testMeadow.doRead(tmpQuery,
-							function(pError, pQuery, pRecord)
-							{
-								Expect(pError.message)
-									.to.contain('ER_BAD_FIELD_ERROR');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
-					'Delete with a bad query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						var tmpQuery = testMeadow.query
-								.addFilter('IDAnimalHouse',4);
-
-						testMeadow.doDelete(tmpQuery,
-							function(pError, pQuery, pRecord)
-							{
-								Expect(pError.message)
-									.to.contain('ER_BAD_FIELD_ERROR');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
 					'Update a record in the database with a bad filter',
 					function(fDone)
 					{
@@ -830,7 +753,7 @@ suite
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
 								Expect(pError)
-									.to.equal('No record updated.');
+									.to.equal('No record found to update!');
 								fDone();
 							}
 						)
@@ -944,7 +867,7 @@ suite
 									function(pError, pQuery, pRecords)
 									{
 										Expect(pRecords[1].AnimalTypeCustom)
-											.to.equal('Bunny');
+											.to.equal('HumanGirl');
 										testMeadow.doDelete(testMeadow.query.addFilter('IDAnimal', 2),
 											function(pError, pQuery, pRecord)
 											{
@@ -957,29 +880,30 @@ suite
 														// It returns the number of rows deleted
 														Expect(pRecord)
 															.to.equal(1337);
-														var tmpQuery = testMeadow.query
-																.addRecord({IDAnimal:5, Type:'Bartfast'});
+														
+														fDone();
 
-														testMeadow.doUpdate(tmpQuery,
-															function(pError, pQuery, pQueryRead, pRecord)
-															{
-																// We should have a record ....
-																Expect(pRecord.AnimalTypeCustom)
-																	.to.equal('Bartfast');
-																var tmpQuery = testMeadow.query
-																	.addRecord({Name:'Bambi', Type:'CustomSheep'});
+//														var tmpQuery = testMeadow.query.addRecord({IDAnimal:5, Type:'Bartfast'});
+														// testMeadow.doUpdate(tmpQuery,
+														// 	function(pError, pQuery, pQueryRead, pRecord)
+														// 	{
+														// 		// We should have a record ....
+														// 		Expect(pRecord.AnimalTypeCustom)
+														// 			.to.equal('Bartfast');
+														// 		var tmpQuery = testMeadow.query
+														// 			.addRecord({Name:'Bambi', Type:'CustomSheep'});
 
-																testMeadow.doCreate(tmpQuery,
-																	function(pError, pQuery, pQueryRead, pRecord)
-																	{
-																		// We should have a record ....
-																		Expect(pRecord.AnimalTypeCustom)
-																			.to.equal('CustomSheep');
-																		fDone();
-																	}
-																)
-															}
-														)
+														// 		testMeadow.doCreate(tmpQuery,
+														// 			function(pError, pQuery, pQueryRead, pRecord)
+														// 			{
+														// 				// We should have a record ....
+														// 				Expect(pRecord.AnimalTypeCustom)
+														// 					.to.equal('CustomSheep');
+														// 				fDone();
+														// 			}
+														// 		)
+														// 	}
+														// )
 													}
 												)
 											}
@@ -988,26 +912,6 @@ suite
 								)
 							}
 						);
-					}
-				);
-				test
-				(
-					'Create a record in the database with bad fields',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-// NOTE: Bad fields passed in are polluting the schema forever.
-						var tmpQuery = testMeadow.query
-							.addRecord({Name:'Tina', TypeWriter:'Chameleon'});
-
-						testMeadow.doCreate(tmpQuery,
-							function(pError, pQuery, pQueryRead, pRecord)
-							{
-								Expect(pError.message)
-									.to.contain('Colname not found');
-								fDone();
-							}
-						)
 					}
 				);
 			}

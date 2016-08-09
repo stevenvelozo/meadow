@@ -254,10 +254,12 @@ var Meadow = function()
 		var getRoleName = function(pRoleIndex)
 		{
 			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)
+			{
 				return 'Unauthenticated';
+			}
 
 			return _RoleNames[pRoleIndex];
-		}
+		};
 
 		/**
 		 * Take the stored representation of our object and stuff the proper values
@@ -281,9 +283,12 @@ var Meadow = function()
 		{
 			var tmpQuery = pQuery.query || {body: '', parameters: {}};
 			var tmpFullQuery = tmpQuery.body;
-			for (key in tmpQuery.parameters)
+			if (tmpQuery.parameters.length)
 			{
-				tmpFullQuery = tmpFullQuery.replace(':' + key, tmpQuery.parameters[key]);
+				for (var tmpKey in tmpQuery.parameters)
+				{
+					tmpFullQuery = tmpFullQuery.replace(':' + tmpKey, tmpQuery.parameters[tmpKey]);
+				}
 			}
 
 			_Fable.log.warn('Slow Read query took ' + pProfileTime + 'ms',
@@ -296,7 +301,7 @@ var Meadow = function()
 						FullQuery: tmpFullQuery
 					}
 				});
-		}
+		};
 
 		/**
 		* Container Object for our Factory Pattern

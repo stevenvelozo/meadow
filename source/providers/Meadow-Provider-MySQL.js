@@ -20,6 +20,11 @@ var MeadowProvider = function()
 		{
 			 _GlobalLogLevel = _Fable.settings.MySQL.GlobalLogLevel || 0;
 		}
+		
+		var setSchema = (pSchema) => 
+		{
+			// The MySQL driver doesn't need the schema (yet)
+		};
 
 		/**
 		 * Build a connection pool, shared within this provider.
@@ -221,6 +226,8 @@ var MeadowProvider = function()
 
 		var tmpNewProvider = (
 		{
+			setSchema: setSchema,
+
 			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
 
 			Create: Create,

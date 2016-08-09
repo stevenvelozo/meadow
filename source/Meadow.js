@@ -116,6 +116,11 @@ var Meadow = function()
 			try
 			{
 				var tmpProviderModule = require(tmpProviderModuleFile).new(_Fable);
+				
+				// Give the provider access to the schema object
+				tmpProviderModule.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+
+				
 				_ProviderName = pProviderName;
 				_Provider = tmpProviderModule;
 			}
@@ -138,6 +143,7 @@ var Meadow = function()
 		var setSchema = function(pSchema)
 		{
 			_Schema.setSchema(pSchema);
+			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
 			return this;
 		};
 
@@ -187,6 +193,7 @@ var Meadow = function()
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
 			_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
+			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
 			return this;
 		};
 

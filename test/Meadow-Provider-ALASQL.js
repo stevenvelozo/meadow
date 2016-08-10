@@ -14,7 +14,19 @@ var Assert = Chai.assert;
 
 var libAsync = require('async');
 
-var libFable = require('fable').new();
+var libFable = require('fable').new({
+	LogStreams:
+	[
+	    {
+	        level: 'fatal',
+	        streamtype:'process.stdout',
+	    },
+	    {
+	        level: 'trace',
+	        path: __dirname+'/../tests.log'
+	    }
+	]
+});
 
 var _AnimalJsonSchema = (
 {

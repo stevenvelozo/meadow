@@ -26,7 +26,18 @@ var tmpFableSettings = 	(
 			Password: "",
 			Database: "FableTest",
 			ConnectionPoolLimit: 20
-		}
+		},
+	LogStreams:
+	[
+	    {
+	        level: 'fatal',
+	        streamtype:'process.stdout',
+	    },
+	    {
+	        level: 'trace',
+	        path: __dirname+'/../tests.log'
+	    }
+	]
 });
 
 var libFable = require('fable').new(tmpFableSettings);
@@ -214,7 +225,6 @@ suite
 						testMeadow.doCreate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
-								console.log('BADTHING'+pError)
 								// We should have a record ....
 								Expect(pRecord.Name)
 									.to.equal('Blastoise');
@@ -240,7 +250,6 @@ suite
 						testMeadow.doCreate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
 							{
-								console.log('BADTHING'+pError)
 								// We should have a record ....
 								Expect(pRecord.Name)
 									.to.equal('Blastoise');

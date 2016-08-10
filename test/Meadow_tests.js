@@ -10,7 +10,19 @@ var Chai = require("chai");
 var Expect = Chai.expect;
 var Assert = Chai.assert;
 
-var libFable = require('fable');
+var libFable = require('fable').new({
+	LogStreams:
+	[
+	    {
+	        level: 'fatal',
+	        streamtype:'process.stdout',
+	    },
+	    {
+	        level: 'trace',
+	        path: __dirname+'/../tests.log'
+	    }
+	]
+});
 
 var _TestAnimalJsonSchema = (
 {

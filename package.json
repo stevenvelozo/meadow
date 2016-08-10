@@ -37,7 +37,7 @@
     "alasql": "^0.3.1",
     "async": "2.0.1",
     "fable": "~1.0.1",
-    "foxhound": "~1.0.15",
+    "foxhound": "~1.0.16",
     "is-my-json-valid": "2.13.1",
     "mysql2": "1.0.0-rc.10",
     "underscore": "1.8.3"

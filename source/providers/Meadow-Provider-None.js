@@ -61,8 +61,6 @@ var MeadowProvider = function()
 
 		var tmpNewProvider = (
 		{
-			setSchema: ()=>{},
-
 			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
 
 			Create: Create,

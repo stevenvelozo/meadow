@@ -68,6 +68,22 @@ var Meadow = function()
 
 
 		/**
+		* Pass relevant state into the provider
+		*
+		* @method updateProviderState
+		* @return {Object} Returns the current Meadow for chaining.
+		*/
+		var updateProviderState = ()=>
+		{
+			if (typeof(_Provider.setSchema) === 'function')
+			{
+				_Provider.setSchema(_Scope, _Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+			}
+			return this;
+		};
+
+
+		/**
 		* Set the scope
 		*
 		* @method setScope
@@ -77,6 +93,7 @@ var Meadow = function()
 		{
 			_Scope = pScope;
 			_Query.setScope(pScope);
+			updateProviderState();
 			return this;
 		};
 
@@ -92,8 +109,8 @@ var Meadow = function()
 			_IDUser = pIDUser;
 			return this;
 		};
-
-
+		
+		
 		/**
 		* Set the Provider for Query execution.
 		*
@@ -116,13 +133,13 @@ var Meadow = function()
 			try
 			{
 				var tmpProviderModule = require(tmpProviderModuleFile).new(_Fable);
-				
+				_Provider = tmpProviderModule;
+
 				// Give the provider access to the schema object
-				tmpProviderModule.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+				updateProviderState();
 
 				
 				_ProviderName = pProviderName;
-				_Provider = tmpProviderModule;
 			}
 			catch (pError)
 			{
@@ -143,7 +160,7 @@ var Meadow = function()
 		var setSchema = function(pSchema)
 		{
 			_Schema.setSchema(pSchema);
-			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+			updateProviderState();
 			return this;
 		};
 
@@ -193,7 +210,7 @@ var Meadow = function()
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
 			_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
-			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+			updateProviderState();
 			return this;
 		};
 

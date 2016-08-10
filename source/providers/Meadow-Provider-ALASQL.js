@@ -28,89 +28,120 @@ var MeadowProvider = function()
 		
 		var libALASQL = _Fable.ALASQL;
 
+		var _Scope = 'Unknown_Meadow_ALASQL_Scope';
 		var _Schema = {};
 		var _DefaultIdentifier = 'ID';
 		var _DefaultGUIDentifier = 'GUID';
-		var setSchema = (pSchema, pDefaultIdentifier, pDefaultGUIdentifier) => 
+		var setSchema = (pScope, pSchema, pDefaultIdentifier, pDefaultGUIdentifier) => 
 		{
+			_Scope = pScope;
 			_Schema = pSchema;
 			_DefaultIdentifier = pDefaultIdentifier;
 			_DefaultGUIDentifier = pDefaultGUIdentifier;
+			return this;
 		};
 		
 		// Create a table for this schema on the fly
 		// This is ripped off from https://github.com/stevenvelozo/stricture/blob/master/source/Stricture-Generate-MySQL.js
-		var createTableDynamically = (pParameters) =>
+		var createTableDynamically = () =>
 		{
 			var tmpCreateStatement = '';
-			var tmpTable = (pParameters.scope === 'undefined') ? 'Storage' : pParameters.scope;
-			var tmpSchema = (_Schema.length < 1) ? [{Column:'ID', Type:'AutoIdentity'}] : _Schema;
+			var tmpTable = _Scope;
+			var tmpSchema = _Schema;
 			
+			// Check if the scope in the query matches the passed-in scope
 			// Check if the schema does not contain all columns in the query, and add them if it doesn't.
-			//for (var i = 0; i < pQuery.)
 		
-			tmpCreateStatement += "\nCREATE TABLE IF NOT EXISTS\n    "+tmpTable+"\n    (";
-			for (var j = 0; j < tmpSchema.length; j++)
+			tmpCreateStatement += "CREATE TABLE IF NOT EXISTS\n    "+tmpTable+"\n";
+			if (tmpSchema.length > 0)
 			{
-				// If we aren't the first element, append a comma.
-				if (j > 0)
-					tmpCreateStatement += ",";
-	
-				tmpCreateStatement += "\n";
-				// Dump out each column......
-				switch (tmpSchema[j].Type)
+				tmpCreateStatement += "    (\n";
+				for (var j = 0; j < tmpSchema.length; j++)
 				{
-					case 'AutoIdentity':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` INT UNSIGNED NOT NULL AUTO_INCREMENT";
-						_DefaultIdentifier = tmpSchema[j].Column;
-						break;
-					case 'AutoGUID':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'";
-						_DefaultGUIDentifier = tmpSchema[j].Column;
-						break;
-					case 'Boolean':
-					case 'Deleted':
-					case 'CreateIDUser':
-					case 'UpdateIDUser':
-					case 'DeleteIDUser':
-					case 'Numeric':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` INT NOT NULL DEFAULT '0'";
-						break;
-					case 'Decimal':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` DECIMAL("+tmpSchema[j].Size+")";
-						break;
-					case 'String':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` VARCHAR NOT NULL DEFAULT ''";
-						break;
-					case 'Text':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` TEXT";
-						break;
-					case 'CreateDate':
-					case 'UpdateDate':
-					case 'DeleteDate':
-					case 'DateTime':
-						tmpCreateStatement += "        `"+tmpSchema[j].Column+"` DATETIME";
-						break;
-					default:
-						break;
+					// If we aren't the first element, append a comma.
+					if (j > 0)
+						tmpCreateStatement += ",";
+		
+					tmpCreateStatement += "\n";
+					// Dump out each column......
+					switch (tmpSchema[j].Type)
+					{
+						case 'AutoIdentity':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` INT UNSIGNED NOT NULL AUTO_INCREMENT";
+							_DefaultIdentifier = tmpSchema[j].Column;
+							break;
+						case 'AutoGUID':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'";
+							_DefaultGUIDentifier = tmpSchema[j].Column;
+							break;
+						case 'Boolean':
+						case 'Deleted':
+						case 'CreateIDUser':
+						case 'UpdateIDUser':
+						case 'DeleteIDUser':
+						case 'Numeric':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` INT NOT NULL DEFAULT 0";
+							break;
+						case 'Decimal':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` DECIMAL("+tmpSchema[j].Size+")";
+							break;
+						case 'String':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` VARCHAR NOT NULL DEFAULT ''";
+							break;
+						case 'Text':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` TEXT";
+							break;
+						case 'CreateDate':
+						case 'UpdateDate':
+						case 'DeleteDate':
+						case 'DateTime':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` DATETIME";
+							break;
+						default:
+							break;
+					}
 				}
+				tmpCreateStatement += "\n    )";
 			}
-			tmpCreateStatement += "\n    );";
+			tmpCreateStatement += ";";
 			
 			_Fable.log.info('Auto Creating ALASQL database `'+tmpTable+'`', {CreateStatement:tmpCreateStatement});
 
 			libALASQL(tmpCreateStatement);
-		};
 
+			return this;
+		};
+		
 		// Determine if the table has been created in ALASQL.  If not, create it.
 		var checkDataExists = (pParameters) =>
 		{
+			// Check if the scope was passed in via the query and it hasn't been set yet.
+			if ((_Scope == 'Unknown_Meadow_ALASQL_Scope') && (typeof(pParameters.scope) !== 'undefined'))
+			{
+				_Scope = pParameters.scope;
+			}
 			// Per https://github.com/agershun/alasql/wiki/How-to-insert-data-into-the-table
-			if (!_Fable.ALASQL.tables.hasOwnProperty(pParameters.scope))
+			if (!_Fable.ALASQL.tables.hasOwnProperty(_Scope))
 			{
 				// Create the table with the schema
-				createTableDynamically(pParameters);
+				createTableDynamically();
 			}
+		};
+
+		var bindObject = (pObject) =>
+		{
+			if (!Array.isArray(pObject))
+				return false;
+
+			// Check that the database is created in ALASQL first
+			checkDataExists({});
+			
+			if (!_Fable.ALASQL.tables.hasOwnProperty(_Scope))
+				return false;
+
+			// Per https://github.com/agershun/alasql/wiki/How-to-insert-data-into-the-table
+			_Fable.ALASQL.tables[_Scope].data = pObject;
+			return true;
 		};
 
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
@@ -148,10 +179,22 @@ var MeadowProvider = function()
 			{
 				tmpResult.error = undefined;
 				tmpResult.executed = false;
+				tmpResult.value = 0;
 
 				var tmpQueryResponse = fQuery(pQuery.query.parameters);
 
-				tmpResult.value = libALASQL.autoval(pQuery.parameters.scope, _DefaultIdentifier);
+				if (tmpQueryResponse > 0)
+				{
+					// Check if there is an ALASQL autoval for this insert
+					if (libALASQL.tables[pQuery.parameters.scope].identities[_DefaultIdentifier])
+					{
+						tmpResult.value = libALASQL.autoval(pQuery.parameters.scope, _DefaultIdentifier);
+					}
+					else if ((pQuery.query.records.length > 0) && (pQuery.query.records[0].hasOwnProperty(_DefaultIdentifier)))
+					{
+						tmpResult.value = pQuery.query.records[0][_DefaultIdentifier];
+					}
+				}
 				tmpResult.executed = true;
 			}
 			catch (pError)
@@ -291,12 +334,129 @@ var MeadowProvider = function()
 
 			fCallback();
 		};
+		
+		/**
+		 * Construct a new Meadow from a record prototype, optionally passing in records.
+		 * 
+		 * Takes an object
+		 * {
+		 *		Meadow:          Meadow object to use (required)
+		 *      Scope:           "DATA" (string)
+		 *      ObjectPrototype: {}     (the object to base the schema off of -- REQUIRED)
+		 *      AuditData:       true   (boolean -- whether or not to add audit columns)
+		 *      Import:          true   (boolean -- whether or not to import them using the DAL)
+		 *      Data:            []     (optional array of records, one object each)
+		 * }
+		 */
+		var constructFromObject = (pParameters) =>
+		{
+			if ((typeof(pParameters) !== 'object') || (typeof(pParameters.Meadow) !== 'object'))
+				return false;
+
+			// I know there are better ways to do this, but for now I want to keep it very manual
+			if (!(typeof(pParameters.Scope) === 'string'))
+				pParameters.Scope = 'DATA';
+			if (!(typeof(pParameters.ObjectPrototype) === 'object'))
+				pParameters.ObjectPrototype = {};
+			if (!(typeof(pParameters.AuditData) === 'boolean'))
+				pParameters.AuditData = true;
+			if (!(typeof(pParameters.Import) === 'boolean'))
+				pParameters.Import = true;
+			if (!Array.isArray(pParameters.Data))
+				pParameters.Data = [];
+				
+			// Construct a meadow
+			var tmpMeadow = pParameters.Meadow
+				.new(_Fable, pParameters.Scope)
+				.setProvider('ALASQL');
+			
+			var tmpSchema = [];
+			var tmpDefaultIdentifier;
+
+			if (pParameters.AuditData)
+			{
+				// Add the audit fields to the schema
+				tmpDefaultIdentifier = 'ID'+pParameters.Scope;
+				tmpSchema.push({ Column: tmpDefaultIdentifier, Type:"AutoIdentity" });
+				tmpSchema.push({ Column: "GU"+tmpDefaultIdentifier, Type:"AutoGUID" });
+				tmpSchema.push({ Column: "CreateDate", Type:"CreateDate" });
+				tmpSchema.push({ Column: "CreatingIDUser", Type:"CreateIDUser" });
+				tmpSchema.push({ Column: "UpdateDate", Type:"UpdateDate" });
+				tmpSchema.push({ Column: "UpdatingIDUser", Type:"UpdateIDUser" });
+				tmpSchema.push({ Column: "DeleteDate", Type:"DeleteDate" });
+				tmpSchema.push({ Column: "DeletingIDUser", Type:"DeleteIDUser" });
+				tmpSchema.push({ Column: "Deleted", Type:"Deleted" });
+			}
+
+			// Now add the fields from the object in
+			for (var tmpProperty in pParameters.ObjectPrototype)
+			{
+				var tmpAdded = false;
+
+				// Add it to the schema
+				switch(typeof(pParameters.ObjectPrototype[tmpProperty]))
+				{
+					case "undefined":
+					case "object":
+					case "function":
+						// Do nothing with these types of properties
+						break;
+						
+					case "boolean":
+						tmpSchema.push({ Column: tmpProperty, Type:"Boolean" });
+						break;
+
+					// Because we can't tell the difference between floating point and not
+					case "number":
+					case "string":
+						tmpSchema.push({ Column: tmpProperty, Type:"Text" });
+						break;
+					
+					default:
+						break;
+				}
+
+				if (tmpAdded && (typeof(tmpDefaultIdentifier) === 'undefined'))
+					// Just use the first property of the prototype object as the default identifier
+					tmpDefaultIdentifier = tmpProperty;
+			}
+			tmpMeadow.setSchema(tmpSchema);
+
+			if (typeof(tmpDefaultIdentifier) === 'undefined')
+				tmpMeadow.setDefaultIdentifier(tmpDefaultIdentifier);
+
+			// Now import the data
+			if(pParameters.Import)
+			{
+				for (var j = 0; j < pParameters.Data.length; j++)
+				{
+					tmpMeadow.doCreate(tmpMeadow.query.clone().addRecord(pParameters.Data[j]),
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// Maybe log the error?
+								_Fable.log.trace('Auto imported record', pRecord);
+							}
+						);
+				}
+			}
+			else
+			{
+				// Just assign the object
+				tmpMeadow.provider.bindObject(pParameters.Data);
+			}
+			
+			return tmpMeadow;
+		};
 
 		var tmpNewProvider = (
 		{
 			setSchema: setSchema,
 
 			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
+			
+			constructFromObject: constructFromObject,
+
+			bindObject:bindObject,
 
 			Create: Create,
 			Read: Read,

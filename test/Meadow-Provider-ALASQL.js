@@ -578,48 +578,6 @@ suite
 			{
 				test
 				(
-					'Create a record in the database with an invalid default identifier',
-					function(fDone)
-					{
-						var testMeadow = newMeadow().setDefaultIdentifier('BadIdentifier');
-
-						var tmpQuery = testMeadow.query
-							.addRecord({Name:'Scaley', Type:'Chameleon'});
-
-						testMeadow.doCreate(tmpQuery,
-							function(pError, pQuery, pQueryRead, pRecord)
-							{
-								// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
-								Expect(pError.message)
-									.to.contain('Colname not found');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
-					'Create a record in the database with the wrong default identifier',
-					function(fDone)
-					{
-						var testMeadow = newMeadow().setDefaultIdentifier('Type');
-
-						var tmpQuery = testMeadow.query
-							.addRecord({Name:'Tina', Type:'Chameleon'});
-
-						testMeadow.doCreate(tmpQuery,
-							function(pError, pQuery, pQueryRead, pRecord)
-							{
-								// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
-								Expect(pError.message)
-									.to.contain('Colname not found');
-								fDone();
-							}
-						)
-					}
-				);
-				test
-				(
 					'Create a record in the database with no record',
 					function(fDone)
 					{
@@ -895,33 +853,109 @@ suite
 														
 														fDone();
 
-//														var tmpQuery = testMeadow.query.addRecord({IDAnimal:5, Type:'Bartfast'});
-														// testMeadow.doUpdate(tmpQuery,
-														// 	function(pError, pQuery, pQueryRead, pRecord)
-														// 	{
-														// 		// We should have a record ....
-														// 		Expect(pRecord.AnimalTypeCustom)
-														// 			.to.equal('Bartfast');
-														// 		var tmpQuery = testMeadow.query
-														// 			.addRecord({Name:'Bambi', Type:'CustomSheep'});
 
-														// 		testMeadow.doCreate(tmpQuery,
-														// 			function(pError, pQuery, pQueryRead, pRecord)
-														// 			{
-														// 				// We should have a record ....
-														// 				Expect(pRecord.AnimalTypeCustom)
-														// 					.to.equal('CustomSheep');
-														// 				fDone();
-														// 			}
-														// 		)
-														// 	}
-														// )
 													}
 												)
 											}
 										)
 									}
 								)
+							}
+						);
+					}
+				);
+			}
+		);
+		suite
+		(
+			'Object Tests',
+			function()
+			{
+				test
+				(
+					'Create a schemaless connection to a list of arbitrary objects',
+					(fDone) =>
+					{
+						var testMeadow = require('../source/Meadow.js')
+										.new(libFable, 'TestData')
+										.setProvider('ALASQL')
+										.setDefaultIdentifier('EmployeeID');
+
+						testMeadow.doCreate(testMeadow.query.clone().addRecord({EmployeeID: 5, Name:'Rincewind', Type:'Wizzard'}),
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								Expect(pRecord.Name).to.equal('Rincewind');
+								Expect(libFable.ALASQL.tables.TestData.data[0].Type).to.equal('Wizzard');
+								fDone();
+							}
+						);
+					}
+				);
+				test
+				(
+					'Bind an object to a schemaless instance',
+					(fDone) =>
+					{
+						var myData = [
+								{Brand:'Nike', Style:'Lowtop', Size:11, SKU:'11938'},
+								{Brand:'Nike', Style:'Hightop', Size:10, SKU:'12954338'},
+								{Brand:'Nike', Style:'FlipFlop', Size:4, SKU:'454334'},
+								{Brand:'Rebok', Style:'FlipFlop', Size:11, SKU:'8763'},
+								{Brand:'Rebok', Style:'Lowtop', Size:10, SKU:'a342'},
+								{Brand:'Puma', Style:'Sandal', Size:10, SKU:'as3455325'},
+								{Brand:'Puma', Style:'Lowtop', Size:15, SKU:'dsa33234'}
+							];
+
+						var testMeadow = require('../source/Meadow.js')
+										.new(libFable, 'Shoes')
+										.setProvider('ALASQL')
+										.setDefaultIdentifier('SKU');
+						testMeadow.provider.bindObject(myData);
+
+						testMeadow.doReads(testMeadow.query.clone().addFilter('Brand', 'Rebok'),
+							function(pError, pQuery, pRecords)
+							{
+								// We should have a record ....
+								Expect(pRecords[0].Style)
+									.to.equal('FlipFlop');
+								fDone();
+							}
+						);
+					}
+				);
+				test
+				(
+					'Create a meadow object from data',
+					(fDone) =>
+					{
+						var myData = [
+								{Brand:'Nike', Style:'Lowtop', Size:11, SKU:'11938'},
+								{Brand:'Nike', Style:'Hightop', Size:10, SKU:'12954338'},
+								{Brand:'Nike', Style:'FlipFlop', Size:4, SKU:'454334'},
+								{Brand:'Rebok', Style:'FlipFlop', Size:11, SKU:'8763'},
+								{Brand:'Rebok', Style:'Lowtop', Size:10, SKU:'a342'},
+								{Brand:'Puma', Style:'Sandal', Size:10, SKU:'as3455325'},
+								{Brand:'Puma', Style:'Lowtop', Size:15, SKU:'dsa33234'}
+							];
+
+						var testMeadow = require('../source/Meadow.js')
+										.new(libFable, 'Master')
+										.setProvider('ALASQL')
+										.provider.constructFromObject(
+											{
+												Meadow: require('../source/Meadow.js').new(libFable, 'Master'),
+												Scope: 'ShoeCity',
+												ObjectPrototype: myData[0],
+												Data: myData
+											});
+
+						testMeadow.doReads(testMeadow.query.clone().addFilter('SKU', 'dsa33234'),
+							function(pError, pQuery, pRecords)
+							{
+								// We should have a record ....
+								Expect(pRecords[0].Style)
+									.to.equal('Lowtop');
+								fDone();
 							}
 						);
 					}

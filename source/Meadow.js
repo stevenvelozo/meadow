@@ -116,6 +116,11 @@ var Meadow = function()
 			try
 			{
 				var tmpProviderModule = require(tmpProviderModuleFile).new(_Fable);
+				
+				// Give the provider access to the schema object
+				tmpProviderModule.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+
+				
 				_ProviderName = pProviderName;
 				_Provider = tmpProviderModule;
 			}
@@ -138,6 +143,7 @@ var Meadow = function()
 		var setSchema = function(pSchema)
 		{
 			_Schema.setSchema(pSchema);
+			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
 			return this;
 		};
 
@@ -187,6 +193,7 @@ var Meadow = function()
 		{
 			_DefaultIdentifier = pDefaultIdentifier;
 			_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
+			_Provider.setSchema(_Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
 			return this;
 		};
 
@@ -254,10 +261,12 @@ var Meadow = function()
 		var getRoleName = function(pRoleIndex)
 		{
 			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)
+			{
 				return 'Unauthenticated';
+			}
 
 			return _RoleNames[pRoleIndex];
-		}
+		};
 
 		/**
 		 * Take the stored representation of our object and stuff the proper values
@@ -281,9 +290,12 @@ var Meadow = function()
 		{
 			var tmpQuery = pQuery.query || {body: '', parameters: {}};
 			var tmpFullQuery = tmpQuery.body;
-			for (key in tmpQuery.parameters)
+			if (tmpQuery.parameters.length)
 			{
-				tmpFullQuery = tmpFullQuery.replace(':' + key, tmpQuery.parameters[key]);
+				for (var tmpKey in tmpQuery.parameters)
+				{
+					tmpFullQuery = tmpFullQuery.replace(':' + tmpKey, tmpQuery.parameters[tmpKey]);
+				}
 			}
 
 			_Fable.log.warn('Slow Read query took ' + pProfileTime + 'ms',
@@ -296,7 +308,7 @@ var Meadow = function()
 						FullQuery: tmpFullQuery
 					}
 				});
-		}
+		};
 
 		/**
 		* Container Object for our Factory Pattern

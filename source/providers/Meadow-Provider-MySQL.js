@@ -17,7 +17,14 @@ var MeadowProvider = function()
 		var _Fable = pFable;
 		var _GlobalLogLevel = 0;
 		if (_Fable.settings.MySQL)
+		{
 			 _GlobalLogLevel = _Fable.settings.MySQL.GlobalLogLevel || 0;
+		}
+		
+		var setSchema = (pSchema) => 
+		{
+			// The MySQL driver doesn't need the schema (yet)
+		};
 
 		/**
 		 * Build a connection pool, shared within this provider.
@@ -48,12 +55,10 @@ var MeadowProvider = function()
 		{
 			// For now, crudely assign everything in pRecord to pObject
 			// This is safe in this context, and we don't want to slow down marshalling with millions of hasOwnProperty checks
-			/*jshint -W089 */
 			for(var tmpColumn in pRecord)
 			{
 				pObject[tmpColumn] = pRecord[tmpColumn];
 			}
-			/*jshint +W089 */
 		};
 
 		var Create = function(pQuery, fCallback)
@@ -221,6 +226,8 @@ var MeadowProvider = function()
 
 		var tmpNewProvider = (
 		{
+			setSchema: setSchema,
+
 			marshalRecordFromSourceToObject: marshalRecordFromSourceToObject,
 
 			Create: Create,

@@ -28,6 +28,7 @@ var Meadow = function()
 
 		// The scope of this broker.
 		var _Scope = (typeof(pScope) === 'string') ? pScope : 'Unknown';
+		var _Domain = 'Default';
 
 		// The schema for this broker
 		var _Schema = require('./Meadow-Schema.js').new(pJsonSchema, pSchema);
@@ -201,6 +202,18 @@ var Meadow = function()
 		};
 
 		/**
+		* Set the domain
+		*
+		* @method setDomain
+		* @return {Object} This is chainable.
+		*/
+		var setDomain = function(pDomain)
+		{
+			_Domain = pDomain;
+			return this;
+		};
+
+		/**
 		* Set the default identifier
 		*
 		* @method setDefaultIdentifier
@@ -347,6 +360,7 @@ var Meadow = function()
 
 			loadFromPackage: loadFromPackage,
 			setScope: setScope,
+			setDomain: setDomain,
 			setSchema: setSchema,
 			setJsonSchema: setJsonSchema,
 			setDefault: setDefault,

@@ -32,6 +32,12 @@ var loadFromPackage = function(pMeadow, pPackage)
 	{
 		tmpNewMeadow.setScope(tmpPackage.Scope);
 	}
+	
+	if (typeof(tmpPackage.Domain) === 'string')
+	{
+		tmpNewMeadow.setDomain(tmpPackage.Domain);
+	}
+
 	if (typeof(tmpPackage.DefaultIdentifier) === 'string')
 	{
 		tmpNewMeadow.setDefaultIdentifier(tmpPackage.DefaultIdentifier);

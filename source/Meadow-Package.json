@@ -2,6 +2,8 @@
 	"Scope": "Package",
 
 	"DefaultIdentifier": "IDPackage",
+	
+	"Domain": "Domain",
 
 	"Schema": [],
 

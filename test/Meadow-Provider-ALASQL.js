@@ -852,8 +852,6 @@ suite
 															.to.equal(1337);
 														
 														fDone();
-
-
 													}
 												)
 											}

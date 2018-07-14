@@ -25,7 +25,7 @@ var MeadowProvider = function()
 		 * Build a connection pool, shared within this provider.
 		 * This may be more performant as a shared object.
 		 */
-		var getSQLConnection = function()
+		var getSQLPool = function()
 		{
 			if (typeof(_Fable.MeadowMySQLConnectionPool) !== 'object')
 			{
@@ -69,28 +69,31 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLConnection().query
-			(
-				pQuery.query.body,
-				pQuery.query.parameters,
-				// The MySQL library also returns the Fields as the third parameter
-				function(pError, pRows)
-				{
-					tmpResult.error = pError;
-					tmpResult.value = false;
-					try
+			getSQLPool().getConnection(function(err, db)
+			{
+				db.query(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
 					{
-						tmpResult.value = pRows.insertId;
-					}
-					catch(pErrorGettingRowcount)
-					{
-						_Fable.log.warn('Error getting insert ID during create query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-					}
+						db.release();
+						tmpResult.error = pError;
+						tmpResult.value = false;
+						try
+						{
+							tmpResult.value = pRows.insertId;
+						}
+						catch(pErrorGettingRowcount)
+						{
+							_Fable.log.warn('Error getting insert ID during create query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+						}
 
-					tmpResult.executed = true;
-					fCallback();
-				}
-			);
+						tmpResult.executed = true;
+						return fCallback();
+					}
+				);
+			});
 		};
 
 		// This is a synchronous read, good for a few records.
@@ -107,19 +110,22 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLConnection().query
-			(
-				pQuery.query.body,
-				pQuery.query.parameters,
-				// The MySQL library also returns the Fields as the third parameter
-				function(pError, pRows)
-				{
-					tmpResult.error = pError;
-					tmpResult.value = pRows;
-					tmpResult.executed = true;
-					fCallback();
-				}
-			);
+			getSQLPool().getConnection(function(err, db)
+			{
+				db.query(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
+					{
+						db.release();
+						tmpResult.error = pError;
+						tmpResult.value = pRows;
+						tmpResult.executed = true;
+						return fCallback();
+					}
+				);
+			});
 		};
 
 		var Update = function(pQuery, fCallback)
@@ -134,20 +140,23 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLConnection().query
-			(
-				pQuery.query.body,
-				pQuery.query.parameters,
-				// The MySQL library also returns the Fields as the third parameter
-				function(pError, pRows)
-				{
-					tmpResult.error = pError;
-					tmpResult.value = pRows;
-					tmpResult.executed = true;
-					fCallback();
-				}
-			);
-		};
+			getSQLPool().getConnection(function(err, db)
+			{
+				db.query(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
+					{
+						db.release();
+						tmpResult.error = pError;
+						tmpResult.value = pRows;
+						tmpResult.executed = true;
+						return fCallback();
+					}
+				);
+			});
+		}
 
 		var Delete = function(pQuery, fCallback)
 		{
@@ -161,27 +170,31 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLConnection().query
-			(
-				pQuery.query.body,
-				pQuery.query.parameters,
-				// The MySQL library also returns the Fields as the third parameter
-				function(pError, pRows)
-				{
-					tmpResult.error = pError;
-					tmpResult.value = false;
-					try
+			getSQLPool().getConnection(function(err, db)
+			{
+				db.query
+				(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
 					{
-						tmpResult.value = pRows.affectedRows;
+						db.release();
+						tmpResult.error = pError;
+						tmpResult.value = false;
+						try
+						{
+							tmpResult.value = pRows.affectedRows;
+						}
+						catch(pErrorGettingRowcount)
+						{
+							_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+						}
+						tmpResult.executed = true;
+						return fCallback();
 					}
-					catch(pErrorGettingRowcount)
-					{
-						_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-					}
-					tmpResult.executed = true;
-					fCallback();
-				}
-			);
+				);
+			});
 		};
 
 		var Count = function(pQuery, fCallback)
@@ -196,27 +209,30 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLConnection().query
-			(
-				pQuery.query.body,
-				pQuery.query.parameters,
-				// The MySQL library also returns the Fields as the third parameter
-				function(pError, pRows)
-				{
-					tmpResult.executed = true;
-					tmpResult.error = pError;
-					tmpResult.value = false;
-					try
+			getSQLPool().getConnection(function(err, db)
+			{
+				db.query(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
 					{
-						tmpResult.value = pRows[0].RowCount;
+						db.release();
+						tmpResult.executed = true;
+						tmpResult.error = pError;
+						tmpResult.value = false;
+						try
+						{
+							tmpResult.value = pRows[0].RowCount;
+						}
+						catch(pErrorGettingRowcount)
+						{
+							_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+						}
+						return fCallback();
 					}
-					catch(pErrorGettingRowcount)
-					{
-						_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-					}
-					fCallback();
-				}
-			);
+				);
+			});
 		};
 
 		var tmpNewProvider = (

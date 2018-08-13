@@ -29,19 +29,11 @@ var MeadowProvider = function()
 		{
 			if (typeof(_Fable.MeadowMySQLConnectionPool) !== 'object')
 			{
-				_Fable.MeadowMySQLConnectionPool = libMySQL.createPool
-				(
-					{
-						connectionLimit: _Fable.settings.MySQL.ConnectionPoolLimit,
-						host: _Fable.settings.MySQL.Server,
-						port: _Fable.settings.MySQL.Port,
-						user: _Fable.settings.MySQL.User,
-						password: _Fable.settings.MySQL.Password,
-						database: _Fable.settings.MySQL.Database,
-						namedPlaceholders: true
-					}
-				);
+				// This is going to be problematic.
+				_Fable.log.fatal('Meadow is trying to perform queries without a valid [Fable.MeadowMySQLConnectionPool] object.  See the documentation for how to initialize one.');
+				return false;
 			}
+
 			return _Fable.MeadowMySQLConnectionPool;
 		};
 

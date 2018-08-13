@@ -43,6 +43,22 @@ var databaseSettings = {
 
 var fable = require('fable').new();
 
+// Create a MySQL connection pool (assuming MySQL is the provider you are using)
+var libMySQL = require('mysql2');
+fable.MeadowMySQLConnectionPool = libMySQL.createPool
+	(
+		{
+			connectionLimit: _Fable.settings.MySQL.ConnectionPoolLimit,
+			host: _Fable.settings.MySQL.Server,
+			port: _Fable.settings.MySQL.Port,
+			user: _Fable.settings.MySQL.User,
+			password: _Fable.settings.MySQL.Password,
+			database: _Fable.settings.MySQL.Database,
+			namedPlaceholders: true
+		}
+	);
+
+
 // Create a new meadow DAL object for the "Customers" data set
 var meadow = require('meadow').new(fable, 'Customers')
 		.setProvider('MySQL')

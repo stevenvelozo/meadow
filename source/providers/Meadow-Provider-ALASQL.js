@@ -22,8 +22,9 @@ var MeadowProvider = function()
 		
 		if (!_Fable.hasOwnProperty('ALASQL'))
 		{
-			// Initialize the ALASQL driver for this fable instance.
-			_Fable.ALASQL = require('alasql');
+			// This is going to be problematic.
+			_Fable.log.fatal('Meadow is trying to perform queries without a valid [Fable.ALASQL] object.  See the documentation for how to initialize one.');
+			return false;
 		}
 		
 		var libALASQL = _Fable.ALASQL;

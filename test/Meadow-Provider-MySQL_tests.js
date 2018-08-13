@@ -42,6 +42,20 @@ var tmpFableSettings = 	(
 
 var libFable = require('fable').new(tmpFableSettings);
 
+libFable.MeadowMySQLConnectionPool = libMySQL.createPool
+(
+	{
+		connectionLimit: libFable.settings.MySQL.ConnectionPoolLimit,
+		host: libFable.settings.MySQL.Server,
+		port: libFable.settings.MySQL.Port,
+		user: libFable.settings.MySQL.User,
+		password: libFable.settings.MySQL.Password,
+		database: libFable.settings.MySQL.Database,
+		namedPlaceholders: true
+	}
+);
+
+
 var _AnimalJsonSchema = (
 {
 	title: "Animal",

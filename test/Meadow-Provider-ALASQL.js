@@ -13,6 +13,7 @@ var Expect = Chai.expect;
 var Assert = Chai.assert;
 
 var libAsync = require('async');
+var libALASQL = require('alasql');
 
 var libFable = require('fable').new({
 	LogStreams:
@@ -27,6 +28,8 @@ var libFable = require('fable').new({
 	    }
 	]
 });
+
+libFable.ALASQL = libALASQL;
 
 var _AnimalJsonSchema = (
 {

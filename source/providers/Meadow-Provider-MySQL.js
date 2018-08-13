@@ -61,15 +61,15 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function(err, db)
+			getSQLPool().getConnection(function(pError, pDBConnection)
 			{
-				db.query(
+				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
 					// The MySQL library also returns the Fields as the third parameter
 					function(pError, pRows)
 					{
-						db.release();
+						pDBConnection.release();
 						tmpResult.error = pError;
 						tmpResult.value = false;
 						try
@@ -102,15 +102,15 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function(err, db)
+			getSQLPool().getConnection(function(pError, pDBConnection)
 			{
-				db.query(
+				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
 					// The MySQL library also returns the Fields as the third parameter
 					function(pError, pRows)
 					{
-						db.release();
+						pDBConnection.release();
 						tmpResult.error = pError;
 						tmpResult.value = pRows;
 						tmpResult.executed = true;
@@ -132,15 +132,15 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function(err, db)
+			getSQLPool().getConnection(function(pError, pDBConnection)
 			{
-				db.query(
+				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
 					// The MySQL library also returns the Fields as the third parameter
 					function(pError, pRows)
 					{
-						db.release();
+						pDBConnection.release();
 						tmpResult.error = pError;
 						tmpResult.value = pRows;
 						tmpResult.executed = true;
@@ -162,16 +162,16 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function(err, db)
+			getSQLPool().getConnection(function(pError, pDBConnection)
 			{
-				db.query
+				pDBConnection.query
 				(
 					pQuery.query.body,
 					pQuery.query.parameters,
 					// The MySQL library also returns the Fields as the third parameter
 					function(pError, pRows)
 					{
-						db.release();
+						pDBConnection.release();
 						tmpResult.error = pError;
 						tmpResult.value = false;
 						try
@@ -201,15 +201,15 @@ var MeadowProvider = function()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function(err, db)
+			getSQLPool().getConnection(function(pError, pDBConnection)
 			{
-				db.query(
+				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
 					// The MySQL library also returns the Fields as the third parameter
 					function(pError, pRows)
 					{
-						db.release();
+						pDBConnection.release();
 						tmpResult.executed = true;
 						tmpResult.error = pError;
 						tmpResult.value = false;

@@ -3,7 +3,6 @@ Meadow
 
 A Javascript Data Broker.
 
-[![Code Climate](https://codeclimate.com/github/stevenvelozo/meadow/badges/gpa.svg)](https://codeclimate.com/github/stevenvelozo/meadow)
 [![Coverage Status](https://coveralls.io/repos/stevenvelozo/meadow/badge.svg?branch=master)](https://coveralls.io/r/stevenvelozo/meadow?branch=master)
 [![Build Status](https://travis-ci.org/stevenvelozo/meadow.svg?branch=master)](https://travis-ci.org/stevenvelozo/meadow)
 [![Dependency Status](https://david-dm.org/stevenvelozo/meadow.svg)](https://david-dm.org/stevenvelozo/meadow)
@@ -62,6 +61,46 @@ fable.MeadowMySQLConnectionPool = libMySQL.createPool
 // Create a new meadow DAL object for the "Customers" data set
 var meadow = require('meadow').new(fable, 'Customers')
 		.setProvider('MySQL')
+		.setDefaultIdentifier('customerID');
+
+// Construct a query, filtering to a specific customer, number 17
+var queryDescription = meadow.query.addFilter('customerID', 17);
+
+// Now pass the read query into the customer DAL, with a callback
+meadow.doRead(queryDescription,
+		function(error, query, customer)
+		{
+			// The customer parameter will contain a javascript object if there is:
+			//   1) a record with customerID = 17
+			//   2) in the customers table
+			//   3) in the sales_data database
+			if (error)
+			{
+				return console.log('Error querying customer data: '+error);
+			}
+			console.log('Found customer ID '+customer.customerID+' who is named '+customer.name);
+		}
+	);
+```
+
+## You can also use the ALASQL persistence engine
+
+```js
+// These settings are read automatically from the fable.settings object by meadow
+var fable = require('fable').new();
+
+// Create the IndexdDB database [example], attach and use it
+var libALASQL = require('alasql');
+libALASQL('CREATE INDEXEDDB DATABASE IF NOT EXISTS example;');
+libALASQL('ATTACH INDEXEDDB DATABASE example;');
+libALASQL('USE example;');
+fable.ALASQL = libALASQL;
+
+
+
+// Create a new meadow DAL object for the "Customers" data set
+var meadow = require('meadow').new(fable, 'Customers')
+		.setProvider('ALASQL')
 		.setDefaultIdentifier('customerID');
 
 // Construct a query, filtering to a specific customer, number 17

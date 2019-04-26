@@ -281,7 +281,7 @@ var Meadow = function()
 		 * Get the role name for an index
 		 */
 		var _RoleNames = [
-			"Unauthenticated",
+			"Readonly",
 			"User",
 			"Manager",
 			"Director",

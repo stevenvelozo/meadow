@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "1.0.28",
+  "version": "1.0.30",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -26,19 +26,19 @@
   },
   "homepage": "https://github.com/stevenvelozo/meadow",
   "devDependencies": {
+    "alasql": "^0.4.0",
     "chai": "3.5.0",
     "codeclimate-test-reporter": "0.4.1",
-    "alasql": "^0.4.0",
-    "mysql2": "1.2.0",
     "coveralls": "2.13.1",
     "groc": "^0.8.0",
     "istanbul": "0.4.5",
-    "mocha": "3.4.1"
+    "mocha": "3.4.1",
+    "mysql2": "1.2.0"
   },
   "dependencies": {
     "async": "2.4.0",
     "fable": "~1.0.1",
-    "foxhound": "~1.0.22",
+    "foxhound": "~1.0.31",
     "is-my-json-valid": "2.16.0",
     "underscore": "1.8.3"
   }

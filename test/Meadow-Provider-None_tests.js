@@ -164,7 +164,7 @@ suite
 							function(pError, pQuery, pRecord)
 							{
 								// Can't really test update with NONE
-								
+
 								fDone();
 							}
 						)
@@ -194,7 +194,7 @@ suite
 						testMeadow.doCount(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
-								libFable.log.info(pError, pRecord)
+								libFable.log.info(pError, pRecord);
 								Expect(pQuery.parameters.result.executed).to.equal(true);
 								fDone();
 							}

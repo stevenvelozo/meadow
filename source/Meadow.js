@@ -279,14 +279,23 @@ var Meadow = function()
 		/**
 		 * Get the role name for an index
 		 */
-		var _RoleNames = [
-			"Unauthenticated",
-			"User",
-			"Manager",
-			"Director",
-			"Executive",
-			"Administrator"
-		];
+		let _RoleNames;
+		if (Array.isArray(_Fable.settings.MeadowRoleNames))
+		{
+			_RoleNames = _Fable.settings.MeadowRoleNames;
+		}
+		else
+		{
+			_RoleNames =
+			[
+				'Unauthenticated',
+				'User',
+				'Manager',
+				'Director',
+				'Executive',
+				'Administrator',
+			];
+		}
 		var getRoleName = function(pRoleIndex)
 		{
 			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)

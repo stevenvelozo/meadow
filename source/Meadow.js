@@ -16,7 +16,7 @@ var Meadow = function()
 	function createNew(pFable, pScope, pJsonSchema, pSchema)
 	{
 		// If a valid Fable object isn't passed in, return a constructor
-		if ((typeof(pFable) !== 'object') || (!pFable.hasOwnProperty('fable')))
+		if ((typeof(pFable) !== 'object') || !('fable' in pFable))
 		{
 			return {new: createNew};
 		}
@@ -110,8 +110,8 @@ var Meadow = function()
 			_IDUser = pIDUser;
 			return this;
 		};
-		
-		
+
+
 		/**
 		* Set the Provider for Query execution.
 		*
@@ -126,7 +126,7 @@ var Meadow = function()
 		{
 			if (typeof(pProviderName) !== 'string')
 			{
-				return setProvider('None');
+				pProviderName = 'None';
 			}
 
 			var tmpProviderModuleFile = './providers/Meadow-Provider-'+pProviderName+'.js';
@@ -139,12 +139,11 @@ var Meadow = function()
 				// Give the provider access to the schema object
 				updateProviderState();
 
-				
 				_ProviderName = pProviderName;
 			}
 			catch (pError)
 			{
-				_Fable.log.error({ProviderModuleFile:tmpProviderModuleFile, InvalidProvider:pProviderName, error:pError}, 'Provider not set - require load problem');
+				_Fable.log.error('Provider not set - require load problem', {ProviderModuleFile:tmpProviderModuleFile, InvalidProvider:pProviderName, error:pError});
 				//setProvider('None');
 			}
 
@@ -280,14 +279,23 @@ var Meadow = function()
 		/**
 		 * Get the role name for an index
 		 */
-		var _RoleNames = [
-			"Unauthenticated",
-			"User",
-			"Manager",
-			"Director",
-			"Executive",
-			"Administrator"
-		];
+		let _RoleNames;
+		if (Array.isArray(_Fable.settings.MeadowRoleNames))
+		{
+			_RoleNames = _Fable.settings.MeadowRoleNames;
+		}
+		else
+		{
+			_RoleNames =
+			[
+				'Unauthenticated',
+				'User',
+				'Manager',
+				'Director',
+				'Executive',
+				'Administrator',
+			];
+		}
 		var getRoleName = function(pRoleIndex)
 		{
 			if (pRoleIndex < 0 || pRoleIndex >= _RoleNames.length)
@@ -520,7 +528,32 @@ var Meadow = function()
 				enumerable: true
 			});
 
-		_Fable.addServices(tmpNewMeadowObject);
+		// addServices removed in fable 2.x
+		if (typeof(_Fable.addServices) === 'function')
+		{
+			_Fable.addServices(tmpNewMeadowObject);
+		}
+		else
+		{
+			// bring over addServices implementation from Fable 1.x for backward compatibility
+			Object.defineProperty(tmpNewMeadowObject, 'fable',
+			{
+				get: function() { return _Fable; },
+				enumerable: false,
+			});
+
+			Object.defineProperty(tmpNewMeadowObject, 'settings',
+			{
+				get: function() { return _Fable.settings; },
+				enumerable: false,
+			});
+
+			Object.defineProperty(tmpNewMeadowObject, 'log',
+			{
+				get: function() { return _Fable.log; },
+				enumerable: false,
+			});
+		}
 
 		return tmpNewMeadowObject;
 	}

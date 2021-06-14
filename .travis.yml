@@ -1,7 +1,10 @@
 language: node_js
 node_js:
-  - "6"
   - "8"
+  - "10"
+  - "12"
+  - "14"
+  - "15"
 services:
   - mysql
 before_script:

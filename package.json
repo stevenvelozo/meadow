@@ -40,6 +40,7 @@
     "fable": "~1.0.1",
     "foxhound": "~1.0.34",
     "is-my-json-valid": "2.16.0",
-    "underscore": "1.8.3"
+    "simple-get": "^4.0.1",
+    "underscore": "^1.8.3"
   }
 }

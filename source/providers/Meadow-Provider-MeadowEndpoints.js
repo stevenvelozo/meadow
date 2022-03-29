@@ -288,7 +288,7 @@ var MeadowProvider = function()
 								tmpResult.value = JSON.parse(tmpData);
 							
 							if (tmpResult.value.hasOwnProperty('Count'))
-								tmpResult.value = tmpResult.Count;
+								tmpResult.value = tmpResult.value.Count;
 	
 
 							if (pQuery.logLevel > 0 ||

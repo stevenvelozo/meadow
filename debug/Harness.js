@@ -17,13 +17,13 @@ var tmpFableSettings = 	(
 });
 
 var libFable = require('fable').new(tmpFableSettings);
+var libMeadow = require('../source/Meadow.js').new(libFable);
 
-var _BookSchema = require('../test/schemas/BookStore-MeadowSchema-Book.json');
+var _BookSchemaLocation = '../test/schemas/BookStore-MeadowSchema-Book.json';
 	
 var newMeadow = function()
 {
-	return require('../source/Meadow.js')
-		.new(libFable, 'Book', _BookSchema)
+	return libMeadow.loadFromPackage(_BookSchemaLocation)
 		.setProvider('MeadowEndpoints');
 };
 
@@ -55,10 +55,10 @@ testMeadow.doCreate(tmpQuery,
 )
 */
 
-///* UPDATE
+/* UPDATE
 var testMeadow = newMeadow();
-var tmpQuery = testMeadow.query.clone().setLogLevel(5)
-	.addRecord({IDBook:1, Type:'Novella'});
+var tmpQuery = testMeadow.query.setLogLevel(5)
+	.addRecord({IDBook:10001, Type:'Novella'});
 
 testMeadow.doUpdate(tmpQuery,
 	function(pError, pQuery, pQueryRead, pRecord)
@@ -66,17 +66,29 @@ testMeadow.doUpdate(tmpQuery,
 		libFable.log.info('Record returned:',pRecord);
 	}
 )
-//*/
+*/
 
-///* DELETE
+/* DELETE
 var testMeadow = newMeadow();
 var tmpQuery = testMeadow.query.clone().setLogLevel(5)
-	.addRecord({IDBook:10006, Type:'Novella'});
+	.addFilter('IDBook',10005);
 
 testMeadow.doDelete(tmpQuery,
-	function(pError, pQuery, pQueryRead, pRecord)
+	function(pError, pQuery, pResponse)
 	{
-		libFable.log.info('Record returned:',pRecord);
+		libFable.log.info('Affected record count returned:',pResponse);
 	}
 )
-//*/
+*/
+
+/* COUNT
+*/
+
+var testMeadow = newMeadow();
+var tmpQuery = testMeadow.query.clone().addFilter('Type','Pokemon');
+testMeadow.doCount(tmpQuery,
+	function(pError, pQuery, pResponse)
+	{
+		libFable.log.info('Record count returned:', pResponse);
+	}
+)

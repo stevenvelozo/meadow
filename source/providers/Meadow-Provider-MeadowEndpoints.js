@@ -37,61 +37,8 @@ var MeadowProvider = function()
 			return `${_EndpointSettings.ServerProtocol}://${_EndpointSettings.ServerAddress}:${_EndpointSettings.ServerPort}/${_EndpointSettings.ServerEndpointPrefix}${pAddress}`;
 		};
 
-		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
-		var marshalRecordFromSourceToObject = function(pObject, pRecord)
+		var buildRequestOptions = function(pQuery)
 		{
-			for(var tmpColumn in pRecord)
-			{
-				pObject[tmpColumn] = pRecord[tmpColumn];
-			}
-		};
-
-		var Create = function(pQuery, fCallback)
-		{
-			var tmpResult = pQuery.parameters.result;
-			// pQuery.setDialect(_Dialect).buildCreateQuery();
-
-			// // TODO: Test the query before executing
-			// if (pQuery.logLevel > 0 ||
-			// 	_GlobalLogLevel > 0)
-			// {
-			// 	_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
-			// }
-
-			// getSQLPool().getConnection(function(pError, pDBConnection)
-			// {
-			// 	pDBConnection.query(
-			// 		pQuery.query.body,
-			// 		pQuery.query.parameters,
-			// 		// The MySQL library also returns the Fields as the third parameter
-			// 		function(pError, pRows)
-			// 		{
-			// 			pDBConnection.release();
-			// 			tmpResult.error = pError;
-			// 			tmpResult.value = false;
-			// 			try
-			// 			{
-			// 				tmpResult.value = pRows.insertId;
-			// 			}
-			// 			catch(pErrorGettingRowcount)
-			// 			{
-			// 				_Fable.log.warn('Error getting insert ID during create query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-			// 			}
-
-			// 			tmpResult.executed = true;
-			// 			return fCallback();
-			// 		}
-			// 	);
-			// });
-		};
-
-		// This is a synchronous read, good for a few records.
-		// TODO: Add a pipe-able read for huge sets
-		var Read = function(pQuery, fCallback)
-		{
-			var tmpResult = pQuery.parameters.result;
-			pQuery.setDialect(_Dialect).buildReadQuery();
-
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
 			{
@@ -107,18 +54,107 @@ var MeadowProvider = function()
 			});
 	
 			tmpRequestOptions.headers.cookie = _Cookies.join(';');
-	
+
+				
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
-				_Fable.log.debug(`Beginning GET request`,tmpRequestOptions);
+				_Fable.log.debug(`Request options built...`,tmpRequestOptions);
+
+				return tmpRequestOptions;
+		};
+
+		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
+		var marshalRecordFromSourceToObject = function(pObject, pRecord)
+		{
+			for(var tmpColumn in pRecord)
+			{
+				pObject[tmpColumn] = pRecord[tmpColumn];
+			}
+		};
+
+		var Create = function(pQuery, fCallback)
+		{
+			var tmpResult = pQuery.parameters.result;
+			pQuery.setDialect(_Dialect).buildCreateQuery();
+
+			let tmpRequestOptions = buildRequestOptions(pQuery);
+
+			// TODO: Should this test for exactly one?
+			if (!pQuery.query.records.length > 0)
+			{
+				tmpResult.error = 'No records passed for proxying to Meadow-Endpoints.';
+
+				return fCallback();
+			}
+
+			tmpRequestOptions.body = pQuery.query.records[0];
+			tmpRequestOptions.json = true;
+	
+			libSimpleGet.post(tmpRequestOptions, (pError, pResponse)=>
+				{
+					tmpResult.error = pError;
+					tmpResult.executed = true;
+
+					if (pQuery.logLevel > 0 ||
+						_GlobalLogLevel > 0)
+							_Fable.log.debug(`--> POST request connected`);
+
+					if (pError)
+					{
+						return fCallback(tmpResult);
+					}
+
+					let tmpData = '';
+	
+					pResponse.on('data', (pChunk)=>
+						{
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+									_Fable.log.debug(`--> POST data chunk size ${pChunk.length}b received`);
+							tmpData += pChunk;
+						});
+	
+					pResponse.on('end', ()=>
+						{
+							if (tmpData)
+								tmpResult.value = JSON.parse(tmpData);
+
+							// TODO Because this was proxied, read happens at this layer too.  Inefficient -- fixable
+							let tmpIdentityColumn = `ID${pQuery.parameters.scope}`;
+							if (tmpResult.value.hasOwnProperty(tmpIdentityColumn))
+							tmpResult.value = tmpResult.value[tmpIdentityColumn];
+							
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+							{
+								_Fable.log.debug(`==> POST completed data size ${tmpData.length}b received`,tmpResult);
+							}
+							return fCallback();
+						});
+				});
+		};
+
+		// This is a synchronous read, good for a few records.
+		// TODO: Add a pipe-able read for huge sets
+		var Read = function(pQuery, fCallback)
+		{
+			var tmpResult = pQuery.parameters.result;
+			pQuery.setDialect(_Dialect).buildReadQuery();
+
+			let tmpRequestOptions = buildRequestOptions(pQuery);
 	
 			libSimpleGet.get(tmpRequestOptions, (pError, pResponse)=>
 				{
 					tmpResult.error = pError;
 					tmpResult.executed = true;
+
+					if (pQuery.logLevel > 0 ||
+						_GlobalLogLevel > 0)
+							_Fable.log.debug(`--> GET request connected`);
+
 					if (pError)
 					{
-						return fCallBack(tmpResult);
+						return fCallback(tmpResult);
 					}
 
 					let tmpData = '';
@@ -136,12 +172,18 @@ var MeadowProvider = function()
 							if (tmpData)
 								tmpResult.value = JSON.parse(tmpData);
 
+							if (pQuery.query.body.startsWith(`${pQuery.parameters.scope}/`))
+							{
+								// If this is not a plural read, make the result into an array.
+								tmpResult.value = [tmpResult.value];
+							}
+
 							if (pQuery.logLevel > 0 ||
 								_GlobalLogLevel > 0)
 							{
 								_Fable.log.debug(`==> GET completed data size ${tmpData.length}b received`,tmpResult);
 							}
-							fCallBack();
+							fCallback();
 						});
 				});
 		};
@@ -149,108 +191,171 @@ var MeadowProvider = function()
 		var Update = function(pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
+			pQuery.setDialect(_Dialect).buildUpdateQuery();
 
-			// pQuery.setDialect(_Dialect).buildUpdateQuery();
+			let tmpRequestOptions = buildRequestOptions(pQuery);
 
-			// if (pQuery.logLevel > 0 ||
-			// 	_GlobalLogLevel > 0)
-			// {
-			// 	_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
-			// }
+			// TODO: Should this test for exactly one?
+			if (!pQuery.query.records.length > 0)
+			{
+				tmpResult.error = 'No records passed for proxying to Meadow-Endpoints.';
 
-			// getSQLPool().getConnection(function(pError, pDBConnection)
-			// {
-			// 	pDBConnection.query(
-			// 		pQuery.query.body,
-			// 		pQuery.query.parameters,
-			// 		// The MySQL library also returns the Fields as the third parameter
-			// 		function(pError, pRows)
-			// 		{
-			// 			pDBConnection.release();
-			// 			tmpResult.error = pError;
-			// 			tmpResult.value = pRows;
-			// 			tmpResult.executed = true;
-			// 			return fCallback();
-			// 		}
-			// 	);
-			// });
+				return fCallback();
+			}
+
+			tmpRequestOptions.body = pQuery.query.records[0];
+			tmpRequestOptions.json = true;
+	
+			libSimpleGet.put(tmpRequestOptions, (pError, pResponse)=>
+				{
+					tmpResult.error = pError;
+					tmpResult.executed = true;
+
+					if (pQuery.logLevel > 0 ||
+						_GlobalLogLevel > 0)
+							_Fable.log.debug(`--> PUT request connected`);
+
+					if (pError)
+					{
+						return fCallback(tmpResult);
+					}
+
+					let tmpData = '';
+	
+					pResponse.on('data', (pChunk)=>
+						{
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+									_Fable.log.debug(`--> PUT data chunk size ${pChunk.length}b received`);
+							tmpData += pChunk;
+						});
+	
+					pResponse.on('end', ()=>
+						{
+							if (tmpData)
+								tmpResult.value = JSON.parse(tmpData);
+
+							// TODO Because this was proxied, read happens at this layer too.  Inefficient -- fixable
+							let tmpIdentityColumn = `ID${pQuery.parameters.scope}`;
+							if (tmpResult.value.hasOwnProperty(tmpIdentityColumn))
+							tmpResult.value = tmpResult.value[tmpIdentityColumn];
+							
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+							{
+								_Fable.log.debug(`==> PUT completed data size ${tmpData.length}b received`,tmpResult);
+							}
+							return fCallback();
+						});
+				});
 		}
 
 		var Delete = function(pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
+			pQuery.setDialect(_Dialect).buildDeleteQuery();
 
-			// pQuery.setDialect(_Dialect).buildDeleteQuery();
 
-			// if (pQuery.logLevel > 0 ||
-			// 	_GlobalLogLevel > 0)
-			// {
-			// 	_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
-			// }
+			let tmpRequestOptions = buildRequestOptions(pQuery);
+	
+			libSimpleGet.delete(tmpRequestOptions, (pError, pResponse)=>
+				{
+					tmpResult.error = pError;
+					tmpResult.executed = true;
 
-			// getSQLPool().getConnection(function(pError, pDBConnection)
-			// {
-			// 	pDBConnection.query
-			// 	(
-			// 		pQuery.query.body,
-			// 		pQuery.query.parameters,
-			// 		// The MySQL library also returns the Fields as the third parameter
-			// 		function(pError, pRows)
-			// 		{
-			// 			pDBConnection.release();
-			// 			tmpResult.error = pError;
-			// 			tmpResult.value = false;
-			// 			try
-			// 			{
-			// 				tmpResult.value = pRows.affectedRows;
-			// 			}
-			// 			catch(pErrorGettingRowcount)
-			// 			{
-			// 				_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-			// 			}
-			// 			tmpResult.executed = true;
-			// 			return fCallback();
-			// 		}
-			// 	);
-			// });
-		};
+					if (pQuery.logLevel > 0 ||
+						_GlobalLogLevel > 0)
+							_Fable.log.debug(`--> DEL request connected`);
+
+					if (pError)
+					{
+						return fCallback(tmpResult);
+					}
+
+					let tmpData = '';
+	
+					pResponse.on('data', (pChunk)=>
+						{
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+									_Fable.log.debug(`--> DEL data chunk size ${pChunk.length}b received`);
+							tmpData += pChunk;
+						});
+	
+					pResponse.on('end', ()=>
+						{
+							if (tmpData)
+								tmpResult.value = JSON.parse(tmpData);
+							
+							if (tmpResult.value.hasOwnProperty('Count'))
+								tmpResult.value = tmpResult.Count;
+	
+
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+							{
+								_Fable.log.debug(`==> DEL completed data size ${tmpData.length}b received`,tmpResult);
+							}
+							fCallback();
+						});
+				});
+			};
 
 		var Count = function(pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
+			pQuery.setDialect(_Dialect).buildCountQuery();
 
-			// pQuery.setDialect(_Dialect).buildCountQuery();
+			let tmpRequestOptions = buildRequestOptions(pQuery);
+	
+			libSimpleGet.get(tmpRequestOptions, (pError, pResponse)=>
+				{
+					tmpResult.error = pError;
+					tmpResult.executed = true;
 
-			// if (pQuery.logLevel > 0 ||
-			// 	_GlobalLogLevel > 0)
-			// {
-			// 	_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
-			// }
+					if (pQuery.logLevel > 0 ||
+						_GlobalLogLevel > 0)
+							_Fable.log.debug(`--> GET request connected`);
 
-			// getSQLPool().getConnection(function(pError, pDBConnection)
-			// {
-			// 	pDBConnection.query(
-			// 		pQuery.query.body,
-			// 		pQuery.query.parameters,
-			// 		// The MySQL library also returns the Fields as the third parameter
-			// 		function(pError, pRows)
-			// 		{
-			// 			pDBConnection.release();
-			// 			tmpResult.executed = true;
-			// 			tmpResult.error = pError;
-			// 			tmpResult.value = false;
-			// 			try
-			// 			{
-			// 				tmpResult.value = pRows[0].RowCount;
-			// 			}
-			// 			catch(pErrorGettingRowcount)
-			// 			{
-			// 				_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
-			// 			}
-			// 			return fCallback();
-			// 		}
-			// 	);
-			// });
+					if (pError)
+					{
+						return fCallback(tmpResult);
+					}
+
+					let tmpData = '';
+	
+					pResponse.on('data', (pChunk)=>
+						{
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+									_Fable.log.debug(`--> GET data chunk size ${pChunk.length}b received`);
+							tmpData += pChunk;
+						});
+	
+					pResponse.on('end', ()=>
+						{
+							if (tmpData)
+								tmpResult.value = JSON.parse(tmpData);
+
+								try
+								{
+									tmpResult.value = tmpResult.value.Count;
+								}
+								catch(pErrorGettingRowcount)
+								{
+									// This is an error state...
+									tmpResult.value = -1;
+									_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+								}
+		
+							if (pQuery.logLevel > 0 ||
+								_GlobalLogLevel > 0)
+							{
+								_Fable.log.debug(`==> GET completed data size ${tmpData.length}b received`,tmpResult);
+							}
+							fCallback();
+						});
+				});
 		};
 
 		var tmpNewProvider = (

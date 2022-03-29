@@ -6,7 +6,7 @@ var tmpFableSettings = 	(
 	LogStreams:
 	[
 	    {
-	        level: 'fatal',
+	        level: 'trace',
 	        streamtype:'process.stdout',
 	    },
 	    {
@@ -18,83 +18,65 @@ var tmpFableSettings = 	(
 
 var libFable = require('fable').new(tmpFableSettings);
 
-var _AnimalJsonSchema = (
-{
-	title: "Animal",
-	description: "A creature that lives in a meadow.",
-	type: "object",
-	properties: {
-		IDAnimal: {
-			description: "The unique identifier for an animal",
-			type: "integer"
-		},
-		Name: {
-			description: "The animal's name",
-			type: "string"
-		},
-		Type: {
-			description: "The type of the animal",
-			type: "string"
-		}
-	},
-	required: ["IDAnimal", "Name", "CreatingIDUser"]
-});
-
-var _AnimalSchema = (
-[
-	{ Column: "IDAnimal",        Type:"AutoIdentity" },
-	{ Column: "GUIDAnimal",      Type:"AutoGUID" },
-	{ Column: "CreateDate",      Type:"CreateDate" },
-	{ Column: "CreatingIDUser",  Type:"CreateIDUser" },
-	{ Column: "UpdateDate",        Type:"UpdateDate" },
-	{ Column: "UpdatingIDUser", Type:"UpdateIDUser" },
-	{ Column: "Deleted",         Type:"Deleted" },
-	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
-	{ Column: "DeleteDate",      Type:"DeleteDate" }
-]);
-
-var _AnimalDefault = (
-	{
-		IDAnimal: null,
-		GUIDAnimal: '',
-	
-		CreateDate: false,
-		CreatingIDUser: 0,
-		UpdateDate: false,
-		UpdatingIDUser: 0,
-		Deleted: 0,
-		DeleteDate: false,
-		DeletingIDUser: 0,
-	
-		Name: 'Unknown',
-		Type: 'Unclassified'
-	});
+var _BookSchema = require('../test/schemas/BookStore-MeadowSchema-Book.json');
 	
 var newMeadow = function()
 {
 	return require('../source/Meadow.js')
-		.new(libFable, 'Book')
-		.setProvider('MeadowEndpoints')
-		.setSchema(_AnimalSchema)
-		.setJsonSchema(_AnimalJsonSchema)
-		.setDefaultIdentifier('IDBook')
-		.setDefault(_AnimalDefault)
+		.new(libFable, 'Book', _BookSchema)
+		.setProvider('MeadowEndpoints');
 };
 
 var testMeadow = newMeadow();
 
 testMeadow.fable.settings.QueryThresholdWarnTime = 1;
 
+/* READ
 var tmpQuery = testMeadow.setProvider('MeadowEndpoints').query.addFilter('IDBook', 1);
-
-
+tmpQuery.addFilter('PublicationYear',2008);
 testMeadow.doRead(tmpQuery,
     function(pError, pQuery, pRecord)
     {
-        testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
-
+		console.log(JSON.stringify(pRecord));
     }
 )
+*/
 
+/* CREATE
+var testMeadow = newMeadow();
+var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+	.addRecord({Title:'Blastoise', Type:'Pokemon'});
 
+testMeadow.doCreate(tmpQuery,
+	function(pError, pQuery, pQueryRead, pRecord)
+	{
+		libFable.log.info('Record returned from Create:',pRecord);
+	}
+)
+*/
 
+///* UPDATE
+var testMeadow = newMeadow();
+var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+	.addRecord({IDBook:1, Type:'Novella'});
+
+testMeadow.doUpdate(tmpQuery,
+	function(pError, pQuery, pQueryRead, pRecord)
+	{
+		libFable.log.info('Record returned:',pRecord);
+	}
+)
+//*/
+
+///* DELETE
+var testMeadow = newMeadow();
+var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+	.addRecord({IDBook:10006, Type:'Novella'});
+
+testMeadow.doDelete(tmpQuery,
+	function(pError, pQuery, pQueryRead, pRecord)
+	{
+		libFable.log.info('Record returned:',pRecord);
+	}
+)
+//*/

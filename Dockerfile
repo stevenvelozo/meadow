@@ -23,7 +23,7 @@ RUN ( sudo mysqld_safe --skip-grant-tables --skip-networking & ) && sleep 5 &&  
 # RUN sudo sysv-rc-conf --level 0123456S mariadb on
 
 # Import the initial database
-RUN sudo service mariadb restart && sleep 5 && mysql -u root -p"123456789" -e "CREATE DATABASE YOURDATABASENAMEHERE;"
+RUN sudo service mariadb restart && sleep 5 && mysql -u root -p"123456789" -e "CREATE DATABASE FableTest;"
 
 SHELL ["/bin/bash", "-c"]
 USER coder

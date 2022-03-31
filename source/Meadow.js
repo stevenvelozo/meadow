@@ -61,13 +61,21 @@ var Meadow = function()
 		/**
 		 * Load a Meadow Package JSON, create a Meadow object from it.
 		 */
-		var _MeadowPackageLoader = require('./Meadow-PackageLoader.js');
+		var _MeadowPackageLoader = require('./Meadow-PackageFileLoader.js');
 		var loadFromPackage = function(pPackage)
 		{
 			return _MeadowPackageLoader(this, pPackage);
 		};
 
-
+		/**
+		 * Load a Meadow Package JSON from file, create a Meadow object from it.
+		 */
+		 var _MeadowPackageObjectLoader = require('./Meadow-PackageObjectLoader.js');
+		 var loadFromPackageObject = function(pPackage)
+		 {
+			 return _MeadowPackageObjectLoader(this, pPackage);
+		 };
+ 
 		/**
 		* Pass relevant state into the provider
 		*
@@ -367,6 +375,7 @@ var Meadow = function()
 			setIDUser: setIDUser,
 
 			loadFromPackage: loadFromPackage,
+			loadFromPackageObject: loadFromPackageObject,
 			setScope: setScope,
 			setDomain: setDomain,
 			setSchema: setSchema,

@@ -217,6 +217,63 @@ suite
 				);
 				test
 				(
+					'Try to load from a json object',
+					function()
+					{
+						var testMeadow = require('../source/Meadow.js').new(_Fable).loadFromPackageObject(
+						{
+							"Scope": "MyPackage",
+						
+							"DefaultIdentifier": "IDMyPackage",
+						
+							"Schema": [
+								{ "Column": "IDMyPackage",   "Type":"AutoIdentity" },
+								{ "Column": "GUIDMyPackage", "Type":"AutoGUID" },
+								{ "Column": "Name",          "Type":"String" },
+								{ "Column": "Age",           "Type":"Number" }
+							],
+						
+							"DefaultObject": {
+								"IDMyPackage": 0,
+								"GUIDMyPackage": "0000-0000",
+						
+								"Name": "Unknown",
+								"Age": 0
+							},
+						
+							"JsonSchema": {
+								"title": "MyPackage",
+								"description": "A nondescript package.",
+								"type": "object",
+								"properties": {
+									"IDMyPackage": {
+										"description": "The unique identifier for our package",
+										"type": "integer"
+									},
+									"GUIDMyPackage": {
+										"description": "A string UUID for our package",
+										"type": "string"
+									},
+									"Name": {
+										"description": "The name",
+										"type": "string"
+									},
+									"Age": {
+										"description": "How old the package is",
+										"type": "number",
+										"minimum": 0,
+										"exclusiveMinimum": true
+									}
+								},
+								"required": ["IDMyPackage", "Name"]
+							}
+						});
+						Expect(testMeadow.scope)
+							.to.equal('MyPackage');
+					}
+				)
+				test
+				(
 					'Try to load from an empty json package',
 					function()
 					{

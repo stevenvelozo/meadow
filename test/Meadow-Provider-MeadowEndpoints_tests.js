@@ -1,7 +1,7 @@
 /**
-* Unit tests for the Meadow "MySQL" Provider
+* Unit tests for the Meadow "MeadowEndpoints" Provider
 *
-* These tests expect a MySQL database.....
+* These tests expect a MeadowEndpoints database.....
 *
 * @license     MIT
 *
@@ -12,12 +12,11 @@ var Chai = require("chai");
 var Expect = Chai.expect;
 var Assert = Chai.assert;
 
-var libMySQL = require('mysql2');
 var libAsync = require('async');
 
 var tmpFableSettings = 	(
 {
-	MySQL:
+	MeadowEndpoints:
 		{
 			// This is queued up for Travis defaults.
 			Server: "localhost",
@@ -41,20 +40,6 @@ var tmpFableSettings = 	(
 });
 
 var libFable = require('fable').new(tmpFableSettings);
-
-libFable.MeadowMySQLConnectionPool = libMySQL.createPool
-(
-	{
-		connectionLimit: libFable.settings.MySQL.ConnectionPoolLimit,
-		host: libFable.settings.MySQL.Server,
-		port: libFable.settings.MySQL.Port,
-		user: libFable.settings.MySQL.User,
-		password: libFable.settings.MySQL.Password,
-		database: libFable.settings.MySQL.Database,
-		namedPlaceholders: true
-	}
-);
-
 
 var _AnimalJsonSchema = (
 {
@@ -108,7 +93,7 @@ var _AnimalDefault = (
 
 suite
 (
-	'Meadow-Provider-MySQL',
+	'Meadow-Provider-MeadowEndpoints',
 	function()
 	{
 		var _SpooledUp = false;
@@ -122,7 +107,7 @@ suite
 		{
 			return require('../source/Meadow.js')
 				.new(libFable, 'FableTest')
-				.setProvider('MySQL')
+				.setProvider('MeadowEndpoints')
 				.setSchema(_AnimalSchema)
 				.setJsonSchema(_AnimalJsonSchema)
 				.setDefaultIdentifier('IDAnimal')
@@ -136,15 +121,15 @@ suite
 				// Only do this for the first test.
 				if (!_SpooledUp)
 				{
-					var _SQLConnectionPool = libMySQL.createPool
+					var _SQLConnectionPool = libMeadowEndpoints.createPool
 					(
 						{
-							connectionLimit: tmpFableSettings.MySQL.ConnectionPoolLimit,
-							host: tmpFableSettings.MySQL.Server,
-							port: tmpFableSettings.MySQL.Port,
-							user: tmpFableSettings.MySQL.User,
-							password: tmpFableSettings.MySQL.Password,
-							database: tmpFableSettings.MySQL.Database
+							connectionLimit: tmpFableSettings.MeadowEndpoints.ConnectionPoolLimit,
+							host: tmpFableSettings.MeadowEndpoints.Server,
+							port: tmpFableSettings.MeadowEndpoints.Port,
+							user: tmpFableSettings.MeadowEndpoints.User,
+							password: tmpFableSettings.MeadowEndpoints.Password,
+							database: tmpFableSettings.MeadowEndpoints.Database
 						}
 					);
 
@@ -209,10 +194,10 @@ suite
 			{
 				test
 				(
-					'The MySQL class should initialize itself into a happy little object.',
+					'The MeadowEndpoints class should initialize itself into a happy little object.',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable).setProvider('MySQL');
+						var testMeadow = require('../source/Meadow.js').new(libFable).setProvider('MeadowEndpoints');
 						Expect(testMeadow).to.be.an('object', 'Meadow should initialize as an object directly from the require statement.');
 					}
 				);
@@ -408,7 +393,7 @@ suite
 					function(fDone)
 					{
 						var testMeadow = require('../source/Meadow.js').new(libFable)
-							.loadFromPackage(__dirname+'/Animal.json').setProvider('MySQL');
+							.loadFromPackage(__dirname+'/Animal.json').setProvider('MeadowEndpoints');
 
 						// Make sure the authentication stuff got loaded
 						Expect(testMeadow.schemaFull.authorizer.User)
@@ -937,160 +922,6 @@ suite
 								fDone();
 							}
 						)
-					}
-				);
-				test
-				(
-					'Set a raw Query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-						testMeadow.rawQueries.setQuery('Read', 'SELECT Something from SomethingElse;');
-
-						Expect(testMeadow.rawQueries.getQuery('Read'))
-							.to.equal('SELECT Something from SomethingElse;');
-						fDone();
-					}
-				);
-				test
-				(
-					'Load a raw Query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
-							function(pSuccess)
-							{
-								Expect(testMeadow.rawQueries.getQuery('Read'))
-									.to.contain('SELECT');
-								fDone();
-							});
-					}
-				);
-				test
-				(
-					'Load a bad raw Query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-BADAnimalReadQuery.sql',
-							function(pSuccess)
-							{
-								Expect(testMeadow.rawQueries.getQuery('Read'))
-									.to.equal('');
-								fDone();
-							});
-					}
-				);
-				test
-				(
-					'Load a raw query with no callback',
-					function()
-					{
-						var testMeadow = newMeadow();
-
-						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql');
-					}
-				);
-				test
-				(
-					'Check for a query that is not there',
-					function()
-					{
-						var testMeadow = newMeadow();
-						Expect(testMeadow.rawQueries.getQuery('Read'))
-							.to.equal(false);
-					}
-				);
-				test
-				(
-					'Read a record from a custom query',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-
-						testMeadow.rawQueries.loadQuery('Read', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
-							function(pSuccess)
-							{
-								// Now try to read the record
-								testMeadow.doRead(testMeadow.query.addFilter('IDAnimal', 2),
-									function(pError, pQuery, pRecord)
-									{
-										Expect(pRecord.AnimalTypeCustom)
-											.to.equal('Bunny');
-										fDone();
-									}
-								)
-							});
-					}
-				);
-				test
-				(
-					'Read records from a custom query, then delete one, then read them again then update and create.',
-					function(fDone)
-					{
-						var testMeadow = newMeadow();
-						testMeadow.setDefaultIdentifier('IDAnimal');
-						testMeadow.rawQueries.setQuery('Delete', 'DELETE FROM FableTest WHERE IDAnimal = 1;')
-						testMeadow.rawQueries.setQuery('Count', 'SELECT 1337 AS RowCount;')
-						testMeadow.rawQueries.setQuery('Read', 'SELECT IDAnimal, Type AS AnimalTypeCustom FROM FableTest <%= Where %>')
-						testMeadow.rawQueries.setQuery('Update', "UPDATE FableTest SET Type = 'FrogLeg' <%= Where %>")
-
-						// And this, my friends, is why we use async.js
-						testMeadow.rawQueries.loadQuery('Reads', __dirname+ '/Meadow-Provider-MySQL-AnimalReadQuery.sql',
-							function(pSuccess)
-							{
-								// Now try to read the record
-								testMeadow.doReads(testMeadow.query.addFilter('IDAnimal', 2),
-									function(pError, pQuery, pRecords)
-									{
-										Expect(pRecords[1].AnimalTypeCustom)
-											.to.equal('HumanGirl');
-										testMeadow.doDelete(testMeadow.query.addFilter('IDAnimal', 2),
-											function(pError, pQuery, pRecord)
-											{
-												// It returns the number of rows deleted
-												Expect(pRecord)
-													.to.equal(1);
-												testMeadow.doCount(testMeadow.query.addFilter('IDAnimal', 2),
-													function(pError, pQuery, pRecord)
-													{
-														// It returns the number of rows deleted
-														Expect(pRecord)
-															.to.equal(1337);
-														var tmpQuery = testMeadow.query
-																.addRecord({IDAnimal:5, Type:'Bartfast'});
-
-														testMeadow.doUpdate(tmpQuery,
-															function(pError, pQuery, pQueryRead, pRecord)
-															{
-																// We should have a record ....
-																Expect(pRecord.AnimalTypeCustom)
-																	.to.equal('Bartfast');
-																var tmpQuery = testMeadow.query
-																	.addRecord({Name:'Bambi', Type:'CustomSheep'});
-
-																testMeadow.doCreate(tmpQuery,
-																	function(pError, pQuery, pQueryRead, pRecord)
-																	{
-																		// We should have a record ....
-																		Expect(pRecord.AnimalTypeCustom)
-																			.to.equal('CustomSheep');
-																		fDone();
-																	}
-																)
-															}
-														)
-													}
-												)
-											}
-										)
-									}
-								)
-							}
-						);
 					}
 				);
 				test

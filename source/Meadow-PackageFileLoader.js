@@ -7,10 +7,10 @@
 /**
 * Load the schema and metadata from a package file
 *
-* @method loadFromPackage
+* @method loadFromPackageFile
 * @return {Object} Returns a new Meadow, or false if it failed
 */
-var loadFromPackage = function(pMeadow, pPackage)
+var loadFromPackageFile = function(pMeadow, pPackage)
 {
 	// Use the package loader to grab the configuration objects and clone a new Meadow.
 	var tmpPackage = false;
@@ -63,4 +63,4 @@ var loadFromPackage = function(pMeadow, pPackage)
 	return tmpNewMeadow;
 };
 
-module.exports = loadFromPackage;
+module.exports = loadFromPackageFile;

@@ -122,3 +122,23 @@ meadow.doRead(queryDescription,
 		}
 	);
 ```
+
+
+### Docker Development Environment
+
+
+1. Run this command to build this image:
+```
+docker build ./ -t retold/meadow:local
+```
+
+2. Run this command to build the local container:
+```
+docker run -it --name meadow-dev -p 127.0.0.1:12342:8080 -v "$PWD/.config:/home/coder/.config"  -v "$PWD:/home/coder/meadow" -u "$(id -u):$(id -g)" -e "DOCKER_USER=$USER" retold/meadow:local
+```
+
+3. Go to http://localhost:12342/ in a web browser
+
+4. The password is "retold"
+
+5. Right now you (may) need to delete the `node_modules` folders and regenerate it for Linux.

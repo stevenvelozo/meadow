@@ -23,7 +23,7 @@ var tmpFableSettings = 	(
 			Server: "localhost",
 			Port: 3306,
 			User: "root",
-			Password: "",
+			Password: "123456789",
 			Database: "FableTest",
 			ConnectionPoolLimit: 20
 		},

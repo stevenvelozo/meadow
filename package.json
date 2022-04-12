@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
     "test": "./node_modules/mocha/bin/_mocha -u tdd -R spec",
     "tests": "./node_modules/mocha/bin/_mocha -u tdd -R spec --grep",
-    "doc": "./node_modules/groc/bin/groc --index-page-title Overview ./README.md ./source/**/*.js ./source/*.js",
-    "doc-stage-retold": "./node_modules/groc/bin/groc --index-page-title Overview  -o ../retold/meadow ./README.md ./source/**/*.js ./source/*.js"
+    "docker-dev-build-image": "docker build ./ -t retold/meadow:local",
+    "docker-dev-run": "docker run -it -d --name meadow-dev -p 127.0.0.1:12342:8080 -p 12106:3306 -v \"$PWD/.config:/home/coder/.config\"  -v \"$PWD:/home/coder/meadow\" -u \"$(id -u):$(id -g)\" -e \"DOCKER_USER=$USER\" retold/meadow:local"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
   "dependencies": {
     "async": "2.4.0",
     "fable": "~1.0.1",
-    "foxhound": "~1.0.34",
+    "foxhound": "^1.0.37",
     "is-my-json-valid": "2.16.0",
     "underscore": "1.8.3"
   }

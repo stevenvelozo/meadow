@@ -43,6 +43,7 @@ var Meadow = function()
 		var _ReadsBehavior = require('./behaviors/Meadow-Reads.js');
 		var _UpdateBehavior = require('./behaviors/Meadow-Update.js');
 		var _DeleteBehavior = require('./behaviors/Meadow-Delete.js');
+		var _UndeleteBehavior = require('./behaviors/Meadow-Undelete.js');
 		var _CountBehavior = require('./behaviors/Meadow-Count.js');
 
 		// The data provider
@@ -70,12 +71,12 @@ var Meadow = function()
 		/**
 		 * Load a Meadow Package JSON from file, create a Meadow object from it.
 		 */
-		 var _MeadowPackageObjectLoader = require('./Meadow-PackageObjectLoader.js');
-		 var loadFromPackageObject = function(pPackage)
-		 {
-			 return _MeadowPackageObjectLoader(this, pPackage);
-		 };
- 
+		var _MeadowPackageObjectLoader = require('./Meadow-PackageObjectLoader.js');
+		var loadFromPackageObject = function(pPackage)
+		{
+			return _MeadowPackageObjectLoader(this, pPackage);
+		};
+
 		/**
 		* Pass relevant state into the provider
 		*
@@ -277,6 +278,14 @@ var Meadow = function()
 		};
 
 		/**
+		 * Undelete a record
+		 */
+		var doUndelete = function(pQuery, fCallBack)
+		{
+			return _UndeleteBehavior(this, pQuery, fCallBack);
+		};
+
+		/**
 		 * Count multiple records
 		 */
 		var doCount = function(pQuery, fCallBack)
@@ -366,6 +375,7 @@ var Meadow = function()
 			doReads: doReads,
 			doUpdate: doUpdate,
 			doDelete: doDelete,
+			doUndelete: doUndelete,
 			doCount: doCount,
 
 			validateObject: _Schema.validateObject,

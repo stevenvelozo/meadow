@@ -52,6 +52,13 @@ var MeadowProvider = function()
 			fCallback();
 		};
 
+		var Undelete = function(pQuery, fCallback)
+		{
+			// This does nothing because it's the none data provider!
+			pQuery.parameters.result.executed = true;
+			fCallback();
+		};
+
 		var Count = function(pQuery, fCallback)
 		{
 			// This does nothing because it's the none data provider!
@@ -67,6 +74,7 @@ var MeadowProvider = function()
 			Read: Read,
 			Update: Update,
 			Delete: Delete,
+			Undelete: Undelete,
 			Count: Count,
 
 			new: createNew

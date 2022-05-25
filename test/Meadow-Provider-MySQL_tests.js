@@ -29,14 +29,14 @@ var tmpFableSettings = 	(
 		},
 	LogStreams:
 	[
-	    {
-	        level: 'fatal',
-	        streamtype:'process.stdout',
-	    },
-	    {
-	        level: 'trace',
-	        path: __dirname+'/../tests.log'
-	    }
+		{
+			level: 'fatal',
+			streamtype:'process.stdout',
+		},
+		{
+			level: 'trace',
+			path: __dirname+'/../tests.log'
+		}
 	]
 });
 
@@ -376,6 +376,35 @@ suite
 								fDone();
 							}
 						)
+					}
+				);
+				test
+				(
+					'Undelete a record in the database',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
+						var tmpDeleteQuery = testMeadow.query.addFilter('IDAnimal',5);
+
+						// Make sure the record is deleted!
+						testMeadow.doDelete(tmpDeleteQuery,
+							function(pDeleteError, pDeleteQuery, pDeleteRecord)
+							{
+								var tmpQuery = testMeadow.query.addFilter('IDAnimal',5);
+								testMeadow.doUndelete(tmpQuery,
+									function(pError, pQuery, pRecord)
+									{
+										// It returns the number of rows deleted
+										Expect(pRecord)
+											.to.equal(1);
+
+										testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
+										fDone();
+									});
+							});
 					}
 				);
 				test

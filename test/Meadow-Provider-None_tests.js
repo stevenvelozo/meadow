@@ -187,6 +187,21 @@ suite
 				);
 				test
 				(
+					'Undelete a record in the database',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+						testMeadow.doUndelete(testMeadow.query,
+							function(pError, pQuery, pRecord)
+							{
+								Expect(pQuery.parameters.result.executed).to.equal(true);
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Count all records from the database',
 					function(fDone)
 					{

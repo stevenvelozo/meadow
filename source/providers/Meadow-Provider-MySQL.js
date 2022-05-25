@@ -189,6 +189,45 @@ var MeadowProvider = function()
 			});
 		};
 
+		var Undelete = function(pQuery, fCallback)
+		{
+			var tmpResult = pQuery.parameters.result;
+
+			pQuery.setDialect('MySQL').buildUndeleteQuery();
+
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
+			{
+				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
+
+			getSQLPool().getConnection(function(pError, pDBConnection)
+			{
+				pDBConnection.query
+				(
+					pQuery.query.body,
+					pQuery.query.parameters,
+					// The MySQL library also returns the Fields as the third parameter
+					function(pError, pRows)
+					{
+						pDBConnection.release();
+						tmpResult.error = pError;
+						tmpResult.value = false;
+						try
+						{
+							tmpResult.value = pRows.affectedRows;
+						}
+						catch(pErrorGettingRowcount)
+						{
+							_Fable.log.warn('Error getting affected rowcount during delete query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+						}
+						tmpResult.executed = true;
+						return fCallback();
+					}
+				);
+			});
+		};
+
 		var Count = function(pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
@@ -235,6 +274,7 @@ var MeadowProvider = function()
 			Read: Read,
 			Update: Update,
 			Delete: Delete,
+			Undelete: Undelete,
 			Count: Count,
 
 			new: createNew

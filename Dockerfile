@@ -26,6 +26,21 @@ RUN ( sudo mysqld_safe --skip-grant-tables --skip-networking & ) && sleep 5 &&  
 # Import the initial database
 RUN sudo service mariadb restart && sleep 5 && mysql -u root -p"123456789" -e "CREATE DATABASE FableTest;"
 
+RUN echo "...installing vscode extensions..."
+RUN code-server --install-extension rangav.vscode-thunder-client \
+    code-server --install-extension hbenl.vscode-mocha-test-adapter \
+    code-server --install-extension hbenl.vscode-test-explorer \
+    code-server --install-extension hbenl.test-adapter-converter \
+    code-server --install-extension cweijan.vscode-mysql-client2 \
+    code-server --install-extension daylerees.rainglow \
+    code-server --install-extension oderwat.indent-rainbow \
+    code-server --install-extension evan-buss.font-switcher \
+    code-server --install-extension vscode-icons-team.vscode-icons \
+    code-server --install-extension bengreenier.vscode-node-readme \
+    code-server --install-extension bierner.color-info \
+    code-server --install-extension dbaeumer.vscode-eslint \
+    code-server --install-extension PKief.material-icon-theme
+
 SHELL ["/bin/bash", "-c"]
 USER coder
 

@@ -18,14 +18,14 @@ var libALASQL = require('alasql');
 var libFable = require('fable').new({
 	LogStreams:
 	[
-	    {
-	        level: 'fatal',
-	        streamtype:'process.stdout',
-	    },
-	    {
-	        level: 'trace',
-	        path: __dirname+'/../tests.log'
-	    }
+		{
+			level: 'fatal',
+			streamtype:'process.stdout',
+		},
+		{
+			level: 'trace',
+			path: __dirname+'/../tests.log'
+		}
 	]
 });
 
@@ -282,6 +282,30 @@ suite
 								// It returns the number of rows deleted
 								Expect(pRecord)
 									.to.equal(1);
+
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Undelete a record in the database',
+					function(fDone)
+					{
+						var testMeadow = newMeadow();
+
+						testMeadow.fable.settings.QueryThresholdWarnTime = 1;
+						var tmpQuery = testMeadow.query.addFilter('IDAnimal',3);
+
+						testMeadow.doUndelete(tmpQuery,
+							function(pError, pQuery, pRecord)
+							{
+								// TODO: Research why this is working but not returning the row count
+								Expect(pRecord)
+									.to.equal(0);
 
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
 

@@ -304,6 +304,38 @@ var MeadowProvider = function()
 			fCallback();
 		};
 
+		var Undelete = function(pQuery, fCallback)
+		{
+			var tmpResult = pQuery.parameters.result;
+
+			checkDataExists(pQuery.parameters);
+
+			pQuery.setDialect('ALASQL').buildUndeleteQuery();
+			var fQuery = libALASQL.compile(pQuery.query.body);
+
+			if (pQuery.logLevel > 0 ||
+				_GlobalLogLevel > 0)
+			{
+				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+			}
+
+			try
+			{
+				tmpResult.error = undefined;
+				tmpResult.executed = false;
+
+				tmpResult.value =  fQuery(pQuery.query.parameters);
+
+				tmpResult.executed = true;
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+			}
+
+			fCallback();
+		};
+
 		var Count = function(pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
@@ -463,6 +495,7 @@ var MeadowProvider = function()
 			Read: Read,
 			Update: Update,
 			Delete: Delete,
+			Undelete: Undelete,
 			Count: Count,
 
 			new: createNew

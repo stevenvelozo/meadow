@@ -1,14 +1,14 @@
 {
   "name": "meadow",
-  "version": "1.0.35",
+  "version": "2.0.0",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
     "start": "node source/Meadow.js",
-    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
-    "test": "./node_modules/mocha/bin/_mocha -u tdd -R spec",
-    "tests": "./node_modules/mocha/bin/_mocha -u tdd -R spec --grep",
-    "docker-dev-build-image": "docker build ./ -t retold/meadow:local",
+    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd --exit -R spec",
+    "test": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
+    "tests": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep",
+    "docker-dev-build-image": "docker build ./ -f Dockerfile_LUXURYCode -t retold/meadow:local",
     "docker-dev-run": "docker run -it -d --name meadow-dev -p 127.0.0.1:12342:8080 -p 12106:3306 -v \"$PWD/.config:/home/coder/.config\"  -v \"$PWD:/home/coder/meadow\" -u \"$(id -u):$(id -g)\" -e \"DOCKER_USER=$USER\" retold/meadow:local"
   },
   "mocha": {
@@ -44,18 +44,25 @@
   },
   "homepage": "https://github.com/stevenvelozo/meadow",
   "devDependencies": {
-    "alasql": "^0.4.0",
-    "chai": "3.5.0",
-    "groc": "^0.8.0",
-    "istanbul": "0.4.5",
-    "mocha": "3.4.1",
-    "mysql2": "1.2.0"
+    "alasql": "^3.1.0",
+    "browserify": "^17.0.0",
+    "chai": "4.3.7",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-terser": "^2.1.0",
+    "gulp-util": "^3.0.8",
+    "mocha": "10.2.0",
+    "nyc": "^15.1.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "mysql2": "^3.1.2"
   },
   "dependencies": {
-    "async": "2.4.0",
-    "fable": "~1.0.1",
-    "foxhound": "^1.0.39",
-    "is-my-json-valid": "2.16.0",
-    "underscore": "1.8.3"
+    "async": "3.2.4",
+    "fable": "^3.0.2",
+    "foxhound": "^2.0.0",
+    "is-my-json-valid": "2.20.6",
+    "underscore": "1.13.6"
   }
 }

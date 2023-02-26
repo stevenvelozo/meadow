@@ -15,7 +15,7 @@ var Assert = Chai.assert;
 var libAsync = require('async');
 var libALASQL = require('alasql');
 
-var libFable = require('fable').new({
+var libFable = new (require('fable'))({
 	LogStreams:
 	[
 		{
@@ -23,6 +23,7 @@ var libFable = require('fable').new({
 			streamtype:'process.stdout',
 		},
 		{
+			streamtype: 'simpleflatfile',
 			level: 'trace',
 			path: __dirname+'/../tests.log'
 		}
@@ -305,7 +306,7 @@ suite
 							{
 								// TODO: Research why this is working but not returning the row count
 								Expect(pRecord)
-									.to.equal(0);
+									.to.equal(1);
 
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
 
@@ -327,9 +328,9 @@ suite
 						testMeadow.doCount(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 5 records
+								// There should be 6 records
 								Expect(pRecord)
-									.to.equal(5);
+									.to.equal(6);
 								Expect(pQuery.parameters.result.executed)
 									.to.equal(true);
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
@@ -542,9 +543,9 @@ suite
 						testMeadow.doCount(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 6 records
+								// There should be 7 records .. we undeleted one!
 								Expect(pRecord)
-									.to.equal(6);
+									.to.equal(7);
 								fDone();
 							}
 						)

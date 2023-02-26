@@ -40,7 +40,9 @@ var tmpFableSettings = 	(
 	]
 });
 
-var libFable = require('fable').new(tmpFableSettings);
+var libFable = new (require('fable'))(tmpFableSettings);
+
+var _SQLConnectionPool = false;
 
 libFable.MeadowMySQLConnectionPool = libMySQL.createPool
 (
@@ -129,14 +131,14 @@ suite
 				.setDefault(_AnimalDefault)
 		};
 
-		setup
+		suiteSetup
 		(
 			function(fDone)
 			{
 				// Only do this for the first test.
 				if (!_SpooledUp)
 				{
-					var _SQLConnectionPool = libMySQL.createPool
+					_SQLConnectionPool = libMySQL.createPool
 					(
 						{
 							connectionLimit: tmpFableSettings.MySQL.ConnectionPoolLimit,
@@ -200,6 +202,11 @@ suite
 					fDone();
 				}
 			}
+		);
+
+		suiteTeardown((fDone) => {
+			_SQLConnectionPool.end(fDone);
+		}
 		);
 
 		suite

@@ -58,7 +58,7 @@ suite
 		(
 			function()
 			{
-				_Fable = libFable.new(
+				_Fable = new libFable(
 				{
 					LogStreams:
 					[
@@ -299,7 +299,7 @@ suite
 					function()
 					{
 						// given
-						_Fable = libFable.new(
+						_Fable = new libFable(
 						{
 							MeadowRoleNames: ['Cool', 'Bold', 'Tired'],
 							LogStreams:

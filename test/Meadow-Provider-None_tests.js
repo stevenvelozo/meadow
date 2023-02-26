@@ -10,7 +10,7 @@ var Chai = require("chai");
 var Expect = Chai.expect;
 var Assert = Chai.assert;
 
-var libFable = require('fable').new({
+var libFable = new (require('fable'))({
 	LogStreams:
 	[
 	    {

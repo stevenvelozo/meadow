@@ -32,7 +32,7 @@ var tmpFableSettings = 	(
 	]
 });
 
-var libFable = require('fable').new(tmpFableSettings);
+var libFable = new (require('fable'))(tmpFableSettings)
 
 var _AnimalJsonSchema = (
 {

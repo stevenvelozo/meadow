@@ -13,7 +13,7 @@ var Expect = Chai.expect;
 var Assert = Chai.assert;
 
 var libMySQL = require('mysql2');
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 var tmpFableSettings = 	(
 {
@@ -151,7 +151,7 @@ suite
 					);
 
 					// Tear down previous test data
-					libAsync.waterfall(
+					libAsyncWaterfall(
 					[
 						function(fCallBack)
 						{

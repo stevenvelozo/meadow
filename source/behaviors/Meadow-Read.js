@@ -3,7 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Read a single record
@@ -13,7 +13,7 @@ var libAsync = require('async');
 var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 {
 	// Read the record from the source
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Get the record from the data source
 			function (fStageComplete)
@@ -31,7 +31,7 @@ var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 				// Check that a record was returned
 				if (pQuery.parameters.result.value.length < 1)
 				{
-					return fStageComplete(false, pQuery, false);
+					return fStageComplete(undefined, pQuery, false);
 				}
 
 				var tmpRecord = pMeadow.marshalRecordFromSourceToObject(pQuery.result.value[0]);
@@ -39,8 +39,9 @@ var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 				fStageComplete(pQuery.result.error, pQuery, tmpRecord);
 			}
 		],
-		function(pError, pQuery, pRecord)
+		(pError, pQuery, pRecord)=>
 		{
+			console.log('b')
 			if (pError)
 			{
 				pMeadow.fable.log.warn('Error during the read waterfall', {Error:pError, Message: pError.message, Query: pQuery.query});

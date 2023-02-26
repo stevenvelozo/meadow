@@ -3,8 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
-var libUnderscore = require('underscore');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Create
@@ -13,7 +12,7 @@ var libUnderscore = require('underscore');
 */
 var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 {
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 0: If GUID is specified, make sure the record does not already exist
 			function (fStageComplete)
@@ -78,7 +77,7 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 				}
 				
 				// Merge in the default record with the passed-in record for completeness
-				pQuery.query.records[0] = libUnderscore.extend({}, pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);
+				pQuery.query.records[0] = pMeadow.fable.Utility.extend({}, pMeadow.schemaFull.defaultObject, pQuery.query.records[0]);
 				// Create override is too complex ... punting for now
 				// if (pMeadow.rawQueries.checkQuery('Create'))
 				//	pQuery.parameters.queryOverride = pMeadow.rawQueries.getQuery('Create');

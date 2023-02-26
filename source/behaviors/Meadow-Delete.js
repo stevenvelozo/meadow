@@ -3,7 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Delete a single record
@@ -14,7 +14,7 @@ var meadowBehaviorDelete = function(pMeadow, pQuery, fCallBack)
 {
 	// TODO: Check if this recordset has implicit delete tracking, branch in this module.
 	// Delete the record(s) from the source
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Delete the record
 			function (fStageComplete)

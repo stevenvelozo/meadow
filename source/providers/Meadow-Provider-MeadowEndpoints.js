@@ -4,7 +4,6 @@
 * @author <steven@velozo.com>
 */
 var libSimpleGet = require('simple-get');
-var libUnderscore = require('underscore');
 
 var MeadowProvider = function()
 {
@@ -50,12 +49,12 @@ var MeadowProvider = function()
 			let tmpRequestOptions = (
 			{
 				url: tmpURL,
-				headers: libUnderscore.extend({cookie: ''}, _Headers)
+				headers: _Fable.Utility.extend({cookie: ''}, _Headers)
 			});
-	
+
 			tmpRequestOptions.headers.cookie = _Cookies.join(';');
 
-				
+
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
 				_Fable.log.debug(`Request options built...`,tmpRequestOptions);

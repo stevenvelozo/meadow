@@ -3,7 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Update a single record
@@ -13,7 +13,7 @@ var libAsync = require('async');
 var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 {
 	// Update the record(s) from the source
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Update the record
 			function (fStageComplete)

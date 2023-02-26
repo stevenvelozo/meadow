@@ -3,7 +3,6 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libUnderscore = require('underscore');
 var libFoxHound = require('foxhound');
 
 /**
@@ -330,7 +329,7 @@ var Meadow = function()
 		var marshalRecordFromSourceToObject = function(pRecord)
 		{
 			// Create an object from the default schema object
-			var tmpNewObject = libUnderscore.extend({}, _Schema.defaultObject);
+			var tmpNewObject = _Fable.Utility.extend({}, _Schema.defaultObject);
 			// Now marshal the values from pRecord into tmpNewObject, based on schema
 			_Provider.marshalRecordFromSourceToObject(tmpNewObject, pRecord, _Schema.schema);
 			// This turns on magical validation

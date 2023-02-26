@@ -3,7 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Undelete a single record
@@ -14,7 +14,7 @@ var meadowBehaviorUndelete = function(pMeadow, pQuery, fCallBack)
 {
 	// TODO: Check if this recordset has implicit delete tracking, branch in this module?
 	// Undelete the record(s) if they were deleted with a bit
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Undelete the record
 			function (fStageComplete)

@@ -3,7 +3,7 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
 
 /**
 * Meadow Behavior - Count multiple records
@@ -15,7 +15,7 @@ var meadowBehaviorCount = function(pMeadow, pQuery, fCallBack)
 	var tmpProfileStart = new Date(); //for profiling query time
 
 	// Count the record(s) from the source
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Get the record countfrom the data source
 			function (fStageComplete)

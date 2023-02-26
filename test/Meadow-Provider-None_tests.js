@@ -10,20 +10,8 @@ var Chai = require("chai");
 var Expect = Chai.expect;
 var Assert = Chai.assert;
 
-var libFable = new (require('fable'))({
-	LogStreams:
-	[
-	    {
-	        level: 'fatal',
-	        streamtype:'process.stdout',
-	    },
-	    {
-	        level: 'trace',
-	        path: __dirname+'/../tests.log'
-	    }
-	]
-});
-var libFoxHound = require('foxhound');
+var libFable = new (require('fable'))({ Product:'MeadowProviderNone'});
+var libMeadow = require('../source/Meadow.js');
 
 var _AnimalJsonSchema = (
 {
@@ -74,7 +62,7 @@ suite
 	{
 		var newMeadow = function()
 		{
-			return require('../source/Meadow.js').new(libFable, 'FableTest');
+			return libMeadow.new(libFable, 'FableTest');
 		};
 
 		setup
@@ -94,7 +82,7 @@ suite
 					'The class should initialize itself into a happy little object.',
 					function()
 					{
-						var testMeadow = require('../source/Meadow.js').new(libFable);
+						var testMeadow = libMeadow.new(libFable);
 						Expect(testMeadow).to.be.an('object', 'Meadow should initialize as an object directly from the require statement.');
 					}
 				);

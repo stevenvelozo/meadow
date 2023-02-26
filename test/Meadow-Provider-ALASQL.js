@@ -12,7 +12,6 @@ var Chai = require("chai");
 var Expect = Chai.expect;
 var Assert = Chai.assert;
 
-var libAsync = require('async');
 var libALASQL = require('alasql');
 
 var libFable = new (require('fable'))({

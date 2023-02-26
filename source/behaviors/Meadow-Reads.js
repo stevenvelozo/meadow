@@ -3,7 +3,8 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libAsync = require('async');
+var libAsyncWaterfall = require('async/waterfall');
+var libAsyncEach = require('async/eachSeries');
 
 /**
 * Meadow Behavior - Read multiple records
@@ -15,7 +16,7 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 	var tmpProfileStart = new Date(); //for profiling query time
 
 	// Read the record(s) from the source
-	libAsync.waterfall(
+	libAsyncWaterfall(
 		[
 			// Step 1: Get the record(s) from the data source
 			function (fStageComplete)
@@ -38,7 +39,7 @@ var meadowBehaviorReads = function(pMeadow, pQuery, fCallBack)
 
 				var tmpRecords = [];
 
-				libAsync.each
+				libAsyncEach
 				(
 					pQuery.parameters.result.value,
 					function(pRow, pQueueCallback)

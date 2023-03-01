@@ -52,6 +52,7 @@
     "gulp-babel": "^8.0.0",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
+    "fable": "^3.0.4",
     "gulp-util": "^3.0.8",
     "mocha": "10.2.0",
     "nyc": "^15.1.0",
@@ -61,7 +62,6 @@
   },
   "dependencies": {
     "async": "3.2.4",
-    "fable": "^3.0.4",
     "foxhound": "^2.0.2",
     "is-my-json-valid": "2.20.6"
   }

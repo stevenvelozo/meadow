@@ -41,7 +41,6 @@ var meadowBehaviorRead = function(pMeadow, pQuery, fCallBack)
 		],
 		(pError, pQuery, pRecord)=>
 		{
-			console.log('b')
 			if (pError)
 			{
 				pMeadow.fable.log.warn('Error during the read waterfall', {Error:pError, Message: pError.message, Query: pQuery.query});

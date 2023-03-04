@@ -3,8 +3,6 @@
 * @license MIT
 * @author <steven@velozo.com>
 */
-var libMySQL = require('mysql2');
-
 var MeadowProvider = function()
 {
 	function createNew(pFable)

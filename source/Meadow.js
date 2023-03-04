@@ -130,6 +130,13 @@ var Meadow = function()
 		* @param {String} pProviderName The provider for query generation.
 		* @return {Object} Returns the current Meadow for chaining.
 		*/
+		var _PROVIDERS = (
+		{
+			'ALASQL': require(`./providers/Meadow-Provider-ALASQL.js`),
+			'MeadowEndpoints': require(`./providers/Meadow-Provider-MeadowEndpoints.js`),
+			'MySQL': require(`./providers/Meadow-Provider-MySQL.js`),
+			'None': require(`./providers/Meadow-Provider-None.js`),
+		});
 		var setProvider = function(pProviderName)
 		{
 			if (typeof(pProviderName) !== 'string')
@@ -137,13 +144,9 @@ var Meadow = function()
 				pProviderName = 'None';
 			}
 
-			var tmpProviderModuleFile = './providers/Meadow-Provider-'+pProviderName+'.js';
-
 			try
 			{
-				var tmpProviderModule = require(tmpProviderModuleFile).new(_Fable);
-				_Provider = tmpProviderModule;
-
+				_Provider = _PROVIDERS[pProviderName].new(_Fable);
 				// Give the provider access to the schema object
 				updateProviderState();
 
@@ -151,8 +154,8 @@ var Meadow = function()
 			}
 			catch (pError)
 			{
-				_Fable.log.error('Provider not set - require load problem', {ProviderModuleFile:tmpProviderModuleFile, InvalidProvider:pProviderName, error:pError});
-				//setProvider('None');
+				_Fable.log.error('Provider not set - require load problem', {InvalidProvider:pProviderName, error:pError});
+				setProvider('None');
 			}
 
 			return this;

@@ -38,7 +38,7 @@ const _AnimalDefault = (
     {
         IDAnimal: null,
         GUIDAnimal: '',
-    
+
         CreateDate: false,
         CreatingIDUser: 0,
         UpdateDate: false,
@@ -46,7 +46,7 @@ const _AnimalDefault = (
         Deleted: 0,
         DeleteDate: false,
         DeletingIDUser: 0,
-    
+
         Name: 'Unknown',
         Type: 'Unclassified'
     });

@@ -3,9 +3,10 @@
 * @author <steven@velozo.com>
 */
 let libMeadowProviderBase = require('./Meadow-Provider-Base.js');
+
 const libSimpleGet = require('simple-get');
 
-class MeadowProvider extends libMeadowProviderBase
+class MeadowProviderMeadowEndpoints extends libMeadowProviderBase
 {
 	constructor(pMeadow)
 	{
@@ -376,4 +377,4 @@ class MeadowProvider extends libMeadowProviderBase
 	};
 };
 
-module.exports = new MeadowProvider();
+module.exports = MeadowProviderMeadowEndpoints;

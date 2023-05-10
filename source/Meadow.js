@@ -59,6 +59,14 @@ class Meadow
 		// The custom query loader
 		this._RawQueries = require('./Meadow-RawQuery.js').new(this.Fable);
 
+		this._Providers = (
+			{
+				'ALASQL': require(`./providers/Meadow-Provider-ALASQL.js`),
+				'MeadowEndpoints': require(`./providers/Meadow-Provider-MeadowEndpoints.js`),
+				'MySQL': require(`./providers/Meadow-Provider-MySQL.js`),
+				'None': require(`./providers/Meadow-Provider-None.js`),
+			});
+
 		// The core behaviors.. abstracted into their own modules to encapsulate complexity
 		this._CreateBehavior = require('./behaviors/Meadow-Create.js');
 		this._ReadBehavior = require('./behaviors/Meadow-Read.js');
@@ -87,15 +95,15 @@ class Meadow
 	* @method updateProviderState
 	* @return {Object} Returns the current Meadow for chaining.
 	*/
-	var updateProviderState = ()=>
+	updateProviderState()
 	{
+		// Not all providers have schemas!
 		if (typeof(_Provider.setSchema) === 'function')
 		{
-			_Provider.setSchema(_Scope, _Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
+			this._Provider.setSchema(_Scope, _Schema.schema, _DefaultIdentifier, _DefaultGUIdentifier);
 		}
 		return this;
 	};
-
 
 	/**
 	* Set the scope
@@ -103,14 +111,13 @@ class Meadow
 	* @method setScope
 	* @return {Object} Returns the current Meadow for chaining.
 	*/
-	var setScope = function(pScope)
+	setScope(pScope)
 	{
-		_Scope = pScope;
-		_Query.setScope(pScope);
-		updateProviderState();
+		this._Scope = pScope;
+		this._Query.setScope(pScope);
+		this.updateProviderState();
 		return this;
 	};
-
 
 	/**
 	* Set the user ID for inserts and updates
@@ -118,12 +125,12 @@ class Meadow
 	* @method setIDUser
 	* @return {Object} Returns the current Meadow for chaining.
 	*/
-	var setIDUser = function(pIDUser)
+	setIDUser(pIDUser)
 	{
-		_IDUser = pIDUser;
+		// TODO: REQUEST SPECIFIC
+		this._IDUser = pIDUser;
 		return this;
 	};
-
 
 	/**
 	* Set the Provider for Query execution.
@@ -135,14 +142,7 @@ class Meadow
 	* @param {String} pProviderName The provider for query generation.
 	* @return {Object} Returns the current Meadow for chaining.
 	*/
-	var _PROVIDERS = (
-	{
-		'ALASQL': require(`./providers/Meadow-Provider-ALASQL.js`),
-		'MeadowEndpoints': require(`./providers/Meadow-Provider-MeadowEndpoints.js`),
-		'MySQL': require(`./providers/Meadow-Provider-MySQL.js`),
-		'None': require(`./providers/Meadow-Provider-None.js`),
-	});
-	var setProvider = function(pProviderName)
+	setProvider(pProviderName)
 	{
 		if (typeof(pProviderName) !== 'string')
 		{
@@ -151,16 +151,16 @@ class Meadow
 
 		try
 		{
-			_Provider = _PROVIDERS[pProviderName].new(this.Fable);
+			this._Provider = this._Providers[pProviderName].new(this.Fable);
 			// Give the provider access to the schema object
-			updateProviderState();
+			this.updateProviderState();
 
-			_ProviderName = pProviderName;
+			this._ProviderName = pProviderName;
 		}
 		catch (pError)
 		{
 			this.Fable.log.error('Provider not set - require load problem', {InvalidProvider:pProviderName, error:pError});
-			setProvider('None');
+			this.setProvider('None');
 		}
 
 		return this;
@@ -172,10 +172,10 @@ class Meadow
 	* @method setSchema
 	* @return {Object} This is chainable.
 	*/
-	var setSchema = function(pSchema)
+	setSchema(pSchema)
 	{
-		_Schema.setSchema(pSchema);
-		updateProviderState();
+		this._Schema.setSchema(pSchema);
+		this.updateProviderState();
 		return this;
 	};
 
@@ -185,9 +185,9 @@ class Meadow
 	* @method setJsonSchema
 	* @return {Object} This is chainable.
 	*/
-	var setJsonSchema = function(pJsonSchema)
+	setJsonSchema(pJsonSchema)
 	{
-		_Schema.setJsonSchema(pJsonSchema);
+		this._Schema.setJsonSchema(pJsonSchema);
 		return this;
 	};
 
@@ -197,9 +197,9 @@ class Meadow
 	* @method setDefault
 	* @return {Object} This is chainable.
 	*/
-	var setDefault = function(pDefault)
+	setDefault(pDefault)
 	{
-		_Schema.setDefault(pDefault);
+		this._Schema.setDefault(pDefault);
 		return this;
 	};
 
@@ -209,9 +209,9 @@ class Meadow
 	* @method setDomain
 	* @return {Object} This is chainable.
 	*/
-	var setDomain = function(pDomain)
+	setDomain(pDomain)
 	{
-		_Domain = pDomain;
+		this._Domain = pDomain;
 		return this;
 	};
 
@@ -221,11 +221,11 @@ class Meadow
 	* @method setDefaultIdentifier
 	* @return {Object} This is chainable.
 	*/
-	var setDefaultIdentifier = function(pDefaultIdentifier)
+	setDefaultIdentifier(pDefaultIdentifier)
 	{
-		_DefaultIdentifier = pDefaultIdentifier;
-		_DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
-		updateProviderState();
+		this._DefaultIdentifier = pDefaultIdentifier;
+		this._DefaultGUIdentifier = 'GU' + pDefaultIdentifier;
+		this.updateProviderState();
 		return this;
 	};
 

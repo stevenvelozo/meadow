@@ -4,7 +4,7 @@
 */
 let libMeadowProviderBase = require('./Meadow-Provider-Base.js');
 
-class MeadowProvider exports libMeadowProviderBase
+class MeadowProviderALASQL extends libMeadowProviderBase
 {
 	constructor(pMeadow)
 	{
@@ -14,7 +14,7 @@ class MeadowProvider exports libMeadowProviderBase
 
 		if (this.Fable.settings.ArrayStorage)
 		{
-			 _GlobalLogLevel = _Fable.settings.ArrayStorage.GlobalLogLevel || 0;
+			_GlobalLogLevel = _Fable.settings.ArrayStorage.GlobalLogLevel || 0;
 		}
 		
 		if (!_Fable.hasOwnProperty(`ALASQL`))
@@ -475,4 +475,4 @@ class MeadowProvider exports libMeadowProviderBase
 	};
 };
 
-module.exports = new MeadowProvider();
+module.exports = MeadowProviderALASQL;

@@ -259,6 +259,55 @@ suite
 				);
 				test
 				(
+					'New provider format',
+					function(fDone)
+					{
+						let _FableClass = require('fable');
+						let _Fable = new _FableClass({
+							MySQL:
+								{
+									// This is queued up for Travis defaults.
+									Server: "localhost",
+									Port: 3306,
+									User: "root",
+									Password: "123456789",
+									Database: "FableTest",
+									ConnectionPoolLimit: 20
+								},
+							MeadowConnectionMySQLAutoConnect: true
+						});
+						_Fable.serviceManager.addAndInstantiateServiceType('MeadowMySQLProvider', require('meadow-connection-mysql'));
+
+						var testMeadow = require('../source/Meadow.js')
+							.new(_Fable, 'FableTest')
+							.setProvider('MySQL')
+							.setSchema(_AnimalSchema)
+							.setJsonSchema(_AnimalJsonSchema)
+							.setDefaultIdentifier('IDAnimal')
+							.setDefault(_AnimalDefault);
+
+						testMeadow.setIDUser(90210);
+
+						var tmpQuery = testMeadow.query.addFilter('IDAnimal', 1);
+
+						testMeadow.doRead(tmpQuery,
+							function(pError, pQuery, pRecord)
+							{
+								// We should have a record ....
+								Expect(pRecord.IDAnimal)
+									.to.equal(1);
+								Expect(pRecord.Name)
+									.to.equal('Foo Foo');
+
+								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
 					'Create a record in the database with Deleted bit already set',
 					function(fDone)
 					{

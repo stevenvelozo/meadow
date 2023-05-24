@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -9,8 +9,9 @@
     "test": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
     "tests": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep",
     "build": "./node_modules/.bin/gulp build --full-paths",
-    "docker-dev-build-image": "docker build ./ -f Dockerfile_LUXURYCode -t retold/meadow:local",
-    "docker-dev-run": "docker run -it -d --name meadow-dev -p 127.0.0.1:12342:8080 -p 12106:3306 -v \"$PWD/.config:/home/coder/.config\"  -v \"$PWD:/home/coder/meadow\" -u \"$(id -u):$(id -g)\" -e \"DOCKER_USER=$USER\" retold/meadow:local"
+    "docker-dev-build": "docker build ./ -f Dockerfile_LUXURYCode -t retold/meadow:local",
+    "docker-dev-run": "docker run -it -d --name meadow-dev -p 12342:8080 -p 12106:3306 -v \"$PWD/.config:/home/coder/.config\"  -v \"$PWD:/home/coder/meadow\" -u \"$(id -u):$(id -g)\" -e \"DOCKER_USER=$USER\" retold/meadow:local",
+    "docker-dev-shell": "docker exec -it meadow-dev /bin/bash"
   },
   "mocha": {
     "diff": true,
@@ -48,22 +49,24 @@
     "alasql": "^3.1.0",
     "browserify": "^17.0.0",
     "chai": "4.3.7",
+    "fable": "^3.0.46",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
-    "fable": "^3.0.11",
     "gulp-util": "^3.0.8",
+    "meadow-connection-mysql": "^1.0.2",
     "mocha": "10.2.0",
+    "mysql2": "^3.3.2",
     "nyc": "^15.1.0",
     "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0",
-    "mysql2": "^3.1.2"
+    "vinyl-source-stream": "^2.0.0"
   },
   "dependencies": {
     "async": "3.2.4",
-    "foxhound": "^2.0.2",
+    "foxhound": "^2.0.3",
     "is-my-json-valid": "2.20.6",
+    "npm-check-updates": "^16.10.12",
     "simple-get": "^4.0.1"
   }
 }

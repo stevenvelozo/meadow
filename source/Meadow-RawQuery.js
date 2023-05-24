@@ -1,13 +1,14 @@
+// ##### Part of the **[retold](https://stevenvelozo.github.io/retold/)** system
 /**
 * @license MIT
 * @author <steven@velozo.com>
 */
+var libFS = require('fs');
 
 /**
 * ### Meadow Raw Query Library
 *
-* This library stores raw queries for FoxHound to use.
-*
+* This library loads and stores raw queries for FoxHound to use.
 * You can overload the default query that is built for each of
 * the following query archetypes:
 *
@@ -16,37 +17,106 @@
 * You can also load other custom queries and give them an
 * arbitrary name.
 *
+* @class MeadowRawQuery
 */
-class MeadowRawQuery
+var MeadowRawQuery = function()
 {
-	constructor(pMeadow)
+	function createNew(pMeadow)
 	{
-		this.meadow = pMeadow;
-		this.fable = this.meadow.fable;
-
-		this.queries = {};
-	}
-
-	setQuery(pQueryTag, pQueryString)
-	{
-		this.queries[pQueryTag] = pQueryString;
-		return this.meadow;
-	}
-
-	getQuery(pQueryTag)
-	{
-		if (this.queries.hasOwnProperty(pQueryTag))
+		// If a valid Fable object isn't passed in, return a constructor
+		if ((typeof(pMeadow) !== 'object') || !('fable' in pMeadow))
 		{
-			return this.queries[pQueryTag];
+			return {new: createNew};
+		}
+		var _Meadow = pMeadow;
+
+		var _Queries = {};
+
+
+		/**
+		* Load a Custom Query from a File
+		*
+		* @method doLoadQuery
+		*/
+		function doLoadQuery(pQueryTag, pFileName, fCallBack)
+		{
+			var tmpCallBack = (typeof(fCallBack) === 'function') ? fCallBack : function() {};
+
+			libFS.readFile(pFileName, 'utf8',
+				function (pError, pData)
+				{
+					if (pError)
+					{
+						_Meadow.fable.log.error('Problem loading custom query file.', {QueryTag:pQueryTag, FileName:pFileName, Error:pError});
+						// There is some debate whether we should leave the queries entry unset or set it to empty so nothing happens.
+						// If this were to set the query to `false` instead of `''`, FoxHound would be used to generate a query.
+						doSetQuery(pQueryTag, '');
+						tmpCallBack(false);
+					}
+					else
+					{
+						_Meadow.fable.log.trace('Loaded custom query file.', {QueryTag:pQueryTag, FileName:pFileName});
+						doSetQuery(pQueryTag, pData);
+						tmpCallBack(true);
+					}
+				});
+			return _Meadow;
 		}
 
-		return false;
+
+		/**
+		* Sets a Custom Query from a String
+		*
+		* @method doSetQuery
+		*/
+		function doSetQuery(pQueryTag, pQueryString)
+		{
+			_Queries[pQueryTag] = pQueryString;
+			return _Meadow;
+		}
+
+
+		/**
+		* Returns a Custom Query if one has been set for this tag
+		*
+		* @method doGetQuery
+		*/
+		function doGetQuery(pQueryTag)
+		{
+			if (_Queries.hasOwnProperty(pQueryTag))
+			{
+				return _Queries[pQueryTag];
+			}
+
+			return false;
+		}
+
+
+		/**
+		* Check if a Custom Query exists
+		*
+		* @method doCheckQuery
+		*/
+		function doCheckQuery(pQueryTag)
+		{
+			return _Queries.hasOwnProperty(pQueryTag);
+		}
+
+		var tmpNewMeadowRawQuery = (
+		{
+			loadQuery: doLoadQuery,
+			setQuery: doSetQuery,
+
+			checkQuery: doCheckQuery,
+			getQuery: doGetQuery,
+
+			new: createNew
+		});
+
+		return tmpNewMeadowRawQuery;
 	}
 
-	checkQuery(pQueryTag)
-	{
-		return this.queries.hasOwnProperty(pQueryTag);
-	}
-}
+	return createNew();
+};
 
-module.exports = MeadowRawQuery;
+module.exports = new MeadowRawQuery();

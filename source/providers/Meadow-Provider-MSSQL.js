@@ -14,9 +14,9 @@ var MeadowProvider = function ()
 		}
 		var _Fable = pFable;
 		var _GlobalLogLevel = 0;
-		if (_Fable.settings.MySQL)
+		if (_Fable.settings.MSSQL)
 		{
-			_GlobalLogLevel = _Fable.settings.MySQL.GlobalLogLevel || 0;
+			_GlobalLogLevel = _Fable.settings.MSSQL.GlobalLogLevel || 0;
 		}
 
 		/**
@@ -25,17 +25,11 @@ var MeadowProvider = function ()
 		 */
 		var getSQLPool = function ()
 		{
-			let tmpSqlPool = false;
-			if (typeof (_Fable.MeadowMySQLConnectionPool) == 'object')
-			{
-				// This is where the old-style SQL Connection pool is.  Refactor doesn't even look for it anymore
-				return _Fable.MeadowMySQLConnectionPool;
-			}
-
 			// New-style default connection pool provider
-			if (typeof (_Fable.MeadowMySQLProvider) == 'object' && _Fable.MeadowMySQLProvider.connected)
+			// There are no legacy MSSQL open source connectors.
+			if (typeof (_Fable.MeadowMSSQLProvider) == 'object' && _Fable.MeadowMSSQLProvider.connected)
 			{
-				return _Fable.MeadowMySQLProvider.pool;
+				return _Fable.MeadowMSSQLProvider.pool;
 			}
 
 			return false;
@@ -56,7 +50,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildCreateQuery();
+			pQuery.setDialect('MSSQL').buildCreateQuery();
 
 			// TODO: Test the query before executing
 			if (pQuery.logLevel > 0 ||
@@ -70,7 +64,7 @@ var MeadowProvider = function ()
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
-					// The MySQL library also returns the Fields as the third parameter
+					// The MSSQL library also returns the Fields as the third parameter
 					function (pError, pRows)
 					{
 						pDBConnection.release();
@@ -98,7 +92,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildReadQuery();
+			pQuery.setDialect('MSSQL').buildReadQuery();
 
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
@@ -106,12 +100,32 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
+			let tmpPreparedStatement = _Fable.MeadowMSSQLProvider.preparedStatement;
+			// Now define the inputs for the prepared statement based on the parameters and the schema.
+			
+			//tmpPreparedStatement.input('param', _Fable.MeadowMSSQLProvider.MSSQL.Int);
+			tmpPreparedStatement.prepare(pQuery.query.body,
+				(pPrepareError) =>
+				{
+					tmpPreparedStatement.execute(pQuery.query.parameters,
+						(pPreparedExecutionError, pPreparedResult) =>
+						{
+							_Fable.log.info(`Prepared statement returned...`, pPreparedResult);
+							// release the connection after queries are executed
+							tmpPreparedStatement.unprepare(
+								(pPreparedStatementUnprepareError) =>
+								{
+									_Fable.log.trace(`Prepared statement unprepared.`);
+									return fCallback(pPreparedStatementUnprepareError);
+								});
+						})
+				});
 			getSQLPool().getConnection(function (pError, pDBConnection)
 			{
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
-					// The MySQL library also returns the Fields as the third parameter
+					// The MSSQL library also returns the Fields as the third parameter
 					function (pError, pRows)
 					{
 						pDBConnection.release();
@@ -128,7 +142,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildUpdateQuery();
+			pQuery.setDialect('MSSQL').buildUpdateQuery();
 
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
@@ -141,7 +155,7 @@ var MeadowProvider = function ()
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
-					// The MySQL library also returns the Fields as the third parameter
+					// The MSSQL library also returns the Fields as the third parameter
 					function (pError, pRows)
 					{
 						pDBConnection.release();
@@ -158,7 +172,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildDeleteQuery();
+			pQuery.setDialect('MSSQL').buildDeleteQuery();
 
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
@@ -172,7 +186,7 @@ var MeadowProvider = function ()
 					(
 						pQuery.query.body,
 						pQuery.query.parameters,
-						// The MySQL library also returns the Fields as the third parameter
+						// The MSSQL library also returns the Fields as the third parameter
 						function (pError, pRows)
 						{
 							pDBConnection.release();
@@ -197,7 +211,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildUndeleteQuery();
+			pQuery.setDialect('MSSQL').buildUndeleteQuery();
 
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
@@ -211,7 +225,7 @@ var MeadowProvider = function ()
 					(
 						pQuery.query.body,
 						pQuery.query.parameters,
-						// The MySQL library also returns the Fields as the third parameter
+						// The MSSQL library also returns the Fields as the third parameter
 						function (pError, pRows)
 						{
 							pDBConnection.release();
@@ -236,7 +250,7 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildCountQuery();
+			pQuery.setDialect('MSSQL').buildCountQuery();
 
 			if (pQuery.logLevel > 0 ||
 				_GlobalLogLevel > 0)
@@ -249,7 +263,7 @@ var MeadowProvider = function ()
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
-					// The MySQL library also returns the Fields as the third parameter
+					// The MSSQL library also returns the Fields as the third parameter
 					function (pError, pRows)
 					{
 						pDBConnection.release();

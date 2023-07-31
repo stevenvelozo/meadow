@@ -135,6 +135,7 @@ var Meadow = function()
 			'ALASQL': require(`./providers/Meadow-Provider-ALASQL.js`),
 			'MeadowEndpoints': require(`./providers/Meadow-Provider-MeadowEndpoints.js`),
 			'MySQL': require(`./providers/Meadow-Provider-MySQL.js`),
+			'MSSQL': require(`./providers/Meadow-Provider-MSSQL.js`),
 			'None': require(`./providers/Meadow-Provider-None.js`),
 		});
 		var setProvider = function(pProviderName)

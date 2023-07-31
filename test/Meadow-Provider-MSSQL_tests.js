@@ -11,8 +11,7 @@
 var Chai = require("chai");
 var Expect = Chai.expect;
 
-var libMSSQL = require('mssql');
-var libAsyncWaterfall = require('async/waterfall');
+const libMeadowConnectionMSSQL = require('meadow-connection-mssql');
 
 var tmpFableSettings = (
 	{
@@ -44,8 +43,8 @@ var tmpFableSettings = (
 
 var libFable = new (require('fable'))(tmpFableSettings);
 
-var _SQLConnectionPool = false;
-
+libFable.serviceManager.addServiceType('MeadowMSSQLProvider', libMeadowConnectionMSSQL);
+libFable.serviceManager.instantiateServiceProvider('MeadowMSSQLProvider');
 
 var _AnimalJsonSchema = (
 	{
@@ -78,7 +77,10 @@ var _AnimalSchema = (
 		{ Column: "UpdatingIDUser", Type: "UpdateIDUser" },
 		{ Column: "Deleted", Type: "Deleted" },
 		{ Column: "DeletingIDUser", Type: "DeleteIDUser" },
-		{ Column: "DeleteDate", Type: "DeleteDate" }
+		{ Column: "DeleteDate", Type: "DeleteDate" },
+		{ Column: "Name", Type: "String" },
+		{ Column: "Type", Type: "String" },
+		{ Column: "Age", Type: "Integer" }
 	]);
 var _AnimalDefault = (
 	{
@@ -106,7 +108,7 @@ suite
 
 			var getAnimalInsert = function (pName, pType)
 			{
-				return "INSERT INTO `FableTest` (`IDAnimal`, `GUIDAnimal`, `CreateDate`, `CreatingIDUser`, `UpdateDate`, `UpdatingIDUser`, `Deleted`, `DeleteDate`, `DeletingIDUser`, `Name`, `Type`) VALUES (NULL, '00000000-0000-0000-0000-000000000000', NOW(), 1, NOW(), 1, 0, NULL, 0, '" + pName + "', '" + pType + "'); ";
+				return "INSERT INTO FableTest (GUIDAnimal, CreateDate, CreatingIDUser, UpdateDate, UpdatingIDUser, Deleted, DeleteDate, DeletingIDUser, Name, Type) VALUES ('00000000-0000-0000-0000-000000000000', GETUTCDATE(), 1, GETUTCDATE(), 1, 0, NULL, 0, '" + pName + "', '" + pType + "'); ";
 			};
 
 			var newMeadow = function ()
@@ -127,55 +129,52 @@ suite
 						// Only do this for the first test.
 						if (!_SpooledUp)
 						{
-							_SQLConnectionPool = libMSSQL.createPool
-								(
-									{
-										connectionLimit: tmpFableSettings.MSSQL.ConnectionPoolLimit,
-										host: tmpFableSettings.MSSQL.Server,
-										port: tmpFableSettings.MSSQL.Port,
-										user: tmpFableSettings.MSSQL.User,
-										password: tmpFableSettings.MSSQL.Password,
-										database: tmpFableSettings.MSSQL.Database
-									}
-								);
-
 							// Tear down previous test data
-							libAsyncWaterfall(
+							libFable.Utility.waterfall(
 								[
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query('DROP TABLE IF EXISTS FableTest',
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.connectAsync(
+											(pError, pConnectionPool) =>
+											{
+												if (pError)
+												{
+													libFable.log.error(`Error connecting to MS SQL Database: ${pError}`);
+													fStageComplete(pError);
+												}
+
+												libFable.log.info('Connection opened!');
+												return fStageComplete();
+											}
+										);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query("CREATE TABLE IF NOT EXISTS FableTest (IDAnimal INT UNSIGNED NOT NULL AUTO_INCREMENT, GUIDAnimal CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name CHAR(128) NOT NULL DEFAULT '', Type CHAR(128) NOT NULL DEFAULT '', PRIMARY KEY (IDAnimal) );",
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query('DROP TABLE IF EXISTS FableTest').then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query(getAnimalInsert('Foo Foo', 'Bunny'),
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query("CREATE TABLE FableTest (IDAnimal INT IDENTITY(1,1) NOT NULL, GUIDAnimal VARCHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name VARCHAR(128) NOT NULL DEFAULT '', Type VARCHAR(128) NOT NULL DEFAULT '' );").then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query(getAnimalInsert('Red Riding Hood', 'Girl'),
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query(getAnimalInsert('Foo Foo', 'Bunny')).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query(getAnimalInsert('Red', 'Dog'),
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query(getAnimalInsert('Red Riding Hood', 'Girl')).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query(getAnimalInsert('Spot', 'Dog'),
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query(getAnimalInsert('Red', 'Dog')).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
-									function (fCallBack)
+									function (fStageComplete)
 									{
-										_SQLConnectionPool.query(getAnimalInsert('Gertrude', 'Frog'),
-											function (pErrorUpdate, pResponse) { fCallBack(null); });
+										libFable.MeadowMSSQLProvider.pool.query(getAnimalInsert('Spot', 'Dog')).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
+									},
+									function (fStageComplete)
+									{
+										libFable.MeadowMSSQLProvider.pool.query(getAnimalInsert('Gertrude', 'Frog')).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									}
 								],
 								function (pError, pResult)
@@ -195,7 +194,7 @@ suite
 
 			suiteTeardown((fDone) =>
 			{
-				_SQLConnectionPool.end(fDone);
+				//_SQLConnectionPool.end(fDone);
 			}
 			);
 

@@ -114,7 +114,8 @@ var MeadowProvider = function ()
 									}
 
 									tmpResult.error = pPreparedExecutionError;
-									if (Array.isArray(pPreparedResult.recordset)
+									if (pPreparedResult
+										&& Array.isArray(pPreparedResult.recordset)
 										&& (pPreparedResult.recordset.length > 0)
 										&& (pPreparedResult.recordset[0].value))
 									{
@@ -167,7 +168,14 @@ var MeadowProvider = function ()
 
 									//_Fable.log.info(`Prepared statement returned...`, pPreparedResult);
 									tmpResult.error = pPreparedExecutionError;
-									tmpResult.value = pPreparedResult.recordset;
+									try
+									{
+										tmpResult.value = pPreparedResult.recordset;
+									}
+									catch(pMarshalError)
+									{
+										_Fable.log.error(`READ Error marshaling prepared statement result: ${pMarshalError}`, pMarshalError);
+									}
 									tmpResult.executed = true;
 									return fCallback();
 								});
@@ -187,6 +195,7 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
+			let tmpPreparedStatement = getPreparedStatementFromQuery(pQuery);
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
@@ -210,7 +219,7 @@ var MeadowProvider = function ()
 
 									//_Fable.log.info(`Prepared statement returned...`, pPreparedResult);
 									tmpResult.error = pPreparedExecutionError;
-									tmpResult.value = pPreparedResult.recordset;
+									tmpResult.value = pPreparedResult;
 									tmpResult.executed = true;
 									return fCallback();
 								});
@@ -230,6 +239,7 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
+			let tmpPreparedStatement = getPreparedStatementFromQuery(pQuery);
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
@@ -256,7 +266,7 @@ var MeadowProvider = function ()
 									tmpResult.value = false;
 									try
 									{
-										tmpResult.value = pPreparedResult.affectedRows;
+										tmpResult.value = pPreparedResult.rowsAffected[0];
 									}
 									catch (pErrorGettingRowcount)
 									{
@@ -281,6 +291,7 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
+			let tmpPreparedStatement = getPreparedStatementFromQuery(pQuery);
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
@@ -307,7 +318,7 @@ var MeadowProvider = function ()
 									tmpResult.value = false;
 									try
 									{
-										tmpResult.value = pPreparedResult.affectedRows;
+										tmpResult.value = pPreparedResult.rowsAffected[0];
 									}
 									catch (pErrorGettingRowcount)
 									{
@@ -332,6 +343,7 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
+			let tmpPreparedStatement = getPreparedStatementFromQuery(pQuery);
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
@@ -358,7 +370,7 @@ var MeadowProvider = function ()
 									tmpResult.value = false;
 									try
 									{
-										tmpResult.value = pRows[0].RowCount;
+										tmpResult.value = pPreparedResult.recordset[0].Row_Count;
 									}
 									catch (pErrorGettingRowcount)
 									{

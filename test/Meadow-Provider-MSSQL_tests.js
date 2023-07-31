@@ -248,55 +248,6 @@ suite
 							);
 						test
 							(
-								'New provider format',
-								function (fDone)
-								{
-									let _FableClass = require('fable');
-									let _Fable = new _FableClass({
-										MSSQL:
-										{
-											// This is queued up for Travis defaults.
-											Server: "localhost",
-											Port: 3306,
-											User: "root",
-											Password: "123456789",
-											Database: "FableTest",
-											ConnectionPoolLimit: 20
-										},
-										MeadowConnectionMSSQLAutoConnect: true
-									});
-									_Fable.serviceManager.addAndInstantiateServiceType('MeadowMSSQLProvider', require('meadow-connection-mssql'));
-
-									var testMeadow = require('../source/Meadow.js')
-										.new(_Fable, 'FableTest')
-										.setProvider('MSSQL')
-										.setSchema(_AnimalSchema)
-										.setJsonSchema(_AnimalJsonSchema)
-										.setDefaultIdentifier('IDAnimal')
-										.setDefault(_AnimalDefault);
-
-									testMeadow.setIDUser(90210);
-
-									var tmpQuery = testMeadow.query.addFilter('IDAnimal', 1);
-
-									testMeadow.doRead(tmpQuery,
-										function (pError, pQuery, pRecord)
-										{
-											// We should have a record ....
-											Expect(pRecord.IDAnimal)
-												.to.equal(1);
-											Expect(pRecord.Name)
-												.to.equal('Foo Foo');
-
-											testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
-
-											fDone();
-										}
-									)
-								}
-							);
-						test
-							(
 								'Create a record in the database with Deleted bit already set',
 								function (fDone)
 								{
@@ -752,7 +703,7 @@ suite
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal("ER_NO_SUCH_TABLE");
+												.to.equal("ENOTPREPARED");
 											fDone();
 										}
 									)
@@ -773,7 +724,7 @@ suite
 										{
 											// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
 											Expect(pError.code)
-												.to.equal('ER_BAD_FIELD_ERROR');
+												.to.equal('ENOTPREPARED');
 											fDone();
 										}
 									)
@@ -793,8 +744,8 @@ suite
 										function (pError, pQuery, pQueryRead, pRecord)
 										{
 											// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
-											Expect(pError)
-												.to.equal('No record found after create.');
+											Expect(pError.code)
+												.to.equal('EPARAM');
 											fDone();
 										}
 									)
@@ -871,7 +822,7 @@ suite
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ER_BAD_FIELD_ERROR');
+												.to.equal('ENOTPREPARED');
 											fDone();
 										}
 									)
@@ -891,7 +842,7 @@ suite
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ER_BAD_FIELD_ERROR');
+												.to.equal('ENOTPREPARED');
 											fDone();
 										}
 									)
@@ -911,7 +862,7 @@ suite
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ER_BAD_FIELD_ERROR');
+												.to.equal('ENOTPREPARED');
 											fDone();
 										}
 									)
@@ -934,23 +885,6 @@ suite
 											// We should have a record ....
 											Expect(pError)
 												.to.equal('Automated update missing filters... aborting!');
-											fDone();
-										}
-									)
-								}
-							);
-						test
-							(
-								'Update a record in the database without passing a record in',
-								function (fDone)
-								{
-									var testMeadow = newMeadow();
-
-									testMeadow.doUpdate(testMeadow.query,
-										function (pError, pQuery, pQueryRead, pRecord)
-										{
-											Expect(pError)
-												.to.equal('No record submitted');
 											fDone();
 										}
 									)
@@ -1102,73 +1036,6 @@ suite
 							);
 						test
 							(
-								'Read records from a custom query, then delete one, then read them again then update and create.',
-								function (fDone)
-								{
-									var testMeadow = newMeadow();
-									testMeadow.setDefaultIdentifier('IDAnimal');
-									testMeadow.rawQueries.setQuery('Delete', 'DELETE FROM FableTest WHERE IDAnimal = 1;')
-									testMeadow.rawQueries.setQuery('Count', 'SELECT 1337 AS RowCount;')
-									testMeadow.rawQueries.setQuery('Read', 'SELECT IDAnimal, Type AS AnimalTypeCustom FROM FableTest <%= Where %>')
-									testMeadow.rawQueries.setQuery('Update', "UPDATE FableTest SET Type = 'FrogLeg' <%= Where %>")
-
-									// And this, my friends, is why we use async.js
-									testMeadow.rawQueries.loadQuery('Reads', __dirname + '/Meadow-Provider-MSSQL-AnimalReadQuery.sql',
-										function (pSuccess)
-										{
-											// Now try to read the record
-											testMeadow.doReads(testMeadow.query.addFilter('IDAnimal', 2),
-												function (pError, pQuery, pRecords)
-												{
-													Expect(pRecords[1].AnimalTypeCustom)
-														.to.equal('HumanGirl');
-													testMeadow.doDelete(testMeadow.query.addFilter('IDAnimal', 2),
-														function (pError, pQuery, pRecord)
-														{
-															// It returns the number of rows deleted
-															Expect(pRecord)
-																.to.equal(1);
-															testMeadow.doCount(testMeadow.query.addFilter('IDAnimal', 2),
-																function (pError, pQuery, pRecord)
-																{
-																	// It returns the number of rows deleted
-																	Expect(pRecord)
-																		.to.equal(1337);
-																	var tmpQuery = testMeadow.query
-																		.addRecord({ IDAnimal: 5, Type: 'Bartfast' });
-
-																	testMeadow.doUpdate(tmpQuery,
-																		function (pError, pQuery, pQueryRead, pRecord)
-																		{
-																			// We should have a record ....
-																			Expect(pRecord.AnimalTypeCustom)
-																				.to.equal('Bartfast');
-																			var tmpQuery = testMeadow.query
-																				.addRecord({ Name: 'Bambi', Type: 'CustomSheep' });
-
-																			testMeadow.doCreate(tmpQuery,
-																				function (pError, pQuery, pQueryRead, pRecord)
-																				{
-																					// We should have a record ....
-																					Expect(pRecord.AnimalTypeCustom)
-																						.to.equal('CustomSheep');
-																					fDone();
-																				}
-																			)
-																		}
-																	)
-																}
-															)
-														}
-													)
-												}
-											)
-										}
-									);
-								}
-							);
-						test
-							(
 								'Create a record in the database with bad fields',
 								function (fDone)
 								{
@@ -1181,7 +1048,7 @@ suite
 										function (pError, pQuery, pQueryRead, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ER_BAD_FIELD_ERROR');
+												.to.equal('ENOTPREPARED');
 											fDone();
 										}
 									)

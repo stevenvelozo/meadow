@@ -24,7 +24,7 @@ var tmpFableSettings = 	(
 			Port: 3306,
 			User: "root",
 			Password: "123456789",
-			Database: "FableTest",
+			Database: "bookstore",
 			ConnectionPoolLimit: 20
 		},
 	LogStreams:
@@ -271,7 +271,7 @@ suite
 									Port: 3306,
 									User: "root",
 									Password: "123456789",
-									Database: "FableTest",
+									Database: "bookstore",
 									ConnectionPoolLimit: 20
 								},
 							MeadowConnectionMySQLAutoConnect: true

@@ -25,7 +25,6 @@ var MeadowProvider = function ()
 		 */
 		var getSQLPool = function ()
 		{
-			let tmpSqlPool = false;
 			if (typeof (_Fable.MeadowMySQLConnectionPool) == 'object')
 			{
 				// This is where the old-style SQL Connection pool is.  Refactor doesn't even look for it anymore
@@ -40,6 +39,23 @@ var MeadowProvider = function ()
 
 			return false;
 		};
+
+		var getProvider = function ()
+		{
+			if (typeof (_Fable.MeadowMySQLConnectionPool) == 'object')
+			{
+				// This is where the old-style SQL Connection pool is.  Refactor doesn't even look for it anymore
+				return _Fable.MeadowMySQLConnectionPool;
+			}
+
+			// New-style default connection pool provider
+			if (typeof (_Fable.MeadowMySQLProvider) == 'object')
+			{
+				return _Fable.MeadowMySQLProvider;
+			}
+
+			return false;
+		}
 
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
 		var marshalRecordFromSourceToObject = function (pObject, pRecord)
@@ -280,6 +296,9 @@ var MeadowProvider = function ()
 				Delete: Delete,
 				Undelete: Undelete,
 				Count: Count,
+
+				getProvider: getProvider,
+				providerCreatesSupported: false,
 
 				new: createNew
 			});

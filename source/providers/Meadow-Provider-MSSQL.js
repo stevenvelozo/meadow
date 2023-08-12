@@ -31,9 +31,17 @@ var MeadowProvider = function ()
 			{
 				return _Fable.MeadowMSSQLProvider.pool;
 			}
-
 			return false;
 		};
+
+		var getProvider = function ()
+		{
+			if (typeof (_Fable.MeadowMSSQLProvider) == 'object' && _Fable.MeadowMSSQLProvider.connected)
+			{
+				return _Fable.MeadowMSSQLProvider;
+			}
+			return false;
+		}
 
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
 		var marshalRecordFromSourceToObject = function (pObject, pRecord)
@@ -393,6 +401,9 @@ var MeadowProvider = function ()
 				Delete: Delete,
 				Undelete: Undelete,
 				Count: Count,
+
+				getProvider: getProvider,
+				providerCreatesSupported: true,
 
 				new: createNew
 			});

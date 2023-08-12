@@ -367,6 +367,9 @@ var MeadowProvider = function()
 			Delete: Delete,
 			Count: Count,
 
+			getProvider: {},
+			providerCreatesSupported: false,
+
 			new: createNew
 		});
 

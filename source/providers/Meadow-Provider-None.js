@@ -77,6 +77,9 @@ var MeadowProvider = function()
 			Undelete: Undelete,
 			Count: Count,
 
+			getProvider: {},
+			providerCreatesSupported: false,
+
 			new: createNew
 		});
 

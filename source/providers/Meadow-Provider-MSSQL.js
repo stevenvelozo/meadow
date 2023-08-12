@@ -72,7 +72,12 @@ var MeadowProvider = function ()
 				let tmpParameterEntry = false;
 				if ((tmpParameterType === 'Char') || (tmpParameterType === 'VarChar'))
 				{
-					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType](255);
+					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType](_Fable.MeadowMSSQLProvider.MSSQL.Max);
+				}
+				// TODO: There is a bug with Text and schemata in ArtifactTypes at least.
+				else if (tmpParameterType === 'Text')
+				{
+					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.VarChar(_Fable.MeadowMSSQLProvider.MSSQL.Max);
 				}
 				else
 				{
@@ -102,7 +107,7 @@ var MeadowProvider = function ()
 
 			if (pQuery.AllowIdentityInsert)
 			{
-				tmpQueryBody = `SET IDENTITY_INSERT ${pQuery.parameters.scope} ON; \n${tmpQueryBody} \nSET IDENTITY_INSERT ${pQuery.parameters.scope} OFF;`
+				tmpQueryBody = `SET IDENTITY_INSERT [${pQuery.parameters.scope}] ON; \n${tmpQueryBody} \nSET IDENTITY_INSERT [${pQuery.parameters.scope}] OFF;`
 			}
 
 			tmpPreparedStatement.prepare(tmpQueryBody,

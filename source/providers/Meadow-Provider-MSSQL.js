@@ -65,14 +65,14 @@ var MeadowProvider = function ()
 				let tmpParameterType = pQuery.query.parameterTypes[tmpParameterTypeKeys[i]];
 				if (_Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType] === undefined)
 				{
-					tmpParameterType = 'Char';
+					tmpParameterType = 'VarChar';
 				}
 				// TODO: Decide how to filter better cleansing to this layer from the schema; we have access to proper lengths.
 				//       BEFORE WE ADD THIS BEHAVIOR, DECIDE CONCISTENCY WITH OTHER PROVIDERS WHO ALLOW OVERFLOWING STRINGS
 				let tmpParameterEntry = false;
 				if ((tmpParameterType === 'Char') || (tmpParameterType === 'VarChar'))
 				{
-					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType](64);
+					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType](255);
 				}
 				else
 				{
@@ -98,7 +98,12 @@ var MeadowProvider = function ()
 
 			let tmpPreparedStatement = getPreparedStatementFromQuery(pQuery);
 
-			let tmpQueryBody = `${pQuery.query.body} \nSELECT @@IDENTITY AS value;`
+			let tmpQueryBody = `${pQuery.query.body} \nSELECT SCOPE_IDENTITY() AS value;`
+
+			if (pQuery.AllowIdentityInsert)
+			{
+				tmpQueryBody = `SET IDENTITY_INSERT ${pQuery.parameters.scope} ON; \n${tmpQueryBody} \nSET IDENTITY_INSERT ${pQuery.parameters.scope} OFF;`
+			}
 
 			tmpPreparedStatement.prepare(tmpQueryBody,
 				(pPrepareError) =>

@@ -63,6 +63,11 @@ var _AnimalJsonSchema = (
 			Type: {
 				description: "The type of the animal",
 				type: "string"
+			},
+			Weight: {
+				description: "The weight of the animal",
+				type: "number",
+				size: "10,3",
 			}
 		},
 		required: ["IDAnimal", "Name", "CreatingIDUser"]
@@ -80,6 +85,7 @@ var _AnimalSchema = (
 		{ Column: "DeleteDate", Type: "DeleteDate" },
 		{ Column: "Name", Type: "String" },
 		{ Column: "Type", Type: "String" },
+		{ Column: "Weight", Type: "Decimal" },
 		{ Column: "Age", Type: "Integer" }
 	]);
 var _AnimalDefault = (
@@ -96,7 +102,8 @@ var _AnimalDefault = (
 		DeletingIDUser: 0,
 
 		Name: 'Unknown',
-		Type: 'Unclassified'
+		Type: 'Unclassified',
+		Weight: 0.0,
 	});
 
 suite
@@ -108,7 +115,7 @@ suite
 
 			var getAnimalInsert = function (pName, pType)
 			{
-				return "INSERT INTO FableTest (GUIDAnimal, CreateDate, CreatingIDUser, UpdateDate, UpdatingIDUser, Deleted, DeleteDate, DeletingIDUser, Name, Type) VALUES ('00000000-0000-0000-0000-000000000000', GETUTCDATE(), 1, GETUTCDATE(), 1, 0, NULL, 0, '" + pName + "', '" + pType + "'); ";
+				return "INSERT INTO FableTest (GUIDAnimal, CreateDate, CreatingIDUser, UpdateDate, UpdatingIDUser, Deleted, DeleteDate, DeletingIDUser, Name, Type, Weight) VALUES ('00000000-0000-0000-0000-000000000000', GETUTCDATE(), 1, GETUTCDATE(), 1, 0, NULL, 0, '" + pName + "', '" + pType + "', 123.456); ";
 			};
 
 			var newMeadow = function ()
@@ -154,7 +161,7 @@ suite
 									},
 									function (fStageComplete)
 									{
-										libFable.MeadowMSSQLProvider.pool.query("CREATE TABLE FableTest (IDAnimal INT IDENTITY(1,1) NOT NULL, GUIDAnimal VARCHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name VARCHAR(128) NOT NULL DEFAULT '', Type VARCHAR(128) NOT NULL DEFAULT '' );").then(()=>{ return fStageComplete(); }).catch(fStageComplete);
+										libFable.MeadowMSSQLProvider.pool.query("CREATE TABLE FableTest (IDAnimal INT IDENTITY(1,1) NOT NULL, GUIDAnimal VARCHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name VARCHAR(128) NOT NULL DEFAULT '', Type VARCHAR(128) NOT NULL DEFAULT '', Weight DECIMAL(10,3) );").then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
 									function (fStageComplete)
 									{
@@ -195,6 +202,7 @@ suite
 			suiteTeardown((fDone) =>
 			{
 				//_SQLConnectionPool.end(fDone);
+				fDone(); // don't hang
 			}
 			);
 
@@ -319,6 +327,8 @@ suite
 												.to.equal('Red Riding Hood');
 											Expect(pRecords[1].Type)
 												.to.equal('Girl');
+											Expect(pRecords[1].Weight)
+												.to.equal(123.456);
 											fDone();
 										}
 									)
@@ -334,7 +344,7 @@ suite
 									testMeadow.fable.settings.QueryThresholdWarnTime = 1;
 
 									var tmpQuery = testMeadow.query
-										.addRecord({ IDAnimal: 2, Type: 'Human' });
+										.addRecord({ IDAnimal: 2, Type: 'Human', Weight: 50.555 });
 
 									testMeadow.doUpdate(tmpQuery,
 										function (pError, pQuery, pQueryRead, pRecord)
@@ -342,6 +352,8 @@ suite
 											// We should have a record ....
 											Expect(pRecord.Type)
 												.to.equal('Human');
+											Expect(pRecord.Weight)
+												.to.equal(50.555);
 
 											testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
 
@@ -572,6 +584,8 @@ suite
 												.to.equal('Red Riding Hood');
 											Expect(pRecords[1].Type)
 												.to.equal('Human');
+											Expect(pRecords[1].Weight)
+												.to.equal(50.555);
 											fDone();
 										}
 									)

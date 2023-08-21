@@ -79,6 +79,10 @@ var MeadowProvider = function ()
 				{
 					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.VarChar(_Fable.MeadowMSSQLProvider.MSSQL.Max);
 				}
+				else if (tmpParameterType === 'Decimal')
+				{
+					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.Decimal(28,10);
+				}
 				else
 				{
 					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL[tmpParameterType];

@@ -5,7 +5,7 @@
   "main": "source/Meadow.js",
   "scripts": {
     "start": "node source/Meadow.js",
-    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -u tdd --exit -R spec",
+    "coverage": "nyc npm run test",
     "test": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
     "tests": "./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep",
     "build": "./node_modules/.bin/gulp build --full-paths",

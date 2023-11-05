@@ -33,7 +33,7 @@ var tmpFableSettings = (
 		"MSSQL":
 		{
 			"server": "127.0.0.1",
-			"port": 3306,
+			"port": 14333,
 			"user": "sa",
 			"password": "1234567890abc.",
 			"database": "bookstore",
@@ -150,6 +150,15 @@ suite
 									},
 									function (fStageComplete)
 									{
+										libFable.MeadowMSSQLProvider.pool.query(`
+IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'bookstore')
+BEGIN
+    CREATE DATABASE [bookstore]
+END
+										`).then(()=>{ return fStageComplete(); }).catch(fStageComplete);
+									},
+									function (fStageComplete)
+									{
 										libFable.MeadowMSSQLProvider.pool.query('DROP TABLE IF EXISTS FableTest').then(()=>{ return fStageComplete(); }).catch(fStageComplete);
 									},
 									function (fStageComplete)
@@ -195,8 +204,8 @@ suite
 			suiteTeardown((fDone) =>
 			{
 				//_SQLConnectionPool.end(fDone);
-			}
-			);
+				return fDone();
+			});
 
 			suite
 				(

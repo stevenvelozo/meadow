@@ -119,6 +119,20 @@ meadow.doRead(queryDescription,
 ```
 
 
+## MSSQL Docker Image
+
+To run the Microsoft SQL Server tests, you can use the free image on dockerhub.
+
+```
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=1234567890abc." -p 14333:1433 --name meadow-mssql-test --hostname meadowsqltest -d mcr.microsoft.com/mssql/server:2022-latest
+```
+
+Then you need to create the test database:
+
+```
+docker exec meadow-mssql-test sh -c "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '1234567890abc.' -Q 'CREATE DATABASE bookstore;'"
+```
+
 ### Docker Development Environment
 
 

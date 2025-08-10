@@ -47,8 +47,18 @@ var meadowBehaviorUpdate = function(pMeadow, pQuery, fCallBack)
 					switch (pMeadow.schema[i].Type)
 					{
 						case 'UpdateIDUser':
+							// Don't obliterate these from the record if automagic is disabled
+							if (!pQuery.query.disableAutoUserStamp)
+							{
+								pQuery.query.records[0][pMeadow.schema[i].Column] = false;
+							}
+							break;
 						case 'UpdateDate':
-							pQuery.query.records[0][pMeadow.schema[i].Column] = false;
+							// Don't obliterate these from the record if automagic is disabled
+							if (!pQuery.query.disableAutoDateStamp)
+							{
+								pQuery.query.records[0][pMeadow.schema[i].Column] = false;
+							}
 							break;
 					}
 				}

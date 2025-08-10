@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -49,7 +49,7 @@
     "alasql": "^4.1.10",
     "browserify": "^17.0.0",
     "chai": "4.3.10",
-    "fable": "^3.0.96",
+    "fable": "^3.1.18",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-sourcemaps": "^3.0.0",
@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "async": "3.2.5",
-    "foxhound": "^2.0.10",
+    "foxhound": "^2.0.13",
     "is-my-json-valid": "2.20.6",
     "npm-check-updates": "^16.14.6",
     "simple-get": "^4.0.1"

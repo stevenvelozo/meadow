@@ -60,6 +60,12 @@ var MeadowProvider = function ()
 			let tmpPreparedStatement = _Fable.MeadowMSSQLProvider.preparedStatement;
 			// Map the Parameters to Types
 			let tmpParameterTypeKeys = Object.keys(pQuery.query.parameterTypes)
+			const tmpColumns = pQuery.query.schema;
+			const tmpSchemaByColumn = {};
+			for (let i = 0; i < tmpColumns.length; i++)
+			{
+				tmpSchemaByColumn[tmpColumns[i].Column] = tmpColumns[i];
+			}
 			for (let i = 0; i < tmpParameterTypeKeys.length; i++)
 			{
 				let tmpParameterType = pQuery.query.parameterTypes[tmpParameterTypeKeys[i]];
@@ -78,6 +84,21 @@ var MeadowProvider = function ()
 				else if (tmpParameterType === 'Text')
 				{
 					tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.VarChar(_Fable.MeadowMSSQLProvider.MSSQL.Max);
+				}
+				else if (tmpParameterType === 'Decimal')
+				{
+					const tmpSize = tmpSchemaByColumn[tmpParameterTypeKeys[i]]?.Size;
+					if (tmpSize && typeof tmpSize === 'string')
+					{
+						let [ tmpDigitsStr, tmpDecimalDigitsStr ] = tmpSize.split(',');
+						const tmpDigits = parseInt(tmpDigitsStr.trim());
+						const tmpDecimalDigits = tmpDecimalDigitsStr ? parseInt(tmpDecimalDigitsStr.trim()) : 0;
+						tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.Decimal(tmpDigits, tmpDecimalDigits);
+					}
+					else
+					{
+						tmpParameterEntry = _Fable.MeadowMSSQLProvider.MSSQL.Decimal(18, 8);
+					}
 				}
 				else
 				{

@@ -66,6 +66,35 @@ var MeadowProvider = function ()
 		 * which better-sqlite3 supports natively.
 		 */
 
+		/**
+		 * Coerce query parameter values so they are safe for better-sqlite3.
+		 *
+		 * better-sqlite3 only accepts numbers, strings, bigints, buffers and null.
+		 * Booleans (e.g. Deleted: false) must be converted to integers.
+		 * Undefined values must be converted to null.
+		 */
+		var coerceParameters = function (pParams)
+		{
+			if (typeof (pParams) !== 'object' || pParams === null)
+			{
+				return pParams;
+			}
+			var tmpKeys = Object.keys(pParams);
+			for (var i = 0; i < tmpKeys.length; i++)
+			{
+				var tmpValue = pParams[tmpKeys[i]];
+				if (typeof (tmpValue) === 'boolean')
+				{
+					pParams[tmpKeys[i]] = tmpValue ? 1 : 0;
+				}
+				else if (typeof (tmpValue) === 'undefined')
+				{
+					pParams[tmpKeys[i]] = null;
+				}
+			}
+			return pParams;
+		};
+
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
 		var marshalRecordFromSourceToObject = function (pObject, pRecord)
 		{
@@ -83,6 +112,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildCreateQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{
@@ -132,6 +162,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildReadQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{
@@ -172,6 +203,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildUpdateQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{
@@ -212,6 +244,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildDeleteQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{
@@ -260,6 +293,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildUndeleteQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{
@@ -308,6 +342,7 @@ var MeadowProvider = function ()
 			pQuery.setDialect('SQLite').buildCountQuery();
 
 			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+			coerceParameters(pQuery.query.parameters);
 
 			if (pQuery.logLevel > 0)
 			{

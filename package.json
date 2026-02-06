@@ -11,7 +11,18 @@
     "build": "./node_modules/.bin/gulp build --full-paths",
     "docker-dev-build": "docker build ./ -f Dockerfile_LUXURYCode -t retold/meadow:local",
     "docker-dev-run": "docker run -it -d --name meadow-dev -p 12342:8080 -p 12106:3306 -v \"$PWD/.config:/home/coder/.config\"  -v \"$PWD:/home/coder/meadow\" -u \"$(id -u):$(id -g)\" -e \"DOCKER_USER=$USER\" retold/meadow:local",
-    "docker-dev-shell": "docker exec -it meadow-dev /bin/bash"
+    "docker-dev-shell": "docker exec -it meadow-dev /bin/bash",
+    "docker-mysql-start": "./scripts/mysql-test-db.sh start",
+    "docker-mysql-stop": "./scripts/mysql-test-db.sh stop",
+    "docker-mysql-status": "./scripts/mysql-test-db.sh status",
+    "test-mysql": "./scripts/mysql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep Meadow-Provider-MySQL",
+    "test-mysql-all": "./scripts/mysql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
+    "docker-mssql-start": "./scripts/mssql-test-db.sh start",
+    "docker-mssql-stop": "./scripts/mssql-test-db.sh stop",
+    "docker-mssql-status": "./scripts/mssql-test-db.sh status",
+    "test-mssql": "./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep Meadow-Provider-MSSQL",
+    "test-mssql-all": "./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
+    "test-all-providers": "./scripts/mysql-test-db.sh start && ./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec"
   },
   "mocha": {
     "diff": true,
@@ -47,6 +58,7 @@
   "homepage": "https://github.com/stevenvelozo/meadow",
   "devDependencies": {
     "alasql": "^4.1.10",
+    "better-sqlite3": "^12.6.2",
     "browserify": "^17.0.0",
     "chai": "4.3.10",
     "fable": "^3.1.18",
@@ -57,6 +69,7 @@
     "gulp-util": "^3.0.8",
     "meadow-connection-mssql": "^1.0.9",
     "meadow-connection-mysql": "^1.0.4",
+    "meadow-connection-sqlite": "file:../meadow-connection-sqlite",
     "mocha": "10.2.0",
     "mysql2": "^3.6.3",
     "nyc": "^15.1.0",

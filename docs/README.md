@@ -96,7 +96,7 @@ meadow.doRead(meadow.query.addFilter('IDBook', 1),
 		console.log('Book:', pRecord.Title);
 	});
 
-// Multiple records with pagination
+// Multiple records
 meadow.doReads(meadow.query.setCap(25).setBegin(0),
 	(pError, pQuery, pRecords) =>
 	{
@@ -117,17 +117,19 @@ meadow.doUpdate(tmpQuery,
 	});
 ```
 
-### Delete and Count
+### Delete
 
 ```javascript
-// Delete (soft delete if schema supports it)
 meadow.doDelete(meadow.query.addFilter('IDBook', 1),
 	(pError, pQuery, pResult) =>
 	{
 		console.log('Deleted:', pResult, 'record(s)');
 	});
+```
 
-// Count records
+### Count
+
+```javascript
 meadow.doCount(meadow.query,
 	(pError, pQuery, pCount) =>
 	{
@@ -137,56 +139,106 @@ meadow.doCount(meadow.query,
 
 ## Schema
 
-Meadow schemas define your data model with special column types that enable automatic behavior:
+Meadow schemas define your data model with special column types that enable automatic behavior.
+
+### Column Types
 
 | Type | Description |
 |------|-------------|
 | `AutoIdentity` | Auto-increment primary key |
 | `AutoGUID` | Automatically generated GUID |
-| `CreateDate` / `CreateIDUser` | Auto-populated on create |
-| `UpdateDate` / `UpdateIDUser` | Auto-populated on update |
-| `DeleteDate` / `DeleteIDUser` | Auto-populated on delete |
-| `Deleted` | Soft delete flag |
-| `String`, `Text`, `Numeric`, `Decimal`, `Boolean`, `DateTime` | Standard data types |
+| `CreateDate` | Auto-populated timestamp on create |
+| `CreateIDUser` | Auto-populated user ID on create |
+| `UpdateDate` | Auto-populated timestamp on update |
+| `UpdateIDUser` | Auto-populated user ID on update |
+| `DeleteDate` | Auto-populated timestamp on delete |
+| `DeleteIDUser` | Auto-populated user ID on delete |
+| `Deleted` | Soft delete flag (enables logical deletion) |
+| `String` | String field with optional `Size` |
+| `Text` | Long text field |
+| `Numeric` | Integer field |
+| `Decimal` | Decimal field with `Size` as `"precision,scale"` |
+| `Boolean` | Boolean field |
+| `DateTime` | Date/time field |
+
+### JSON Schema Validation
+
+Meadow also supports JSON Schema (v4) for object validation:
+
+```javascript
+meadow.setJsonSchema({
+	title: 'Book',
+	type: 'object',
+	properties:
+	{
+		IDBook: { type: 'integer' },
+		Title: { type: 'string' },
+		Author: { type: 'string' }
+	},
+	required: ['Title']
+});
+
+const result = meadow.schemaFull.validateObject({ Title: 'Dune' });
+// { Valid: true, Errors: [] }
+```
+
+## Configuration
+
+Meadow reads database configuration from the Fable settings object:
+
+```json
+{
+	"Product": "MyApp",
+	"ProductVersion": "1.0.0",
+	"MySQL": {
+		"Server": "localhost",
+		"Port": 3306,
+		"User": "root",
+		"Password": "",
+		"Database": "myapp",
+		"ConnectionPoolLimit": 20
+	},
+	"QueryThresholdWarnTime": 200
+}
+```
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `MySQL` | object | - | MySQL connection settings |
+| `QueryThresholdWarnTime` | number | `200` | Slow query warning threshold (ms) |
+| `MeadowProvider` | string | - | Default provider name |
+| `MeadowRoleNames` | array | `['Unauthenticated', 'User', 'Manager', 'Director', 'Executive', 'Administrator']` | Role name mapping |
 
 ## Providers
 
-| Provider | Description |
-|----------|-------------|
-| `MySQL` | MySQL/MariaDB via mysql2 |
-| `MSSQL` | Microsoft SQL Server with prepared statements |
-| `SQLite` | SQLite via meadow-connection-sqlite |
-| `ALASQL` | In-browser IndexedDB via ALASQL |
-| `MeadowEndpoints` | REST proxy to remote Meadow API |
-| `None` | Null provider for testing |
+Meadow supports multiple database backends through its provider system.
 
-## ALASQL Provider Example
+| Provider | Description | Connection |
+|----------|-------------|------------|
+| `MySQL` | MySQL/MariaDB via mysql2 | `fable.MeadowMySQLConnectionPool` or `fable.MeadowMySQLProvider` |
+| `MSSQL` | Microsoft SQL Server | `fable.MeadowMSSQLProvider` |
+| `SQLite` | SQLite database | Via meadow-connection-sqlite |
+| `ALASQL` | In-browser IndexedDB | `fable.ALASQL` |
+| `MeadowEndpoints` | REST proxy to remote Meadow API | Via `MeadowEndpoints` settings |
+| `None` | Null provider for testing | No connection required |
+
+## Raw Query Overrides
+
+For complex queries that exceed the DSL capabilities:
 
 ```javascript
-const libFable = require('fable').new();
-const libALASQL = require('alasql');
+// Set a custom query for Read operations
+meadow.rawQueries.setQuery('Read',
+	'SELECT b.*, a.Name AS AuthorName FROM Book b JOIN Author a ON b.IDAuthor = a.IDAuthor WHERE b.IDBook = :IDBook');
 
-libALASQL('CREATE INDEXEDDB DATABASE IF NOT EXISTS example;');
-libALASQL('ATTACH INDEXEDDB DATABASE example;');
-libALASQL('USE example;');
-libFable.ALASQL = libALASQL;
+// Load from file
+meadow.rawQueries.loadQuery('CustomReport', './queries/book-report.sql');
 
-const meadow = require('meadow').new(libFable, 'Customers')
-	.setProvider('ALASQL')
-	.setDefaultIdentifier('customerID');
-```
-
-## MSSQL Docker Image
-
-To run Microsoft SQL Server tests locally:
-
-```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=1234567890abc." \
-  -p 14333:1433 --name meadow-mssql-test --hostname meadowsqltest \
-  -d mcr.microsoft.com/mssql/server:2022-latest
-
-docker exec meadow-mssql-test sh -c \
-  "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '1234567890abc.' -Q 'CREATE DATABASE bookstore;'"
+// Check and use
+if (meadow.rawQueries.checkQuery('CustomReport'))
+{
+	const sql = meadow.rawQueries.getQuery('CustomReport');
+}
 ```
 
 ## Testing
@@ -197,11 +249,20 @@ npm test
 
 ## Documentation
 
-Detailed documentation is available in the `docs/` folder and can be served locally:
-
-```bash
-npx docsify-cli serve docs
-```
+- [Architecture](architecture.md) - System architecture and design patterns
+- [Schema](schema/README.md) - Column definitions, JSON Schema validation, default objects, authorization
+- [Query DSL](query-dsl.md) - FoxHound query building
+- [Query Operations](query/README.md) - Query object overview and CRUD operations
+  - [Create](query/create.md) - Insert new records
+  - [Read](query/read.md) - Retrieve single and multiple records
+  - [Update](query/update.md) - Modify existing records
+  - [Delete](query/delete.md) - Soft delete and undelete records
+  - [Count](query/count.md) - Count records matching criteria
+- [Providers](providers/README.md) - Database provider system
+  - [MySQL](providers/mysql.md) - Connection pooling, named placeholders
+  - [MSSQL](providers/mssql.md) - Prepared statements, type mapping
+  - [SQLite](providers/sqlite.md) - Embedded database
+  - [ALASQL](providers/alasql.md) - In-memory SQL, browser support
 
 ## Related Packages
 

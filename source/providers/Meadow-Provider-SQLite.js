@@ -1,4 +1,6 @@
 /**
+* Meadow Provider - SQLite (via better-sqlite3)
+*
 * @license MIT
 * @author <steven@velozo.com>
 */
@@ -14,21 +16,16 @@ var MeadowProvider = function ()
 		var _Fable = pFable;
 
 		/**
-		 * Build a connection pool, shared within this provider.
-		 * This may be more performant as a shared object.
+		 * Get the better-sqlite3 database instance from the connection provider.
+		 *
+		 * The connection provider (meadow-connection-sqlite) stores the database
+		 * instance on .db after connectAsync() completes.
 		 */
 		var getDB = function ()
 		{
-			if (typeof (_Fable.MeadowMySQLConnectionPool) == 'object')
+			if (typeof (_Fable.MeadowSQLiteProvider) == 'object' && _Fable.MeadowSQLiteProvider.connected)
 			{
-				// This is where the old-style SQL Connection pool is.  Refactor doesn't even look for it anymore
-				return _Fable.MeadowMySQLConnectionPool;
-			}
-
-			// New-style default connection pool provider
-			if (typeof (_Fable.MeadowMySQLProvider) == 'object' && _Fable.MeadowMySQLProvider.connected)
-			{
-				return _Fable.MeadowMySQLProvider.pool;
+				return _Fable.MeadowSQLiteProvider.db;
 			}
 
 			return false;
@@ -36,26 +33,43 @@ var MeadowProvider = function ()
 
 		var getProvider = function ()
 		{
-			if (typeof (_Fable.MeadowMySQLConnectionPool) == 'object')
+			if (typeof (_Fable.MeadowSQLiteProvider) == 'object')
 			{
-				// This is where the old-style SQL Connection pool is.  Refactor doesn't even look for it anymore
-				return _Fable.MeadowMySQLConnectionPool;
-			}
-
-			// New-style default connection pool provider
-			if (typeof (_Fable.MeadowMySQLProvider) == 'object')
-			{
-				return _Fable.MeadowMySQLProvider;
+				return _Fable.MeadowSQLiteProvider;
 			}
 
 			return false;
-		}
+		};
+
+		/**
+		 * Replace NOW() with SQLite-compatible datetime('now') in query bodies.
+		 *
+		 * The FoxHound SQLite dialect generates NOW() for date stamps, but SQLite
+		 * does not support NOW().  We replace it at the provider level so the
+		 * dialect can stay consistent with the other providers.
+		 */
+		var fixDateFunctions = function (pQueryBody)
+		{
+			if (typeof (pQueryBody) !== 'string')
+			{
+				return pQueryBody;
+			}
+			// Replace NOW() and NOW(3) with SQLite's datetime function
+			return pQueryBody.replace(/NOW\(\d*\)/g, "datetime('now')");
+		};
+
+		/**
+		 * Convert FoxHound named parameters (:name) to better-sqlite3 format.
+		 *
+		 * better-sqlite3 uses @name, $name, or :name for named parameters,
+		 * but expects them passed as an object.  FoxHound generates :name syntax
+		 * which better-sqlite3 supports natively.
+		 */
 
 		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
 		var marshalRecordFromSourceToObject = function (pObject, pRecord)
 		{
 			// For now, crudely assign everything in pRecord to pObject
-			// This is safe in this context, and we don't want to slow down marshalling with millions of hasOwnProperty checks
 			for (var tmpColumn in pRecord)
 			{
 				pObject[tmpColumn] = pRecord[tmpColumn];
@@ -68,205 +82,271 @@ var MeadowProvider = function ()
 
 			pQuery.setDialect('SQLite').buildCreateQuery();
 
-			// TODO: Test the query before executing
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
+
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query(
-					pQuery.query.body,
-					pQuery.query.parameters,
-					function (pError, pRows)
-					{
-						pDBConnection.release();
-						tmpResult.error = pError;
-						tmpResult.value = false;
-						try
-						{
-							tmpResult.value = pRows.insertId;
-						}
-						catch (pErrorGettingRowcount)
-						{
-							_Fable.log.warn('Error getting insert ID during create query', { Body: pQuery.query.body, Parameters: pQuery.query.parameters });
-						}
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 
-						tmpResult.executed = true;
-						return fCallback();
-					}
-				);
-			});
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpInfo = tmpStatement.run(pQuery.query.parameters);
+
+				tmpResult.error = null;
+				tmpResult.value = false;
+				try
+				{
+					tmpResult.value = Number(tmpInfo.lastInsertRowid);
+				}
+				catch (pErrorGettingRowcount)
+				{
+					_Fable.log.warn('Error getting insert ID during create query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
+				}
+
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
 		};
 
-		// This is a synchronous read, good for a few records.
-		// TODO: Add a pipe-able read for huge sets
 		var Read = function (pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildReadQuery();
+			pQuery.setDialect('SQLite').buildReadQuery();
+
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
 
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query(
-					pQuery.query.body,
-					pQuery.query.parameters,
-					function (pError, pRows)
-					{
-						pDBConnection.release();
-						tmpResult.error = pError;
-						tmpResult.value = pRows;
-						tmpResult.executed = true;
-						return fCallback();
-					}
-				);
-			});
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
+
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpRows = tmpStatement.all(pQuery.query.parameters);
+
+				tmpResult.error = null;
+				tmpResult.value = tmpRows;
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
 		};
 
 		var Update = function (pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildUpdateQuery();
+			pQuery.setDialect('SQLite').buildUpdateQuery();
+
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
 
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query(
-					pQuery.query.body,
-					pQuery.query.parameters,
-					function (pError, pRows)
-					{
-						pDBConnection.release();
-						tmpResult.error = pError;
-						tmpResult.value = pRows;
-						tmpResult.executed = true;
-						return fCallback();
-					}
-				);
-			});
-		}
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
+
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpInfo = tmpStatement.run(pQuery.query.parameters);
+
+				tmpResult.error = null;
+				tmpResult.value = tmpInfo;
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
+		};
 
 		var Delete = function (pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildDeleteQuery();
+			pQuery.setDialect('SQLite').buildDeleteQuery();
+
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
 
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query
-					(
-						pQuery.query.body,
-						pQuery.query.parameters,
-						function (pError, pRows)
-						{
-							pDBConnection.release();
-							tmpResult.error = pError;
-							tmpResult.value = false;
-							try
-							{
-								tmpResult.value = pRows.affectedRows;
-							}
-							catch (pErrorGettingRowcount)
-							{
-								_Fable.log.warn('Error getting affected rowcount during delete query', { Body: pQuery.query.body, Parameters: pQuery.query.parameters });
-							}
-							tmpResult.executed = true;
-							return fCallback();
-						}
-					);
-			});
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
+
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpInfo = tmpStatement.run(pQuery.query.parameters);
+
+				tmpResult.error = null;
+				tmpResult.value = false;
+				try
+				{
+					tmpResult.value = tmpInfo.changes;
+				}
+				catch (pErrorGettingRowcount)
+				{
+					_Fable.log.warn('Error getting affected rowcount during delete query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
+				}
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
 		};
 
 		var Undelete = function (pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildUndeleteQuery();
+			pQuery.setDialect('SQLite').buildUndeleteQuery();
+
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
 
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query
-					(
-						pQuery.query.body,
-						pQuery.query.parameters,
-						function (pError, pRows)
-						{
-							pDBConnection.release();
-							tmpResult.error = pError;
-							tmpResult.value = false;
-							try
-							{
-								tmpResult.value = pRows.affectedRows;
-							}
-							catch (pErrorGettingRowcount)
-							{
-								_Fable.log.warn('Error getting affected rowcount during delete query', { Body: pQuery.query.body, Parameters: pQuery.query.parameters });
-							}
-							tmpResult.executed = true;
-							return fCallback();
-						}
-					);
-			});
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
+
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpInfo = tmpStatement.run(pQuery.query.parameters);
+
+				tmpResult.error = null;
+				tmpResult.value = false;
+				try
+				{
+					tmpResult.value = tmpInfo.changes;
+				}
+				catch (pErrorGettingRowcount)
+				{
+					_Fable.log.warn('Error getting affected rowcount during undelete query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
+				}
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
 		};
 
 		var Count = function (pQuery, fCallback)
 		{
 			var tmpResult = pQuery.parameters.result;
 
-			pQuery.setDialect('MySQL').buildCountQuery();
+			pQuery.setDialect('SQLite').buildCountQuery();
+
+			var tmpQueryBody = fixDateFunctions(pQuery.query.body);
 
 			if (pQuery.logLevel > 0)
 			{
-				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
+				_Fable.log.trace(tmpQueryBody, pQuery.query.parameters);
 			}
 
-			getDB().getConnection(function (pError, pDBConnection)
+			try
 			{
-				pDBConnection.query(
-					pQuery.query.body,
-					pQuery.query.parameters,
-					// The SQLite library also returns the Fields as the third parameter
-					function (pError, pRows)
-					{
-						pDBConnection.release();
-						tmpResult.executed = true;
-						tmpResult.error = pError;
-						tmpResult.value = false;
-						try
-						{
-							tmpResult.value = pRows[0].RowCount;
-						}
-						catch (pErrorGettingRowcount)
-						{
-							_Fable.log.warn('Error getting rowcount during count query', { Body: pQuery.query.body, Parameters: pQuery.query.parameters });
-						}
-						return fCallback();
-					}
-				);
-			});
+				var tmpDB = getDB();
+				if (!tmpDB)
+				{
+					tmpResult.error = new Error('No SQLite database connection available.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
+
+				var tmpStatement = tmpDB.prepare(tmpQueryBody);
+				var tmpRows = tmpStatement.all(pQuery.query.parameters);
+
+				tmpResult.executed = true;
+				tmpResult.error = null;
+				tmpResult.value = false;
+				try
+				{
+					tmpResult.value = tmpRows[0].RowCount;
+				}
+				catch (pErrorGettingRowcount)
+				{
+					_Fable.log.warn('Error getting rowcount during count query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
+				}
+				return fCallback();
+			}
+			catch (pError)
+			{
+				tmpResult.error = pError;
+				tmpResult.value = false;
+				tmpResult.executed = true;
+				return fCallback();
+			}
 		};
 
 		var tmpNewProvider = (

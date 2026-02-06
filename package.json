@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -61,7 +61,7 @@
     "better-sqlite3": "^12.6.2",
     "browserify": "^17.0.0",
     "chai": "4.3.10",
-    "fable": "^3.1.18",
+    "fable": "^3.1.51",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-sourcemaps": "^3.0.0",

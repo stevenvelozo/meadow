@@ -207,9 +207,13 @@ npx docsify-cli serve docs
 
 - [foxhound](https://github.com/stevenvelozo/foxhound) - Query DSL for SQL generation
 - [stricture](https://github.com/stevenvelozo/stricture) - Schema definition language
-- [meadow-endpoints](https://github.com/stevenvelozo/meadow-endpoints) - Automatic REST endpoint generation
-- [meadow-connection-mysql](https://github.com/stevenvelozo/meadow-connection-mysql) - MySQL connection provider
-- [meadow-connection-mssql](https://github.com/stevenvelozo/meadow-connection-mssql) - MSSQL connection provider
-- [meadow-connection-sqlite](https://github.com/stevenvelozo/meadow-connection-sqlite) - SQLite connection provider
-- [fable](https://github.com/stevenvelozo/fable) - Service provider framework
-- [orator](https://github.com/stevenvelozo/orator) - API server abstraction
+- [meadow-endpoints](https://github.com/stevenvelozo/meadow-endpoints) - Auto-generated REST endpoints
+- [fable](https://github.com/stevenvelozo/fable) - Application services framework
+
+## License
+
+MIT
+
+## Contributing
+
+Pull requests are welcome. For details on our code of conduct, contribution process, and testing requirements, see the [Retold Contributing Guide](https://github.com/stevenvelozo/retold/blob/main/docs/contributing.md).

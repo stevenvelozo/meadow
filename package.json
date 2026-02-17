@@ -22,7 +22,8 @@
     "docker-mssql-status": "./scripts/mssql-test-db.sh status",
     "test-mssql": "./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec --grep Meadow-Provider-MSSQL",
     "test-mssql-all": "./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
-    "test-all-providers": "./scripts/mysql-test-db.sh start && ./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec"
+    "test-all-providers": "./scripts/mysql-test-db.sh start && ./scripts/mssql-test-db.sh start && ./node_modules/mocha/bin/_mocha -u tdd --exit -R spec",
+    "docker-cleanup": "./scripts/meadow-test-cleanup.sh"
   },
   "mocha": {
     "diff": true,

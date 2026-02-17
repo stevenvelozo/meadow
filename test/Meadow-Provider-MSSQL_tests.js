@@ -33,7 +33,7 @@ var tmpFableSettings = (
 		"MSSQL":
 		{
 			"server": "127.0.0.1",
-			"port": 14333,
+			"port": 31433,
 			"user": "sa",
 			"password": "1234567890abc.",
 			"database": "bookstore",

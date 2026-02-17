@@ -8,13 +8,13 @@
 #
 # The container settings match the test configuration in
 # test/Meadow-Provider-MSSQL_tests.js:
-#   Host: 127.0.0.1, Port: 14333, User: sa
+#   Host: 127.0.0.1, Port: 31433, User: sa
 #   Password: 1234567890abc., Database: bookstore
 
 CONTAINER_NAME="meadow-mssql-test"
 SA_PASSWORD="1234567890abc."
 MSSQL_DATABASE="bookstore"
-MSSQL_PORT="14333"
+MSSQL_PORT="31433"
 MSSQL_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
 
 start_mssql() {

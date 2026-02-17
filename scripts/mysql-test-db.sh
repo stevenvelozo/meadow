@@ -2,20 +2,23 @@
 # MySQL Test Database Management Script
 #
 # Usage:
-#   ./scripts/mysql-test-db.sh start   - Start MySQL container and wait for readiness
+#   ./scripts/mysql-test-db.sh start   - Start MySQL container, load schema and seed data
 #   ./scripts/mysql-test-db.sh stop    - Stop and remove the container
 #   ./scripts/mysql-test-db.sh status  - Check if the container is running
 #
 # The container settings match the test configuration in
-# test/Meadow-Provider-MySQL_tests.js:
-#   Host: localhost, Port: 3306, User: root
+# test/Meadow-Provider-MySQL_tests.js and meadow-connection-mysql:
+#   Host: localhost, Port: 33306, User: root
 #   Password: 123456789, Database: bookstore
 
 CONTAINER_NAME="meadow-mysql-test"
 MYSQL_ROOT_PASSWORD="123456789"
 MYSQL_DATABASE="bookstore"
-MYSQL_PORT="3306"
+MYSQL_PORT="33306"
 MYSQL_IMAGE="mysql:8.0"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SEED_SQL="${SCRIPT_DIR}/bookstore-seed.sql"
 
 start_mysql() {
 	# Check if container already exists
@@ -57,6 +60,20 @@ start_mysql() {
 		echo "  ...waiting (${RETRIES} retries left)"
 		sleep 2
 	done
+
+	# Load bookstore schema and seed data
+	if [ -f "${SEED_SQL}" ]; then
+		echo "Loading bookstore schema and seed data..."
+		docker cp "${SEED_SQL}" "${CONTAINER_NAME}:/tmp/bookstore-seed.sql"
+		docker exec "${CONTAINER_NAME}" mysql -u root -p"${MYSQL_ROOT_PASSWORD}" "${MYSQL_DATABASE}" -e "source /tmp/bookstore-seed.sql"
+		if [ $? -ne 0 ]; then
+			echo "WARNING: Failed to load seed data. Tests requiring pre-populated data may fail."
+		else
+			echo "Bookstore schema and seed data loaded successfully."
+		fi
+	else
+		echo "WARNING: Seed file not found at ${SEED_SQL}. Skipping schema/data loading."
+	fi
 
 	echo ""
 	echo "MySQL test database is ready!"

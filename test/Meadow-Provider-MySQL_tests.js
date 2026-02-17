@@ -21,7 +21,7 @@ var tmpFableSettings = 	(
 		{
 			// This is queued up for Travis defaults.
 			Server: "localhost",
-			Port: 3306,
+			Port: 33306,
 			User: "root",
 			Password: "123456789",
 			Database: "bookstore",
@@ -268,7 +268,7 @@ suite
 								{
 									// This is queued up for Travis defaults.
 									Server: "localhost",
-									Port: 3306,
+									Port: 33306,
 									User: "root",
 									Password: "123456789",
 									Database: "bookstore",

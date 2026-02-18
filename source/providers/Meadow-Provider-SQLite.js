@@ -83,7 +83,17 @@ var MeadowProvider = function ()
 			for (var i = 0; i < tmpKeys.length; i++)
 			{
 				var tmpValue = pParams[tmpKeys[i]];
-				if (typeof (tmpValue) === 'boolean')
+				if (Array.isArray(tmpValue))
+				{
+					// SQLite (better-sqlite3) cannot bind arrays.
+					// For single-element arrays (e.g. from FBL~Field~LT~10),
+					// unwrap to the scalar value.
+					if (tmpValue.length === 1)
+					{
+						pParams[tmpKeys[i]] = tmpValue[0];
+					}
+				}
+				else if (typeof (tmpValue) === 'boolean')
 				{
 					pParams[tmpKeys[i]] = tmpValue ? 1 : 0;
 				}

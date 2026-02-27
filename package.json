@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.22",
+  "version": "2.0.23",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "async": "3.2.5",
-    "foxhound": "^2.0.16",
+    "foxhound": "^2.0.18",
     "is-my-json-valid": "2.20.6",
     "simple-get": "^4.0.1"
   }

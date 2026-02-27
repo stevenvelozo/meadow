@@ -60,28 +60,18 @@
   "devDependencies": {
     "alasql": "^4.1.10",
     "better-sqlite3": "^12.6.2",
-    "browserify": "^17.0.0",
-    "chai": "4.3.10",
     "fable": "^3.1.53",
-    "gulp": "^4.0.2",
-    "gulp-babel": "^8.0.0",
-    "gulp-sourcemaps": "^3.0.0",
-    "gulp-terser": "^2.1.0",
     "gulp-util": "^3.0.8",
     "meadow-connection-mssql": "^1.0.10",
     "meadow-connection-mysql": "^1.0.7",
     "meadow-connection-sqlite": "file:../meadow-connection-sqlite",
-    "mocha": "10.2.0",
     "mysql2": "^3.6.3",
-    "nyc": "^15.1.0",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
+    "quackage": "^1.0.57"
   },
   "dependencies": {
     "async": "3.2.5",
     "foxhound": "^2.0.16",
     "is-my-json-valid": "2.20.6",
-    "npm-check-updates": "^16.14.6",
     "simple-get": "^4.0.1"
   }
 }

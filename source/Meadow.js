@@ -137,6 +137,10 @@ var Meadow = function()
 			'MySQL': require(`./providers/Meadow-Provider-MySQL.js`),
 			'MSSQL': require(`./providers/Meadow-Provider-MSSQL.js`),
 			'SQLite': require(`./providers/Meadow-Provider-SQLite.js`),
+			'PostgreSQL': require(`./providers/Meadow-Provider-PostgreSQL.js`),
+			'MongoDB': require(`./providers/Meadow-Provider-MongoDB.js`),
+			'DGraph': require(`./providers/Meadow-Provider-DGraph.js`),
+			'Solr': require(`./providers/Meadow-Provider-Solr.js`),
 			'None': require(`./providers/Meadow-Provider-None.js`),
 		});
 		var setProvider = function(pProviderName)

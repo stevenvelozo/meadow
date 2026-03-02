@@ -1,21 +1,32 @@
 # Meadow
 
-> A data access layer providing magic where you want it, programmability where you don't
+A data access library providing magic where you want it, programmability where you don't.
 
-Meadow is a JavaScript data broker that handles repetitive CRUD operations through a consistent, provider-agnostic interface. It doesn't care whether your data lives in MySQL, MSSQL, SQLite, or an in-browser IndexedDB store -- Meadow provides the schema management, query building, and data marshalling while you provide the business logic.
+[![npm version](https://badge.fury.io/js/meadow.svg)](https://badge.fury.io/js/meadow)
+[![Build Status](https://travis-ci.org/stevenvelozo/meadow.svg?branch=main)](https://travis-ci.org/stevenvelozo/meadow)
+
+Meadow is a JavaScript data broker that handles repetitive CRUD operations through a consistent, provider-agnostic interface. It abstracts database communication behind a unified API -- whether your data lives in MySQL, MSSQL, PostgreSQL, SQLite, MongoDB, RocksDB, or an in-browser ALASQL store, Meadow provides schema management, query generation, data marshalling, and automatic audit stamping while you focus on business logic.
 
 ## Features
 
-- **Provider-Agnostic Design** - Pluggable database backends through a consistent interface
-- **Schema-Driven** - Define your data model once, get validation, default objects, and audit tracking for free
-- **FoxHound Query DSL** - Fluent query builder that generates dialect-specific SQL
-- **Automatic Audit Tracking** - Auto-populated create/update/delete timestamps and user stamps
-- **Soft Deletes** - Built-in logical deletion with automatic query filtering
-- **GUID Uniqueness** - Automatic GUID generation and uniqueness enforcement on create
-- **Raw Query Overrides** - Escape hatch for custom SQL when the DSL isn't enough
-- **Fable Integration** - First-class service in the Fable ecosystem with logging and configuration
+- **Provider-Agnostic Design** -- pluggable database backends through a consistent CRUD interface
+- **Schema-Driven** -- define your data model once and get validation, default objects, and audit tracking for free
+- **FoxHound Query DSL** -- fluent query builder that generates dialect-specific SQL, MongoDB queries, or key-value lookups
+- **Automatic Audit Tracking** -- auto-populated create, update, and delete timestamps with user identity stamps
+- **Soft Deletes** -- built-in logical deletion with automatic query filtering and undelete support
+- **GUID Uniqueness** -- automatic GUID generation and uniqueness enforcement on record creation
+- **Raw Query Overrides** -- escape hatch for custom SQL when the DSL is not enough
+- **Role-Based Authorization** -- declarative access control per operation integrated with Meadow-Endpoints
+- **Fable Integration** -- first-class service in the Fable ecosystem with logging, configuration, and dependency injection
+- **Browser Support** -- ALASQL provider enables the same data access patterns in the browser via IndexedDB
 
-## Quick Start
+## Install
+
+```bash
+npm install meadow
+```
+
+## Quick Example
 
 ```javascript
 const libFable = require('fable').new();
@@ -39,64 +50,22 @@ const meadow = libMeadow.new(libFable, 'Book')
 		{ Column: 'Deleted', Type: 'Deleted' }
 	]);
 
-// Read a single record
-meadow.doRead(meadow.query.addFilter('IDBook', 42),
-	(pError, pQuery, pBook) =>
-	{
-		if (pError)
-		{
-			return console.log('Error reading book:', pError);
-		}
-		console.log('Found:', pBook.Title, 'by', pBook.Author);
-	});
-```
-
-## Installation
-
-```bash
-npm install meadow
-```
-
-## How It Works
-
-Meadow follows the Fable service provider pattern. You create a DAL instance for each entity in your data model, configure its schema and provider, then use the CRUD methods to interact with your database. Meadow handles query generation, data marshalling, schema validation, and audit stamping automatically.
-
-```
-Fable (Core)
-  └── Meadow (Data Access Layer)
-        ├── Schema (Column definitions, validation, defaults)
-        ├── FoxHound Query DSL (Dialect-specific SQL generation)
-        ├── Behaviors (Create, Read, Reads, Update, Delete, Count, Undelete)
-        └── Provider (MySQL, MSSQL, SQLite, ALASQL, MeadowEndpoints, None)
-              └── Database Connection
-```
-
-## CRUD Operations
-
-All operations follow an async waterfall pattern with a consistent callback signature.
-
-### Create
-
-```javascript
-const tmpQuery = meadow.query.addRecord({ Title: 'Dune', Author: 'Frank Herbert' });
-meadow.doCreate(tmpQuery,
+// Create a record
+const tmpCreateQuery = meadow.query.addRecord({ Title: 'Dune', Author: 'Frank Herbert' });
+meadow.doCreate(tmpCreateQuery,
 	(pError, pCreateQuery, pReadQuery, pRecord) =>
 	{
-		console.log('Created book with ID:', pRecord.IDBook);
+		console.log('Created book:', pRecord.IDBook, '-', pRecord.Title);
 	});
-```
 
-### Read
-
-```javascript
-// Single record
+// Read a single record
 meadow.doRead(meadow.query.addFilter('IDBook', 1),
 	(pError, pQuery, pRecord) =>
 	{
-		console.log('Book:', pRecord.Title);
+		console.log('Found:', pRecord.Title, 'by', pRecord.Author);
 	});
 
-// Multiple records with pagination
+// Read multiple records with pagination
 meadow.doReads(meadow.query.setCap(25).setBegin(0),
 	(pError, pQuery, pRecords) =>
 	{
@@ -104,90 +73,83 @@ meadow.doReads(meadow.query.setCap(25).setBegin(0),
 	});
 ```
 
-### Update
-
-```javascript
-const tmpQuery = meadow.query
-	.addFilter('IDBook', 1)
-	.addRecord({ Title: 'Updated Title' });
-meadow.doUpdate(tmpQuery,
-	(pError, pUpdateQuery, pReadQuery, pRecord) =>
-	{
-		console.log('Updated:', pRecord.Title);
-	});
-```
-
-### Delete and Count
-
-```javascript
-// Delete (soft delete if schema supports it)
-meadow.doDelete(meadow.query.addFilter('IDBook', 1),
-	(pError, pQuery, pResult) =>
-	{
-		console.log('Deleted:', pResult, 'record(s)');
-	});
-
-// Count records
-meadow.doCount(meadow.query,
-	(pError, pQuery, pCount) =>
-	{
-		console.log('Total books:', pCount);
-	});
-```
-
-## Schema
-
-Meadow schemas define your data model with special column types that enable automatic behavior:
+## Schema Column Types
 
 | Type | Description |
 |------|-------------|
 | `AutoIdentity` | Auto-increment primary key |
 | `AutoGUID` | Automatically generated GUID |
-| `CreateDate` / `CreateIDUser` | Auto-populated on create |
-| `UpdateDate` / `UpdateIDUser` | Auto-populated on update |
-| `DeleteDate` / `DeleteIDUser` | Auto-populated on delete |
-| `Deleted` | Soft delete flag |
-| `String`, `Text`, `Numeric`, `Decimal`, `Boolean`, `DateTime` | Standard data types |
+| `String` | Variable-length string with optional `Size` |
+| `Text` | Long text field |
+| `Numeric` | Integer field |
+| `Decimal` | Decimal field with `Size` as `"precision,scale"` |
+| `Boolean` | Boolean flag |
+| `DateTime` | Date/time field |
+| `CreateDate` | Auto-populated timestamp on create |
+| `CreateIDUser` | Auto-populated user ID on create |
+| `UpdateDate` | Auto-populated timestamp on update |
+| `UpdateIDUser` | Auto-populated user ID on update |
+| `DeleteDate` | Auto-populated timestamp on delete |
+| `DeleteIDUser` | Auto-populated user ID on delete |
+| `Deleted` | Soft delete flag (enables logical deletion) |
+
+## CRUD Operations
+
+| Method | Callback Signature | Description |
+|--------|-------------------|-------------|
+| `doCreate(pQuery, fCB)` | `(pError, pCreateQuery, pReadQuery, pRecord)` | Insert a new record |
+| `doRead(pQuery, fCB)` | `(pError, pQuery, pRecord)` | Read a single record |
+| `doReads(pQuery, fCB)` | `(pError, pQuery, pRecords)` | Read multiple records |
+| `doUpdate(pQuery, fCB)` | `(pError, pUpdateQuery, pReadQuery, pRecord)` | Update an existing record |
+| `doDelete(pQuery, fCB)` | `(pError, pQuery, pCount)` | Delete a record (soft or hard) |
+| `doUndelete(pQuery, fCB)` | `(pError, pQuery, pCount)` | Restore a soft-deleted record |
+| `doCount(pQuery, fCB)` | `(pError, pQuery, pCount)` | Count matching records |
+
+## Configuration Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `setProvider(pName)` | `this` | Set database provider (`MySQL`, `MSSQL`, `PostgreSQL`, `SQLite`, `MongoDB`, `RocksDB`, `ALASQL`, `MeadowEndpoints`, `None`) |
+| `setScope(pScope)` | `this` | Set entity scope (table name) |
+| `setSchema(pSchema)` | `this` | Set column schema array |
+| `setDefaultIdentifier(pId)` | `this` | Set primary key column name |
+| `setIDUser(pIDUser)` | `this` | Set user ID for audit stamps |
+| `setJsonSchema(pSchema)` | `this` | Set JSON Schema v4 for validation |
+| `setDefault(pDefault)` | `this` | Set default object template |
+| `setAuthorizer(pAuth)` | `this` | Set role-based authorization rules |
+| `setDomain(pDomain)` | `this` | Set entity domain grouping |
+| `loadFromPackage(pPath)` | `Meadow` | Load schema from JSON file |
+| `loadFromPackageObject(pObj)` | `Meadow` | Load schema from object |
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `scope` | `string` | Entity scope name |
+| `schema` | `array` | Column schema definitions |
+| `schemaFull` | `object` | Full MeadowSchema with methods |
+| `jsonSchema` | `object` | JSON Schema v4 definition |
+| `defaultIdentifier` | `string` | Primary key column name |
+| `defaultGUIdentifier` | `string` | GUID column name |
+| `userIdentifier` | `number` | Current user ID |
+| `query` | `object` | Cloned FoxHound query (fresh each access) |
+| `rawQueries` | `object` | Raw query manager |
+| `provider` | `object` | Active provider instance |
+| `providerName` | `string` | Active provider name |
 
 ## Providers
 
-| Provider | Description |
-|----------|-------------|
-| `MySQL` | MySQL/MariaDB via mysql2 |
-| `MSSQL` | Microsoft SQL Server with prepared statements |
-| `SQLite` | SQLite via meadow-connection-sqlite |
-| `ALASQL` | In-browser IndexedDB via ALASQL |
-| `MeadowEndpoints` | REST proxy to remote Meadow API |
-| `None` | Null provider for testing |
-
-## ALASQL Provider Example
-
-```javascript
-const libFable = require('fable').new();
-const libALASQL = require('alasql');
-
-libALASQL('CREATE INDEXEDDB DATABASE IF NOT EXISTS example;');
-libALASQL('ATTACH INDEXEDDB DATABASE example;');
-libALASQL('USE example;');
-libFable.ALASQL = libALASQL;
-
-const meadow = require('meadow').new(libFable, 'Customers')
-	.setProvider('ALASQL')
-	.setDefaultIdentifier('customerID');
-```
-
-## MSSQL Docker Image
-
-To run Microsoft SQL Server tests locally:
-
-```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=1234567890abc." \
-  -p 14333:1433 --name meadow-mssql-test --hostname meadowsqltest \
-  -d mcr.microsoft.com/mssql/server:2022-latest
-
-docker exec meadow-mssql-test sh -c \
-  "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '1234567890abc.' -Q 'CREATE DATABASE bookstore;'"
-```
+| Provider | Description | Connection Module |
+|----------|-------------|-------------------|
+| `MySQL` | MySQL/MariaDB via mysql2 | [meadow-connection-mysql](https://github.com/stevenvelozo/meadow-connection-mysql) |
+| `MSSQL` | Microsoft SQL Server | [meadow-connection-mssql](https://github.com/stevenvelozo/meadow-connection-mssql) |
+| `PostgreSQL` | PostgreSQL | [meadow-connection-postgresql](https://github.com/stevenvelozo/meadow-connection-postgresql) |
+| `SQLite` | Embedded SQLite via better-sqlite3 | [meadow-connection-sqlite](https://github.com/stevenvelozo/meadow-connection-sqlite) |
+| `MongoDB` | MongoDB document store | [meadow-connection-mongodb](https://github.com/stevenvelozo/meadow-connection-mongodb) |
+| `RocksDB` | Embedded key-value store | [meadow-connection-rocksdb](https://github.com/stevenvelozo/meadow-connection-rocksdb) |
+| `ALASQL` | In-browser IndexedDB via ALASQL | Built-in |
+| `MeadowEndpoints` | REST proxy to remote Meadow API | Built-in |
+| `None` | No-op stub for testing | None required |
 
 ## Testing
 
@@ -197,7 +159,7 @@ npm test
 
 ## Documentation
 
-Detailed documentation is available in the `docs/` folder and can be served locally:
+Detailed documentation is available in the `docs/` folder:
 
 ```bash
 npx docsify-cli serve docs
@@ -205,10 +167,17 @@ npx docsify-cli serve docs
 
 ## Related Packages
 
-- [foxhound](https://github.com/stevenvelozo/foxhound) - Query DSL for SQL generation
-- [stricture](https://github.com/stevenvelozo/stricture) - Schema definition language
-- [meadow-endpoints](https://github.com/stevenvelozo/meadow-endpoints) - Auto-generated REST endpoints
-- [fable](https://github.com/stevenvelozo/fable) - Application services framework
+- [foxhound](https://github.com/stevenvelozo/foxhound) -- query DSL for SQL and NoSQL generation
+- [stricture](https://github.com/stevenvelozo/stricture) -- schema definition language
+- [meadow-endpoints](https://github.com/stevenvelozo/meadow-endpoints) -- automatic REST endpoint generation
+- [meadow-connection-mysql](https://github.com/stevenvelozo/meadow-connection-mysql) -- MySQL connection provider
+- [meadow-connection-mssql](https://github.com/stevenvelozo/meadow-connection-mssql) -- MSSQL connection provider
+- [meadow-connection-sqlite](https://github.com/stevenvelozo/meadow-connection-sqlite) -- SQLite connection provider
+- [meadow-connection-postgresql](https://github.com/stevenvelozo/meadow-connection-postgresql) -- PostgreSQL connection provider
+- [meadow-connection-mongodb](https://github.com/stevenvelozo/meadow-connection-mongodb) -- MongoDB connection provider
+- [meadow-connection-rocksdb](https://github.com/stevenvelozo/meadow-connection-rocksdb) -- RocksDB connection provider
+- [fable](https://github.com/stevenvelozo/fable) -- application services framework
+- [orator](https://github.com/stevenvelozo/orator) -- API server abstraction
 
 ## License
 
@@ -216,4 +185,4 @@ MIT
 
 ## Contributing
 
-Pull requests are welcome. For details on our code of conduct, contribution process, and testing requirements, see the [Retold Contributing Guide](https://github.com/stevenvelozo/retold/blob/main/docs/contributing.md).
+Pull requests are welcome. For details on code of conduct, contribution process, and testing requirements, see the [Retold Contributing Guide](https://github.com/stevenvelozo/retold/blob/main/docs/contributing.md).

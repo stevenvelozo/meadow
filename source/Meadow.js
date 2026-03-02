@@ -141,6 +141,7 @@ var Meadow = function()
 			'MongoDB': require(`./providers/Meadow-Provider-MongoDB.js`),
 			'DGraph': require(`./providers/Meadow-Provider-DGraph.js`),
 			'Solr': require(`./providers/Meadow-Provider-Solr.js`),
+			'RocksDB': require(`./providers/Meadow-Provider-RocksDB.js`),
 			'None': require(`./providers/Meadow-Provider-None.js`),
 		});
 		var setProvider = function(pProviderName)

@@ -64,6 +64,7 @@
     "gulp-util": "^3.0.8",
     "meadow-connection-mssql": "^1.0.10",
     "meadow-connection-mysql": "^1.0.7",
+    "meadow-connection-rocksdb": "file:../meadow-connection-rocksdb",
     "meadow-connection-sqlite": "file:../meadow-connection-sqlite",
     "mysql2": "^3.6.3",
     "quackage": "^1.0.59"

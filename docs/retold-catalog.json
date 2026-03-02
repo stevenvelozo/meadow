@@ -1,5 +1,5 @@
 {
-	"Generated": "2026-02-18T01:05:03.079Z",
+	"Generated": "2026-03-02T02:11:44.637Z",
 	"GitHubOrg": "stevenvelozo",
 	"DefaultBranch": "master",
 	"Groups": [
@@ -56,6 +56,16 @@
 			"Description": "",
 			"Modules": [
 				{
+					"Name": "FableTest-RocksDB",
+					"Repo": "FableTest-RocksDB",
+					"Group": "dist",
+					"Branch": "master",
+					"HasDocs": false,
+					"HasCover": false,
+					"Sidebar": [],
+					"DocFiles": []
+				},
+				{
 					"Name": "indoctrinate_content_staging",
 					"Repo": "indoctrinate_content_staging",
 					"Group": "dist",
@@ -73,6 +83,52 @@
 			"Description": "",
 			"Modules": [
 				{
+					"Name": "api",
+					"Repo": "api",
+					"Group": "docs",
+					"Branch": "master",
+					"HasDocs": true,
+					"HasCover": false,
+					"Sidebar": [],
+					"DocFiles": [
+						"api/doCount.md",
+						"api/doCreate.md",
+						"api/doDelete.md",
+						"api/doRead.md",
+						"api/doReads.md",
+						"api/doUndelete.md",
+						"api/doUpdate.md",
+						"api/getRoleName.md",
+						"api/loadFromPackage.md",
+						"api/marshalRecordFromSourceToObject.md",
+						"api/query.md",
+						"api/rawQueries.md",
+						"api/reference.md",
+						"api/setAuthorizer.md",
+						"api/setDefault.md",
+						"api/setDefaultIdentifier.md",
+						"api/setDomain.md",
+						"api/setIDUser.md",
+						"api/setJsonSchema.md",
+						"api/setProvider.md",
+						"api/setSchema.md",
+						"api/setScope.md",
+						"api/validateObject.md"
+					]
+				},
+				{
+					"Name": "css",
+					"Repo": "css",
+					"Group": "docs",
+					"Branch": "master",
+					"HasDocs": true,
+					"HasCover": false,
+					"Sidebar": [],
+					"DocFiles": [
+						"css/docuserve.css"
+					]
+				},
+				{
 					"Name": "providers",
 					"Repo": "providers",
 					"Group": "docs",
@@ -83,8 +139,12 @@
 					"DocFiles": [
 						"providers/README.md",
 						"providers/alasql.md",
+						"providers/meadow-endpoints.md",
+						"providers/mongodb.md",
 						"providers/mssql.md",
 						"providers/mysql.md",
+						"providers/postgresql.md",
+						"providers/rocksdb.md",
 						"providers/sqlite.md"
 					]
 				},

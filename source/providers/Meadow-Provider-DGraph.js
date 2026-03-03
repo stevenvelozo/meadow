@@ -159,7 +159,14 @@ var MeadowProvider = function ()
 				{
 					continue;
 				}
-				pObject[tmpColumn] = pRecord[tmpColumn];
+				// Strip scope prefix from DGraph predicate names (e.g. "FableTest.IDAnimal" → "IDAnimal")
+				var tmpFieldName = tmpColumn;
+				var tmpDotIndex = tmpFieldName.indexOf('.');
+				if (tmpDotIndex >= 0)
+				{
+					tmpFieldName = tmpFieldName.substring(tmpDotIndex + 1);
+				}
+				pObject[tmpFieldName] = pRecord[tmpColumn];
 			}
 		};
 
@@ -374,7 +381,7 @@ var MeadowProvider = function ()
 						.then(function ()
 						{
 							tmpResult.error = null;
-							tmpResult.value = tmpNodes.length;
+							tmpResult.value = tmpMutations;
 							tmpResult.executed = true;
 							return fCallback();
 						})

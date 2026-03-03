@@ -322,7 +322,8 @@ var MeadowProvider = function ()
 					tmpResult.value = false;
 					try
 					{
-						tmpResult.value = pDBResult.rows[0].rowcount;
+						// PostgreSQL COUNT(*) returns bigint, which the pg library delivers as a string
+				tmpResult.value = parseInt(pDBResult.rows[0].rowcount, 10);
 					}
 					catch (pErrorGettingRowcount)
 					{

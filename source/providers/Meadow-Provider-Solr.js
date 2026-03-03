@@ -131,7 +131,13 @@ var MeadowProvider = function ()
 				{
 					continue;
 				}
-				pObject[tmpColumn] = pRecord[tmpColumn];
+				// Solr multi-valued fields return arrays; unwrap single-element arrays
+				var tmpValue = pRecord[tmpColumn];
+				if (Array.isArray(tmpValue) && tmpValue.length === 1)
+				{
+					tmpValue = tmpValue[0];
+				}
+				pObject[tmpColumn] = tmpValue;
 			}
 		};
 
@@ -272,7 +278,7 @@ var MeadowProvider = function ()
 
 			if (tmpOp.filterQuery)
 			{
-				tmpSearchQuery = tmpSearchQuery.matchFilter('fq', tmpOp.filterQuery);
+				tmpSearchQuery.parameters.push('fq=' + encodeURIComponent(tmpOp.filterQuery));
 			}
 			if (tmpOp.fields)
 			{
@@ -280,7 +286,7 @@ var MeadowProvider = function ()
 			}
 			if (tmpOp.sort)
 			{
-				tmpSearchQuery = tmpSearchQuery.sort(tmpOp.sort);
+				tmpSearchQuery.parameters.push('sort=' + encodeURIComponent(tmpOp.sort));
 			}
 			if (typeof tmpOp.rows !== 'undefined')
 			{
@@ -391,7 +397,7 @@ var MeadowProvider = function ()
 							return fCallback();
 						}
 						tmpResult.error = null;
-						tmpResult.value = tmpDocs.length;
+						tmpResult.value = tmpUpdateDocs;
 						tmpResult.executed = true;
 						return fCallback();
 					});
@@ -642,7 +648,7 @@ var MeadowProvider = function ()
 
 			if (tmpOp.filterQuery)
 			{
-				tmpSearchQuery = tmpSearchQuery.matchFilter('fq', tmpOp.filterQuery);
+				tmpSearchQuery.parameters.push('fq=' + encodeURIComponent(tmpOp.filterQuery));
 			}
 
 			if (tmpOp.distinct && tmpOp.distinctFields && tmpOp.distinctFields.length > 0)

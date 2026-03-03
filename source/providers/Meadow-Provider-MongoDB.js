@@ -300,7 +300,7 @@ var MeadowProvider = function ()
 				.then(function (pUpdateResult)
 				{
 					tmpResult.error = null;
-					tmpResult.value = pUpdateResult.modifiedCount;
+					tmpResult.value = pUpdateResult;
 					tmpResult.executed = true;
 					return fCallback();
 				})

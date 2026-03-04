@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.26",
+  "version": "2.0.27",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -40,6 +40,8 @@
     "docker-dgraph-status": "./scripts/dgraph-test-db.sh status",
     "test-dgraph": "./scripts/dgraph-test-db.sh start && npx quack test -g Meadow-Provider-DGraph",
     "test-alasql": "npx quack test -g Meadow-Provider-ALASQL",
+    "test-sqlite-browser": "npx quack test -g Meadow-Provider-SQLiteBrowser",
+    "test-sqlite-browser-headless": "npx mocha -u tdd --exit --timeout 60000 test/Meadow-Provider-SQLiteBrowser-Headless_tests.js",
     "test-all-providers": "./scripts/mysql-test-db.sh start && ./scripts/mssql-test-db.sh start && ./scripts/postgresql-test-db.sh start && ./scripts/mongodb-test-db.sh start && ./scripts/solr-test-db.sh start && ./scripts/dgraph-test-db.sh start && npx mocha -u tdd --exit -R spec",
     "docker-cleanup": "./scripts/meadow-test-cleanup.sh",
     "test-cleanup": "./scripts/meadow-test-cleanup.sh"
@@ -79,25 +81,27 @@
   "devDependencies": {
     "alasql": "^4.17.0",
     "better-sqlite3": "^12.6.2",
+    "dgraph-js-http": "^21.3.0",
     "fable": "^3.1.63",
     "gulp-util": "^3.0.8",
-    "meadow-connection-mssql": "^1.0.15",
-    "meadow-connection-mysql": "^1.0.13",
     "meadow-connection-dgraph": "^1.0.2",
     "meadow-connection-mongodb": "^1.0.2",
+    "meadow-connection-mssql": "^1.0.15",
+    "meadow-connection-mysql": "^1.0.13",
     "meadow-connection-postgresql": "^1.0.1",
     "meadow-connection-rocksdb": "^0.0.2",
     "meadow-connection-solr": "^1.0.2",
     "meadow-connection-sqlite": "^1.0.17",
-    "dgraph-js-http": "^21.3.0",
+    "meadow-connection-sqlite-browser": "^1.0.0",
     "mongodb": "^6.12.0",
     "mysql2": "^3.18.2",
+    "puppeteer": "^24.38.0",
     "quackage": "^1.0.60",
     "solr-client": "^0.9.0"
   },
   "dependencies": {
     "async": "3.2.6",
-    "foxhound": "^2.0.20",
+    "foxhound": "^2.0.22",
     "is-my-json-valid": "2.20.6",
     "simple-get": "^4.0.1"
   }

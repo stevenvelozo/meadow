@@ -22,7 +22,7 @@ var MeadowProvider = function()
 		var _Headers = {};
 		var _Cookies = [];
 
-		var _EndpointSettings = (_Fable.settings.hasOwnProperty('MeadowEndpoints')) ? JSON.parse(JSON.stringify(_Fable.settings.MedaowEndpoints)) : (
+		var _EndpointSettings = (_Fable.settings.hasOwnProperty('MeadowEndpoints')) ? JSON.parse(JSON.stringify(_Fable.settings.MeadowEndpoints)) : (
 			{
 				ServerProtocol: 'http',
 				ServerAddress: '127.0.0.1',

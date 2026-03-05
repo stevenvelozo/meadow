@@ -116,13 +116,25 @@ var MeadowProvider = function()
 					pResponse.on('end', ()=>
 						{
 							if (tmpData)
-								tmpResult.value = JSON.parse(tmpData);
+							{
+								try
+								{
+									tmpResult.value = JSON.parse(tmpData);
+								}
+								catch (pParseError)
+								{
+									tmpResult.error = new Error(`Failed to parse Create response as JSON: ${pParseError.message}`);
+									return fCallback();
+								}
+							}
 
 							// TODO Because this was proxied, read happens at this layer too.  Inefficient -- fixable
-							let tmpIdentityColumn = `ID${pQuery.parameters.scope}`;
-							if (tmpResult.value.hasOwnProperty(tmpIdentityColumn))
-							tmpResult.value = tmpResult.value[tmpIdentityColumn];
-							
+							const tmpIdentityColumn = `ID${pQuery.parameters.scope}`;
+							if (tmpResult.value && tmpResult.value.hasOwnProperty(tmpIdentityColumn))
+							{
+								tmpResult.value = tmpResult.value[tmpIdentityColumn];
+							}
+
 							if (pQuery.logLevel > 0 ||
 								_GlobalLogLevel > 0)
 							{
@@ -169,7 +181,17 @@ var MeadowProvider = function()
 					pResponse.on('end', ()=>
 						{
 							if (tmpData)
-								tmpResult.value = JSON.parse(tmpData);
+							{
+								try
+								{
+									tmpResult.value = JSON.parse(tmpData);
+								}
+								catch (pParseError)
+								{
+									tmpResult.error = new Error(`Failed to parse Read response as JSON: ${pParseError.message}`);
+									return fCallback();
+								}
+							}
 
 							if (pQuery.query.body.startsWith(`${pQuery.parameters.scope}/`))
 							{
@@ -232,13 +254,23 @@ var MeadowProvider = function()
 					pResponse.on('end', ()=>
 						{
 							if (tmpData)
-								tmpResult.value = JSON.parse(tmpData);
+							{
+								try
+								{
+									tmpResult.value = JSON.parse(tmpData);
+								}
+								catch (pParseError)
+								{
+									tmpResult.error = new Error(`Failed to parse Update response as JSON: ${pParseError.message}`);
+									return fCallback();
+								}
+							}
 
-							// TODO Because this was proxied, read happens at this layer too.  Inefficient -- fixable
-							let tmpIdentityColumn = `ID${pQuery.parameters.scope}`;
-							if (tmpResult.value.hasOwnProperty(tmpIdentityColumn))
-							tmpResult.value = tmpResult.value[tmpIdentityColumn];
-							
+							// Keep result.value as the full response object so the
+							// Meadow Update waterfall's typeof check passes (it expects
+							// an object). The subsequent Read step uses the existing
+							// filters to re-read the updated record.
+
 							if (pQuery.logLevel > 0 ||
 								_GlobalLogLevel > 0)
 							{
@@ -284,11 +316,22 @@ var MeadowProvider = function()
 					pResponse.on('end', ()=>
 						{
 							if (tmpData)
-								tmpResult.value = JSON.parse(tmpData);
-							
-							if (tmpResult.value.hasOwnProperty('Count'))
+							{
+								try
+								{
+									tmpResult.value = JSON.parse(tmpData);
+								}
+								catch (pParseError)
+								{
+									tmpResult.error = new Error(`Failed to parse Delete response as JSON: ${pParseError.message}`);
+									return fCallback();
+								}
+							}
+
+							if (tmpResult.value && tmpResult.value.hasOwnProperty('Count'))
+							{
 								tmpResult.value = tmpResult.value.Count;
-	
+							}
 
 							if (pQuery.logLevel > 0 ||
 								_GlobalLogLevel > 0)
@@ -334,19 +377,29 @@ var MeadowProvider = function()
 					pResponse.on('end', ()=>
 						{
 							if (tmpData)
-								tmpResult.value = JSON.parse(tmpData);
-
+							{
 								try
 								{
-									tmpResult.value = tmpResult.value.Count;
+									tmpResult.value = JSON.parse(tmpData);
 								}
-								catch(pErrorGettingRowcount)
+								catch (pParseError)
 								{
-									// This is an error state...
-									tmpResult.value = -1;
-									_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+									tmpResult.error = new Error(`Failed to parse Count response as JSON: ${pParseError.message}`);
+									return fCallback();
 								}
-		
+							}
+
+							try
+							{
+								tmpResult.value = tmpResult.value.Count;
+							}
+							catch(pErrorGettingRowcount)
+							{
+								// This is an error state...
+								tmpResult.value = -1;
+								_Fable.log.warn('Error getting rowcount during count query',{Body:pQuery.query.body, Parameters:pQuery.query.parameters});
+							}
+
 							if (pQuery.logLevel > 0 ||
 								_GlobalLogLevel > 0)
 							{

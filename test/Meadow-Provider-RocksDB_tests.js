@@ -75,7 +75,9 @@ var _AnimalSchema = (
 	{ Column: "UpdatingIDUser", Type:"UpdateIDUser" },
 	{ Column: "Deleted",         Type:"Deleted" },
 	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
-	{ Column: "DeleteDate",      Type:"DeleteDate" }
+	{ Column: "DeleteDate",      Type:"DeleteDate" },
+	{ Column: "Metadata",        Type:"JSON" },
+	{ Column: "ExtraData",       Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 ]);
 var _AnimalDefault = (
 {
@@ -91,7 +93,10 @@ var _AnimalDefault = (
 	DeletingIDUser: 0,
 
 	Name: 'Unknown',
-	Type: 'Unclassified'
+	Type: 'Unclassified',
+
+	Metadata: {},
+	ExtraData: {}
 });
 
 suite
@@ -215,6 +220,35 @@ suite
 				);
 
 				test
+					(
+						'Create a record with JSON data',
+						function(fDone)
+						{
+							var testMeadow = newMeadow().setIDUser(90210);
+
+							var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+								.addRecord({Name:'Moose', Type:'Mammal', Metadata: { habitat: 'forest', weight: 500 }, ExtraData: { endangered: false, population: 'stable' }});
+
+							testMeadow.doCreate(tmpQuery,
+								function(pError, pQuery, pQueryRead, pRecord)
+								{
+									// We should have a record with JSON data ....
+									Expect(pRecord.Name)
+										.to.equal('Moose');
+									Expect(pRecord.Metadata)
+										.to.be.an('object');
+									Expect(pRecord.Metadata.habitat)
+										.to.equal('forest');
+									Expect(pRecord.ExtraData)
+										.to.be.an('object');
+									Expect(pRecord.ExtraData.endangered)
+										.to.equal(false);
+									fDone();
+								}
+							)
+						}
+					);
+				test
 				(
 					'Create more records for later tests',
 					function(fDone)
@@ -226,7 +260,7 @@ suite
 						testMeadow.doCreate(tmpQuery1,
 							function(pError1, pQuery1, pQueryRead1, pRecord1)
 							{
-								Expect(pRecord1.IDAnimal).to.equal(2);
+								Expect(pRecord1.IDAnimal).to.equal(3);
 								Expect(pRecord1.Name).to.equal('Red Riding Hood');
 
 								var tmpQuery2 = testMeadow.query.clone()
@@ -234,21 +268,21 @@ suite
 								testMeadow.doCreate(tmpQuery2,
 									function(pError2, pQuery2, pQueryRead2, pRecord2)
 									{
-										Expect(pRecord2.IDAnimal).to.equal(3);
+										Expect(pRecord2.IDAnimal).to.equal(4);
 
 										var tmpQuery3 = testMeadow.query.clone()
 											.addRecord({Name:'Spot', Type:'Dog'});
 										testMeadow.doCreate(tmpQuery3,
 											function(pError3, pQuery3, pQueryRead3, pRecord3)
 											{
-												Expect(pRecord3.IDAnimal).to.equal(4);
+												Expect(pRecord3.IDAnimal).to.equal(5);
 
 												var tmpQuery4 = testMeadow.query.clone()
 													.addRecord({Name:'Gertrude', Type:'Frog'});
 												testMeadow.doCreate(tmpQuery4,
 													function(pError4, pQuery4, pQueryRead4, pRecord4)
 													{
-														Expect(pRecord4.IDAnimal).to.equal(5);
+														Expect(pRecord4.IDAnimal).to.equal(6);
 														fDone();
 													}
 												);
@@ -277,7 +311,7 @@ suite
 							{
 								Expect(pRecord.Name).to.equal('Charmander');
 								Expect(pRecord.Deleted).to.equal(1);
-								Expect(pRecord.IDAnimal).to.equal(6);
+								Expect(pRecord.IDAnimal).to.equal(7);
 								fDone();
 							}
 						);
@@ -326,12 +360,13 @@ suite
 						testMeadow.doReads(testMeadow.query,
 							function(pError, pQuery, pRecords)
 							{
-								// Should return 5 records (excluding Charmander which is Deleted=1)
+								// Should return 6 records (excluding Charmander which is Deleted=1)
 								Expect(pRecords.length)
-									.to.equal(5);
+									.to.equal(6);
 								// Records come back in GUID key order, so use set-based assertions
 								var tmpNames = pRecords.map(function(r) { return r.Name; });
 								Expect(tmpNames).to.include('Foo Foo');
+								Expect(tmpNames).to.include('Moose');
 								Expect(tmpNames).to.include('Red Riding Hood');
 								Expect(tmpNames).to.include('Red');
 								Expect(tmpNames).to.include('Spot');
@@ -424,17 +459,17 @@ suite
 						var testMeadow = newMeadow();
 
 						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimal', 3, '>');
+							.addFilter('IDAnimal', 4, '>');
 
 						testMeadow.doReads(tmpQuery,
 							function(pError, pQuery, pRecords)
 							{
 								Expect(pRecords.length)
 									.to.equal(2);
-								// IDs 4 and 5 (not 6 since it's Deleted); order depends on GUID keys
+								// IDs 5 and 6 (not 7 since it's Deleted); order depends on GUID keys
 								var tmpIDs = pRecords.map(function(r) { return r.IDAnimal; });
-								Expect(tmpIDs).to.include(4);
 								Expect(tmpIDs).to.include(5);
+								Expect(tmpIDs).to.include(6);
 								fDone();
 							}
 						);
@@ -449,7 +484,7 @@ suite
 						var testMeadow = newMeadow();
 
 						var tmpQuery = testMeadow.query
-							.addFilter('Type', ['Dog', 'Human', 'Frog'], 'NOT IN');
+							.addFilter('Type', ['Dog', 'Human', 'Frog', 'Mammal'], 'NOT IN');
 
 						testMeadow.doReads(tmpQuery,
 							function(pError, pQuery, pRecords)
@@ -479,7 +514,7 @@ suite
 							function(pError, pQuery, pRecords)
 							{
 								Expect(pRecords.length)
-									.to.equal(5);
+									.to.equal(6);
 								// Alphabetically descending
 								Expect(pRecords[0].Name)
 									.to.equal('Spot');
@@ -534,7 +569,7 @@ suite
 						var testMeadow = newMeadow().setIDUser(42);
 
 						var tmpQuery = testMeadow.query
-							.addRecord({IDAnimal:2, Type:'Girl'});
+							.addRecord({IDAnimal:3, Type:'Girl'});
 
 						testMeadow.doUpdate(tmpQuery,
 							function(pError, pQuery, pQueryRead, pRecord)
@@ -559,7 +594,7 @@ suite
 						var testMeadow = newMeadow();
 
 						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimal', 2);
+							.addFilter('IDAnimal', 3);
 
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
@@ -590,7 +625,7 @@ suite
 							function(pError, pQuery, pCount)
 							{
 								Expect(pCount)
-									.to.equal(5);
+									.to.equal(6);
 								fDone();
 							}
 						);
@@ -633,7 +668,7 @@ suite
 						var testMeadow = newMeadow().setIDUser(999);
 
 						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimal', 5);
+							.addFilter('IDAnimal', 6);
 
 						testMeadow.doDelete(tmpQuery,
 							function(pError, pQuery, pCount)
@@ -656,11 +691,11 @@ suite
 						testMeadow.doReads(testMeadow.query,
 							function(pError, pQuery, pRecords)
 							{
-								// Should now be 4 (Foo Foo, Red Riding Hood, Red, Spot)
+								// Should now be 5 (Foo Foo, Moose, Red Riding Hood, Red, Spot)
 								Expect(pRecords.length)
-									.to.equal(4);
+									.to.equal(5);
 								var tmpIDs = pRecords.map(function(r) { return r.IDAnimal; });
-								Expect(tmpIDs).to.not.include(5);
+								Expect(tmpIDs).to.not.include(6);
 								fDone();
 							}
 						);
@@ -676,13 +711,13 @@ suite
 
 						var tmpQuery = testMeadow.query
 							.setDisableDeleteTracking(true)
-							.addFilter('IDAnimal', 5);
+							.addFilter('IDAnimal', 6);
 
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
 								Expect(pRecord.IDAnimal)
-									.to.equal(5);
+									.to.equal(6);
 								Expect(pRecord.Deleted)
 									.to.equal(1);
 								// Note: Meadow's Delete behavior does not propagate IDUser
@@ -707,7 +742,7 @@ suite
 							function(pError, pQuery, pCount)
 							{
 								Expect(pCount)
-									.to.equal(4);
+									.to.equal(5);
 								fDone();
 							}
 						);
@@ -729,7 +764,7 @@ suite
 						var testMeadow = newMeadow().setIDUser(777);
 
 						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimal', 5);
+							.addFilter('IDAnimal', 6);
 
 						testMeadow.doUndelete(tmpQuery,
 							function(pError, pQuery, pCount)
@@ -750,13 +785,13 @@ suite
 						var testMeadow = newMeadow();
 
 						var tmpQuery = testMeadow.query
-							.addFilter('IDAnimal', 5);
+							.addFilter('IDAnimal', 6);
 
 						testMeadow.doRead(tmpQuery,
 							function(pError, pQuery, pRecord)
 							{
 								Expect(pRecord.IDAnimal)
-									.to.equal(5);
+									.to.equal(6);
 								Expect(pRecord.Deleted)
 									.to.equal(0);
 								Expect(pRecord.Name)
@@ -778,7 +813,7 @@ suite
 							function(pError, pQuery, pCount)
 							{
 								Expect(pCount)
-									.to.equal(5);
+									.to.equal(6);
 								fDone();
 							}
 						);
@@ -835,12 +870,12 @@ suite
 								Expect(pRecord.Make).to.equal('Toyota');
 								Expect(pRecord.IDVehicle).to.equal(1);
 
-								// Now verify FableTest scope still has its 5 records
+								// Now verify FableTest scope still has its 6 records
 								var animalMeadow = newMeadow();
 								animalMeadow.doCount(animalMeadow.query,
 									function(pError2, pQuery2, pCount)
 									{
-										Expect(pCount).to.equal(5);
+										Expect(pCount).to.equal(6);
 										fDone();
 									}
 								);

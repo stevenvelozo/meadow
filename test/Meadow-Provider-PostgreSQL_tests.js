@@ -79,7 +79,9 @@ var _AnimalSchema = (
 		{ Column: "DeletingIDUser", Type: "DeleteIDUser" },
 		{ Column: "DeleteDate", Type: "DeleteDate" },
 		{ Column: "Name", Type: "String" },
-		{ Column: "Type", Type: "String" }
+		{ Column: "Type", Type: "String" },
+		{ Column: "Metadata",  Type:"JSON" },
+		{ Column: "ExtraData", Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 	]);
 var _AnimalDefault = (
 	{
@@ -95,7 +97,10 @@ var _AnimalDefault = (
 		DeletingIDUser: 0,
 
 		Name: 'Unknown',
-		Type: 'Unclassified'
+		Type: 'Unclassified',
+
+		Metadata: {},
+		ExtraData: {}
 	});
 
 suite
@@ -107,7 +112,7 @@ suite
 
 			var getAnimalInsert = function (pName, pType)
 			{
-				return 'INSERT INTO "FableTest" ("GUIDAnimal", "CreateDate", "CreatingIDUser", "UpdateDate", "UpdatingIDUser", "Deleted", "DeleteDate", "DeletingIDUser", "Name", "Type") VALUES (\'00000000-0000-0000-0000-000000000000\', NOW(), 1, NOW(), 1, 0, NULL, 0, \'' + pName + '\', \'' + pType + '\'); ';
+				return 'INSERT INTO "FableTest" ("GUIDAnimal", "CreateDate", "CreatingIDUser", "UpdateDate", "UpdatingIDUser", "Deleted", "DeleteDate", "DeletingIDUser", "Name", "Type", "Metadata", "ExtraDataJSON") VALUES (\'00000000-0000-0000-0000-000000000000\', NOW(), 1, NOW(), 1, 0, NULL, 0, \'' + pName + '\', \'' + pType + '\', \'{}\', \'{}\'); ';
 			};
 
 			var newMeadow = function ()
@@ -153,7 +158,7 @@ suite
 									},
 									function (fStageComplete)
 									{
-										libFable.MeadowPostgreSQLProvider.pool.query('CREATE TABLE IF NOT EXISTS "FableTest" ("IDAnimal" SERIAL PRIMARY KEY, "GUIDAnimal" VARCHAR(36) NOT NULL DEFAULT \'00000000-0000-0000-0000-000000000000\', "CreateDate" TIMESTAMP, "CreatingIDUser" INT NOT NULL DEFAULT 0, "UpdateDate" TIMESTAMP, "UpdatingIDUser" INT NOT NULL DEFAULT 0, "Deleted" SMALLINT NOT NULL DEFAULT 0, "DeleteDate" TIMESTAMP, "DeletingIDUser" INT NOT NULL DEFAULT 0, "Name" VARCHAR(128) NOT NULL DEFAULT \'\', "Type" VARCHAR(128) NOT NULL DEFAULT \'\');').then(() => { return fStageComplete(); }).catch(fStageComplete);
+										libFable.MeadowPostgreSQLProvider.pool.query('CREATE TABLE IF NOT EXISTS "FableTest" ("IDAnimal" SERIAL PRIMARY KEY, "GUIDAnimal" VARCHAR(36) NOT NULL DEFAULT \'00000000-0000-0000-0000-000000000000\', "CreateDate" TIMESTAMP, "CreatingIDUser" INT NOT NULL DEFAULT 0, "UpdateDate" TIMESTAMP, "UpdatingIDUser" INT NOT NULL DEFAULT 0, "Deleted" SMALLINT NOT NULL DEFAULT 0, "DeleteDate" TIMESTAMP, "DeletingIDUser" INT NOT NULL DEFAULT 0, "Name" VARCHAR(128) NOT NULL DEFAULT \'\', "Type" VARCHAR(128) NOT NULL DEFAULT \'\', "Metadata" TEXT, "ExtraDataJSON" TEXT);').then(() => { return fStageComplete(); }).catch(fStageComplete);
 									},
 									function (fStageComplete)
 									{
@@ -242,6 +247,37 @@ suite
 												.to.equal('Blastoise');
 											Expect(pRecord.CreatingIDUser)
 												.to.equal(90210);
+											fDone();
+										}
+									)
+								}
+							);
+						test
+							(
+								'Create a record with JSON data',
+								function (fDone)
+								{
+									var testMeadow = newMeadow().setIDUser(90210);
+
+									var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+										.addRecord({ Name: 'Moose', Type: 'Mammal', Metadata: { habitat: 'forest', weight: 500 }, ExtraData: { endangered: false, population: 'stable' } });
+
+									testMeadow.doCreate(tmpQuery,
+										function (pError, pQuery, pQueryRead, pRecord)
+										{
+											// We should have a record with JSON data ....
+											Expect(pRecord.Name)
+												.to.equal('Moose');
+											Expect(pRecord.Metadata)
+												.to.be.an('object');
+											Expect(pRecord.Metadata.habitat)
+												.to.equal('forest');
+											Expect(pRecord.ExtraData)
+												.to.be.an('object');
+											Expect(pRecord.ExtraData.endangered)
+												.to.equal(false);
+											// The storage column should not be exposed on the marshaled record
+											Expect(pRecord).to.not.have.property('ExtraDataJSON');
 											fDone();
 										}
 									)
@@ -374,9 +410,9 @@ suite
 									testMeadow.doCount(testMeadow.query,
 										function (pError, pQuery, pRecord)
 										{
-											// There should be 5 records
+											// There should be 6 records
 											Expect(pRecord)
-												.to.equal(5);
+												.to.equal(6);
 											Expect(pQuery.parameters.result.executed)
 												.to.equal(true);
 											fDone();
@@ -588,9 +624,9 @@ suite
 									testMeadow.doCount(testMeadow.query.setLogLevel(5),
 										function (pError, pQuery, pRecord)
 										{
-											// There should be 7 records
+											// There should be 8 records
 											Expect(pRecord)
-												.to.equal(7);
+												.to.equal(8);
 											fDone();
 										}
 									)

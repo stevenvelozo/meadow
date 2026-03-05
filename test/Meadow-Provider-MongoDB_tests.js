@@ -77,7 +77,9 @@ var _AnimalSchema = (
 		{ Column: "DeletingIDUser", Type: "DeleteIDUser" },
 		{ Column: "DeleteDate", Type: "DeleteDate" },
 		{ Column: "Name", Type: "String" },
-		{ Column: "Type", Type: "String" }
+		{ Column: "Type", Type: "String" },
+		{ Column: "Metadata",  Type:"JSON" },
+		{ Column: "ExtraData", Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 	]);
 var _AnimalDefault = (
 	{
@@ -93,7 +95,10 @@ var _AnimalDefault = (
 		DeletingIDUser: 0,
 
 		Name: 'Unknown',
-		Type: 'Unclassified'
+		Type: 'Unclassified',
+
+		Metadata: {},
+		ExtraData: {}
 	});
 
 suite
@@ -238,6 +243,35 @@ suite
 							);
 						test
 							(
+								'Create a record with JSON data',
+								function(fDone)
+								{
+									var testMeadow = newMeadow().setIDUser(90210);
+
+									var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+										.addRecord({Name:'Moose', Type:'Mammal', Metadata: { habitat: 'forest', weight: 500 }, ExtraData: { endangered: false, population: 'stable' }});
+
+									testMeadow.doCreate(tmpQuery,
+										function(pError, pQuery, pQueryRead, pRecord)
+										{
+											// We should have a record with JSON data ....
+											Expect(pRecord.Name)
+												.to.equal('Moose');
+											Expect(pRecord.Metadata)
+												.to.be.an('object');
+											Expect(pRecord.Metadata.habitat)
+												.to.equal('forest');
+											Expect(pRecord.ExtraData)
+												.to.be.an('object');
+											Expect(pRecord.ExtraData.endangered)
+												.to.equal(false);
+											fDone();
+										}
+									)
+								}
+							);
+						test
+							(
 								'Read a record from the database',
 								function (fDone)
 								{
@@ -361,9 +395,9 @@ suite
 									testMeadow.doCount(testMeadow.query,
 										function (pError, pQuery, pRecord)
 										{
-											// There should be 5 records (5 seeded + 1 created - 1 deleted = 5 non-deleted)
+											// There should be 6 records (5 seeded + 1 created + 1 Moose - 1 deleted = 6 non-deleted)
 											Expect(pRecord)
-												.to.equal(5);
+												.to.equal(6);
 											Expect(pQuery.parameters.result.executed)
 												.to.equal(true);
 											fDone();
@@ -506,7 +540,7 @@ suite
 										{
 											// MongoDB auto-filters Deleted=0, so count is non-deleted records only
 											Expect(pRecord)
-												.to.equal(5);
+												.to.equal(6);
 											fDone();
 										}
 									)

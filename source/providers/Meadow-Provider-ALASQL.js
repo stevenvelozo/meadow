@@ -92,6 +92,12 @@ var MeadowProvider = function()
 						case 'Text':
 							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` TEXT";
 							break;
+						case 'JSON':
+							tmpCreateStatement += "        `"+tmpSchema[j].Column+"` TEXT";
+							break;
+						case 'JSONProxy':
+							tmpCreateStatement += "        `"+tmpSchema[j].StorageColumn+"` TEXT";
+							break;
 						case 'CreateDate':
 						case 'UpdateDate':
 						case 'DeleteDate':
@@ -145,14 +151,63 @@ var MeadowProvider = function()
 			return true;
 		};
 
-		// The Meadow marshaller also passes in the Schema as the third parameter, but this is a blunt function ATM.
-		var marshalRecordFromSourceToObject = function(pObject, pRecord)
+		// The Meadow marshaller passes in the Schema as the third parameter for JSON/JSONProxy deserialization.
+		var marshalRecordFromSourceToObject = function (pObject, pRecord, pSchema)
 		{
-			// For now, crudely assign everything in pRecord to pObject
-			// This is safe in this context, and we don't want to slow down marshalling with millions of hasOwnProperty checks
-			for(var tmpColumn in pRecord)
+			// Build lookups for JSON columns (only if schema is provided)
+			var tmpJsonColumns = {};
+			var tmpProxyColumns = {};
+			if (Array.isArray(pSchema))
 			{
-				pObject[tmpColumn] = pRecord[tmpColumn];
+				for (var s = 0; s < pSchema.length; s++)
+				{
+					if (pSchema[s].Type === 'JSON')
+					{
+						tmpJsonColumns[pSchema[s].Column] = true;
+					}
+					else if (pSchema[s].Type === 'JSONProxy' && pSchema[s].StorageColumn)
+					{
+						tmpProxyColumns[pSchema[s].StorageColumn] = pSchema[s].Column;
+					}
+				}
+			}
+
+			for (var tmpColumn in pRecord)
+			{
+				if (tmpJsonColumns[tmpColumn])
+				{
+					// JSON type: parse string from DB into object on the same column name
+					try
+					{
+						pObject[tmpColumn] = (typeof pRecord[tmpColumn] === 'string')
+							? JSON.parse(pRecord[tmpColumn])
+							: (pRecord[tmpColumn] || {});
+					}
+					catch (pParseError)
+					{
+						pObject[tmpColumn] = {};
+					}
+				}
+				else if (tmpProxyColumns.hasOwnProperty(tmpColumn))
+				{
+					// JSONProxy: storage column -> parse and assign to virtual column name
+					var tmpVirtualColumn = tmpProxyColumns[tmpColumn];
+					try
+					{
+						pObject[tmpVirtualColumn] = (typeof pRecord[tmpColumn] === 'string')
+							? JSON.parse(pRecord[tmpColumn])
+							: (pRecord[tmpColumn] || {});
+					}
+					catch (pParseError)
+					{
+						pObject[tmpVirtualColumn] = {};
+					}
+					// Do NOT copy the storage column to the output object
+				}
+				else
+				{
+					pObject[tmpColumn] = pRecord[tmpColumn];
+				}
 			}
 		};
 

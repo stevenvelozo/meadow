@@ -41,6 +41,7 @@ const meadow = libMeadow.new(libFable, 'Book')
 		{ Column: 'GUIDBook', Type: 'AutoGUID' },
 		{ Column: 'Title', Type: 'String', Size: '255' },
 		{ Column: 'Author', Type: 'String', Size: '128' },
+		{ Column: 'Metadata', Type: 'JSON' },
 		{ Column: 'CreateDate', Type: 'CreateDate' },
 		{ Column: 'CreatingIDUser', Type: 'CreateIDUser' },
 		{ Column: 'UpdateDate', Type: 'UpdateDate' },
@@ -92,6 +93,8 @@ meadow.doReads(meadow.query.setCap(25).setBegin(0),
 | `DeleteDate` | Auto-populated timestamp on delete |
 | `DeleteIDUser` | Auto-populated user ID on delete |
 | `Deleted` | Soft delete flag (enables logical deletion) |
+| `JSON` | Structured JSON data (stored as `TEXT`, marshaled to/from objects) |
+| `JSONProxy` | JSON stored in a different SQL column (uses `StorageColumn` for SQL, virtual name for objects) |
 
 ## CRUD Operations
 

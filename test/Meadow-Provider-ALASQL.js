@@ -64,7 +64,9 @@ var _AnimalSchema = (
 	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
 	{ Column: "DeleteDate",      Type:"DeleteDate" },
 	{ "Column": "Name",      "Type":"String" },
-	{ "Column": "Type",      "Type":"String" }
+	{ "Column": "Type",      "Type":"String" },
+	{ Column: "Metadata",        Type:"JSON" },
+	{ Column: "ExtraData",       Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 ]);
 var _AnimalDefault = (
 {
@@ -80,7 +82,10 @@ var _AnimalDefault = (
 	DeletingIDUser: 0,
 
 	Name: 'Unknown',
-	Type: 'Unclassified'
+	Type: 'Unclassified',
+
+	Metadata: {},
+	ExtraData: {}
 });
 
 suite

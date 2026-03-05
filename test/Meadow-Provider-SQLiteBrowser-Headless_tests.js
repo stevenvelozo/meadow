@@ -238,7 +238,9 @@ function generateTestHTML()
 			"  DeleteDate TEXT," +
 			"  DeletingIDUser INTEGER NOT NULL DEFAULT 0," +
 			"  Name TEXT NOT NULL DEFAULT ''," +
-			"  Type TEXT NOT NULL DEFAULT ''" +
+			"  Type TEXT NOT NULL DEFAULT ''," +
+			"  Metadata TEXT," +
+			"  ExtraDataJSON TEXT" +
 			");"
 		);
 		var ins = db.prepare(
@@ -264,7 +266,9 @@ function generateTestHTML()
 			{ Column: 'UpdatingIDUser', Type: 'UpdateIDUser' },
 			{ Column: 'Deleted',        Type: 'Deleted' },
 			{ Column: 'DeletingIDUser', Type: 'DeleteIDUser' },
-			{ Column: 'DeleteDate',     Type: 'DeleteDate' }
+			{ Column: 'DeleteDate',     Type: 'DeleteDate' },
+			{ Column: 'Metadata',        Type: 'JSON' },
+			{ Column: 'ExtraData',       Type: 'JSONProxy', StorageColumn: 'ExtraDataJSON' }
 		];
 		var animalJsonSchema = {
 			title: 'Animal',
@@ -282,7 +286,8 @@ function generateTestHTML()
 			CreateDate: false, CreatingIDUser: 0,
 			UpdateDate: false, UpdatingIDUser: 0,
 			Deleted: 0, DeleteDate: false, DeletingIDUser: 0,
-			Name: 'Unknown', Type: 'Unclassified'
+			Name: 'Unknown', Type: 'Unclassified',
+			Metadata: {}, ExtraData: {}
 		};
 
 		function newMeadow()

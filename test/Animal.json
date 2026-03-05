@@ -14,7 +14,9 @@
 		{ "Column": "DeletingIDUser",  "Type":"DeleteIDUser" },
 		{ "Column": "DeleteDate",      "Type":"DeleteDate" },
 		{ "Column": "Name",      "Type":"String" },
-		{ "Column": "Type",      "Type":"String" }
+		{ "Column": "Type",      "Type":"String" },
+		{ "Column": "Metadata",  "Type":"JSON" },
+		{ "Column": "ExtraData", "Type":"JSONProxy", "StorageColumn":"ExtraDataJSON" }
 	],
 
 	"DefaultObject": {
@@ -30,7 +32,9 @@
 		"DeletingIDUser": 0,
 
 		"Name": "Unknown",
-		"Type": "Unclassified"
+		"Type": "Unclassified",
+		"Metadata": {},
+		"ExtraData": {}
 	},
 
 	"JsonSchema": {
@@ -49,6 +53,14 @@
 			"Type": {
 				"description": "The type of the animal",
 				"type": "string"
+			},
+			"Metadata": {
+				"description": "JSON metadata about the animal",
+				"type": "object"
+			},
+			"ExtraData": {
+				"description": "Extra JSON data (proxied storage)",
+				"type": "object"
 			}
 		},
 		"required": ["IDAnimal", "Name", "CreatingIDUser"]

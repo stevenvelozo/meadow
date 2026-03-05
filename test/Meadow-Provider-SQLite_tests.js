@@ -75,7 +75,9 @@ var _AnimalSchema = (
 	{ Column: "UpdatingIDUser", Type:"UpdateIDUser" },
 	{ Column: "Deleted",         Type:"Deleted" },
 	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
-	{ Column: "DeleteDate",      Type:"DeleteDate" }
+	{ Column: "DeleteDate",      Type:"DeleteDate" },
+	{ Column: "Metadata",        Type:"JSON" },
+	{ Column: "ExtraData",       Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 ]);
 var _AnimalDefault = (
 {
@@ -91,7 +93,10 @@ var _AnimalDefault = (
 	DeletingIDUser: 0,
 
 	Name: 'Unknown',
-	Type: 'Unclassified'
+	Type: 'Unclassified',
+
+	Metadata: {},
+	ExtraData: {}
 });
 
 suite
@@ -156,7 +161,9 @@ suite
 								"  DeleteDate TEXT," +
 								"  DeletingIDUser INTEGER NOT NULL DEFAULT 0," +
 								"  Name TEXT NOT NULL DEFAULT ''," +
-								"  Type TEXT NOT NULL DEFAULT ''" +
+								"  Type TEXT NOT NULL DEFAULT ''," +
+								"  Metadata TEXT," +
+								"  ExtraDataJSON TEXT" +
 								");"
 							);
 
@@ -251,6 +258,37 @@ suite
 						)
 					}
 				);
+				test
+					(
+						'Create a record with JSON data',
+						function(fDone)
+						{
+							var testMeadow = newMeadow().setIDUser(90210);
+
+							var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+								.addRecord({Name:'Moose', Type:'Mammal', Metadata: { habitat: 'forest', weight: 500 }, ExtraData: { endangered: false, population: 'stable' }});
+
+							testMeadow.doCreate(tmpQuery,
+								function(pError, pQuery, pQueryRead, pRecord)
+								{
+									// We should have a record with JSON data ....
+									Expect(pRecord.Name)
+										.to.equal('Moose');
+									Expect(pRecord.Metadata)
+										.to.be.an('object');
+									Expect(pRecord.Metadata.habitat)
+										.to.equal('forest');
+									Expect(pRecord.ExtraData)
+										.to.be.an('object');
+									Expect(pRecord.ExtraData.endangered)
+										.to.equal(false);
+									// The storage column should not be exposed on the marshaled record
+									Expect(pRecord).to.not.have.property('ExtraDataJSON');
+									fDone();
+								}
+							)
+						}
+					);
 				test
 				(
 					'Create a record in the database with Deleted bit already set',
@@ -421,9 +459,9 @@ suite
 						testMeadow.doCount(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 5 non-deleted records (3 not deleted seeded + Blastoise + Gertrude)
+								// There should be 6 non-deleted records (3 not deleted seeded + Blastoise + Moose + Gertrude)
 								Expect(pRecord)
-									.to.equal(5);
+									.to.equal(6);
 								Expect(pQuery.parameters.result.executed)
 									.to.equal(true);
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;

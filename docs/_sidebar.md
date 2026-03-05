@@ -8,6 +8,7 @@
 - Core Concepts
 
   - [Schema](schema/README.md)
+  - [JSON Columns](schema/json-columns.md)
   - [Query DSL](query-dsl.md)
   - [Raw Queries](raw-queries.md)
   - [Audit Tracking](audit-tracking.md)

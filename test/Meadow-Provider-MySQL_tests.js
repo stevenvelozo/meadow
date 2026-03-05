@@ -89,7 +89,9 @@ var _AnimalSchema = (
 	{ Column: "UpdatingIDUser", Type:"UpdateIDUser" },
 	{ Column: "Deleted",         Type:"Deleted" },
 	{ Column: "DeletingIDUser",  Type:"DeleteIDUser" },
-	{ Column: "DeleteDate",      Type:"DeleteDate" }
+	{ Column: "DeleteDate",      Type:"DeleteDate" },
+	{ Column: "Metadata",        Type:"JSON" },
+	{ Column: "ExtraData",       Type:"JSONProxy", StorageColumn:"ExtraDataJSON" }
 ]);
 var _AnimalDefault = (
 {
@@ -105,7 +107,10 @@ var _AnimalDefault = (
 	DeletingIDUser: 0,
 
 	Name: 'Unknown',
-	Type: 'Unclassified'
+	Type: 'Unclassified',
+
+	Metadata: {},
+	ExtraData: {}
 });
 
 suite
@@ -117,7 +122,7 @@ suite
 
 		var getAnimalInsert = function(pName, pType)
 		{
-			return "INSERT INTO `FableTest` (`IDAnimal`, `GUIDAnimal`, `CreateDate`, `CreatingIDUser`, `UpdateDate`, `UpdatingIDUser`, `Deleted`, `DeleteDate`, `DeletingIDUser`, `Name`, `Type`) VALUES (NULL, '00000000-0000-0000-0000-000000000000', NOW(), 1, NOW(), 1, 0, NULL, 0, '"+pName+"', '"+pType+"'); ";
+			return "INSERT INTO `FableTest` (`IDAnimal`, `GUIDAnimal`, `CreateDate`, `CreatingIDUser`, `UpdateDate`, `UpdatingIDUser`, `Deleted`, `DeleteDate`, `DeletingIDUser`, `Name`, `Type`, `Metadata`, `ExtraDataJSON`) VALUES (NULL, '00000000-0000-0000-0000-000000000000', NOW(), 1, NOW(), 1, 0, NULL, 0, '"+pName+"', '"+pType+"', '{}', '{}'); ";
 		};
 
 		var newMeadow = function()
@@ -160,7 +165,7 @@ suite
 						},
 						function(fCallBack)
 						{
-							_SQLConnectionPool.query("CREATE TABLE IF NOT EXISTS FableTest (IDAnimal INT UNSIGNED NOT NULL AUTO_INCREMENT, GUIDAnimal CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name CHAR(128) NOT NULL DEFAULT '', Type CHAR(128) NOT NULL DEFAULT '', PRIMARY KEY (IDAnimal) );",
+							_SQLConnectionPool.query("CREATE TABLE IF NOT EXISTS FableTest (IDAnimal INT UNSIGNED NOT NULL AUTO_INCREMENT, GUIDAnimal CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', CreateDate DATETIME, CreatingIDUser INT NOT NULL DEFAULT '0', UpdateDate DATETIME, UpdatingIDUser INT NOT NULL DEFAULT '0', Deleted TINYINT NOT NULL DEFAULT '0', DeleteDate DATETIME, DeletingIDUser INT NOT NULL DEFAULT '0', Name CHAR(128) NOT NULL DEFAULT '', Type CHAR(128) NOT NULL DEFAULT '', Metadata LONGTEXT, ExtraDataJSON LONGTEXT, PRIMARY KEY (IDAnimal) );",
 							function(pErrorUpdate, pResponse) { fCallBack(null); });
 						},
 						function(fCallBack)
@@ -252,6 +257,37 @@ suite
 								Expect(pRecord.CreatingIDUser)
 									.to.equal(90210);
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
+								fDone();
+							}
+						)
+					}
+				);
+				test
+				(
+					'Create a record with JSON data',
+					function(fDone)
+					{
+						var testMeadow = newMeadow().setIDUser(90210);
+
+						var tmpQuery = testMeadow.query.clone().setLogLevel(5)
+							.addRecord({Name:'Moose', Type:'Mammal', Metadata: { habitat: 'forest', weight: 500 }, ExtraData: { endangered: false, population: 'stable' }});
+
+						testMeadow.doCreate(tmpQuery,
+							function(pError, pQuery, pQueryRead, pRecord)
+							{
+								// We should have a record with JSON data ....
+								Expect(pRecord.Name)
+									.to.equal('Moose');
+								Expect(pRecord.Metadata)
+									.to.be.an('object');
+								Expect(pRecord.Metadata.habitat)
+									.to.equal('forest');
+								Expect(pRecord.ExtraData)
+									.to.be.an('object');
+								Expect(pRecord.ExtraData.endangered)
+									.to.equal(false);
+								// The storage column should not be exposed on the marshaled record
+								Expect(pRecord).to.not.have.property('ExtraDataJSON');
 								fDone();
 							}
 						)
@@ -476,9 +512,9 @@ suite
 						testMeadow.doCount(testMeadow.query,
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 5 records
+								// There should be 6 records
 								Expect(pRecord)
-									.to.equal(5);
+									.to.equal(6);
 								Expect(pQuery.parameters.result.executed)
 									.to.equal(true);
 								testMeadow.fable.settings.QueryThresholdWarnTime = 1000;
@@ -691,9 +727,9 @@ suite
 						testMeadow.doCount(testMeadow.query.setLogLevel(5),
 							function(pError, pQuery, pRecord)
 							{
-								// There should be 7 records
+								// There should be 8 records
 								Expect(pRecord)
-									.to.equal(7);
+									.to.equal(8);
 								fDone();
 							}
 						)
@@ -714,7 +750,7 @@ suite
 							{
 								// We should have a record ....
 								Expect(pRecord.IDAnimal)
-									.to.equal(10);
+									.to.equal(11);
 								Expect(pRecord.Name)
 									.to.equal('MewThree');
 								fDone();

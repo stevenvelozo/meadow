@@ -34,6 +34,8 @@ const tmpSchema =
 	{ Column: 'InPrint', Type: 'Boolean' },
 	{ Column: 'PublishDate', Type: 'DateTime' },
 	{ Column: 'Synopsis', Type: 'Text' },
+	{ Column: 'Metadata', Type: 'JSON' },
+	{ Column: 'Extras', Type: 'JSONProxy', StorageColumn: 'ExtrasJSON' },
 	{ Column: 'CreateDate', Type: 'CreateDate' },
 	{ Column: 'CreatingIDUser', Type: 'CreateIDUser' },
 	{ Column: 'UpdateDate', Type: 'UpdateDate' },
@@ -59,6 +61,40 @@ meadow.setSchema(tmpSchema);
 | `Decimal` | Decimal number | `DECIMAL(precision,scale)` | `0` |
 | `Boolean` | Boolean flag | `INT` / `BOOLEAN` | `0` |
 | `DateTime` | Date/time field | `DATETIME` | `null` |
+| `JSON` | Structured JSON data | `LONGTEXT` (MySQL) / `TEXT` (others) | `{}` |
+| `JSONProxy` | JSON with different SQL column name | `LONGTEXT` / `TEXT` (on `StorageColumn`) | `{}` |
+
+### JSON Column Types
+
+The `JSON` and `JSONProxy` types store structured data as serialized JSON text in SQL databases. Meadow handles serialization and deserialization automatically in the provider layer.
+
+**JSON** -- the SQL column and object property share the same name:
+
+```javascript
+{ Column: 'Metadata', Type: 'JSON' }
+```
+
+On create/update, the object value is `JSON.stringify`'d into the `Metadata` TEXT column. On read, the text is `JSON.parse`'d back into an object on `record.Metadata`.
+
+**JSONProxy** -- the SQL column name differs from the JavaScript property:
+
+```javascript
+{ Column: 'Preferences', Type: 'JSONProxy', StorageColumn: 'PreferencesJSON' }
+```
+
+On create/update, the value from `record.Preferences` is `JSON.stringify`'d and stored in the `PreferencesJSON` SQL column. On read, `PreferencesJSON` is parsed and mapped to `record.Preferences`. The storage column (`PreferencesJSON`) is never exposed on the marshaled record object.
+
+This separation is useful when you want a clean API surface (`record.Preferences`) while keeping a database naming convention that makes the storage format explicit (`PreferencesJSON`).
+
+For object-store providers (MongoDB, RocksDB), JSON values are stored and retrieved as native objects -- no serialization is needed.
+
+JSON columns support the standard `Column` and `Type` properties, plus:
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `StorageColumn` | JSONProxy only | The actual SQL column name for storage |
+
+See [JSON Columns](json-columns.md) for detailed examples and filtering.
 
 ### Audit Column Types
 

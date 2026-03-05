@@ -130,8 +130,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during create query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
@@ -171,8 +185,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during read query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
@@ -201,8 +229,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during update query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,
@@ -231,8 +273,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during delete query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query
 					(
 						pQuery.query.body,
@@ -270,8 +326,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during undelete query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query
 					(
 						pQuery.query.body,
@@ -309,8 +379,22 @@ var MeadowProvider = function ()
 				_Fable.log.trace(pQuery.query.body, pQuery.query.parameters);
 			}
 
-			getSQLPool().getConnection(function (pError, pDBConnection)
+			var tmpPool = getSQLPool();
+			if (!tmpPool)
 			{
+				tmpResult.error = new Error('No MySQL connection pool available.');
+				tmpResult.executed = true;
+				return fCallback();
+			}
+			tmpPool.getConnection(function (pError, pDBConnection)
+			{
+				if (pError || !pDBConnection)
+				{
+					_Fable.log.error('Error getting connection from MySQL pool during count query: ' + (pError ? pError.message : 'no connection returned'), { Body: pQuery.query.body });
+					tmpResult.error = pError || new Error('No connection returned from pool.');
+					tmpResult.executed = true;
+					return fCallback();
+				}
 				pDBConnection.query(
 					pQuery.query.body,
 					pQuery.query.parameters,

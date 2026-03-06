@@ -183,10 +183,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(tmpQueryBody,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`CREATE Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,
@@ -236,10 +238,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`READ Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,
@@ -287,10 +291,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`UPDATE Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,
@@ -331,10 +337,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`DELETE Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,
@@ -383,10 +391,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`UNDELETE Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,
@@ -435,10 +445,12 @@ var MeadowProvider = function ()
 			tmpPreparedStatement.prepare(pQuery.query.body,
 				(pPrepareError) =>
 				{
-					// TODO: This will likely blow up the world.  It will definitely happen when the schema doesn't generate good constraints from the inputs.
 					if (pPrepareError)
 					{
 						_Fable.log.error(`COUNT Error preparing prepared statement: ${pPrepareError}`, pPrepareError);
+						tmpResult.error = pPrepareError;
+						tmpResult.executed = true;
+						return fCallback();
 					}
 
 					tmpPreparedStatement.execute(pQuery.query.parameters,

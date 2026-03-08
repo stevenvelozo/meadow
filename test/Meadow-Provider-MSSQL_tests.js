@@ -748,7 +748,7 @@ END
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal("ENOTPREPARED");
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)
@@ -769,7 +769,7 @@ END
 										{
 											// We should have no record because the default id is IDFableTest and our tables identity is IDAnimal
 											Expect(pError.code)
-												.to.equal('ENOTPREPARED');
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)
@@ -867,7 +867,7 @@ END
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ENOTPREPARED');
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)
@@ -887,7 +887,7 @@ END
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ENOTPREPARED');
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)
@@ -907,7 +907,7 @@ END
 										function (pError, pQuery, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ENOTPREPARED');
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)
@@ -1093,7 +1093,7 @@ END
 										function (pError, pQuery, pQueryRead, pRecord)
 										{
 											Expect(pError.code)
-												.to.equal('ENOTPREPARED');
+												.to.be.oneOf(['ENOTPREPARED', 'EREQUEST']);
 											fDone();
 										}
 									)

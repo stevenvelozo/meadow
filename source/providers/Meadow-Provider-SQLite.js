@@ -204,15 +204,14 @@ var MeadowProvider = function ()
 				}
 
 				tmpResult.executed = true;
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var Read = function (pQuery, fCallback)
@@ -245,15 +244,14 @@ var MeadowProvider = function ()
 				tmpResult.error = null;
 				tmpResult.value = tmpRows;
 				tmpResult.executed = true;
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var Update = function (pQuery, fCallback)
@@ -286,15 +284,14 @@ var MeadowProvider = function ()
 				tmpResult.error = null;
 				tmpResult.value = tmpInfo;
 				tmpResult.executed = true;
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var Delete = function (pQuery, fCallback)
@@ -335,15 +332,14 @@ var MeadowProvider = function ()
 					_Fable.log.warn('Error getting affected rowcount during delete query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
 				}
 				tmpResult.executed = true;
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var Undelete = function (pQuery, fCallback)
@@ -384,15 +380,14 @@ var MeadowProvider = function ()
 					_Fable.log.warn('Error getting affected rowcount during undelete query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
 				}
 				tmpResult.executed = true;
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var Count = function (pQuery, fCallback)
@@ -433,15 +428,14 @@ var MeadowProvider = function ()
 				{
 					_Fable.log.warn('Error getting rowcount during count query', { Body: tmpQueryBody, Parameters: pQuery.query.parameters });
 				}
-				return fCallback();
 			}
 			catch (pError)
 			{
 				tmpResult.error = pError;
 				tmpResult.value = false;
 				tmpResult.executed = true;
-				return fCallback();
 			}
+			return fCallback();
 		};
 
 		var tmpNewProvider = (

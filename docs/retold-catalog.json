@@ -1,5 +1,5 @@
 {
-	"Generated": "2026-03-02T02:11:44.637Z",
+	"Generated": "2026-04-09T23:23:40.238Z",
 	"GitHubOrg": "stevenvelozo",
 	"DefaultBranch": "master",
 	"Groups": [
@@ -55,16 +55,6 @@
 			"Key": "dist",
 			"Description": "",
 			"Modules": [
-				{
-					"Name": "FableTest-RocksDB",
-					"Repo": "FableTest-RocksDB",
-					"Group": "dist",
-					"Branch": "master",
-					"HasDocs": false,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": []
-				},
 				{
 					"Name": "indoctrinate_content_staging",
 					"Repo": "indoctrinate_content_staging",
@@ -174,7 +164,8 @@
 					"HasCover": false,
 					"Sidebar": [],
 					"DocFiles": [
-						"schema/README.md"
+						"schema/README.md",
+						"schema/json-columns.md"
 					]
 				}
 			]

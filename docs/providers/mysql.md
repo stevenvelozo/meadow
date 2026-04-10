@@ -84,11 +84,11 @@ The provider looks for the connection pool in two locations (for backward compat
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `MySQL.Server` | string | — | Database server hostname |
+| `MySQL.Server` | string | -- | Database server hostname |
 | `MySQL.Port` | number | `3306` | Database server port |
-| `MySQL.User` | string | — | Database user |
-| `MySQL.Password` | string | — | Database password |
-| `MySQL.Database` | string | — | Database name |
+| `MySQL.User` | string | -- | Database user |
+| `MySQL.Password` | string | -- | Database password |
+| `MySQL.Database` | string | -- | Database name |
 | `MySQL.ConnectionPoolLimit` | number | `20` | Maximum pool connections |
 
 ### Named Placeholders
@@ -255,6 +255,6 @@ docker run -d \
 
 ## Related Documentation
 
-- [Providers Overview](providers/README.md) — Comparison of all providers
-- [MSSQL Provider](providers/mssql.md) — Microsoft SQL Server alternative
-- [meadow-connection-mysql](https://github.com/stevenvelozo/meadow-connection-mysql) — Connection module source
+- [Providers Overview](providers/README.md) -- Comparison of all providers
+- [MSSQL Provider](providers/mssql.md) -- Microsoft SQL Server alternative
+- [meadow-connection-mysql](https://github.com/stevenvelozo/meadow-connection-mysql) -- Connection module source

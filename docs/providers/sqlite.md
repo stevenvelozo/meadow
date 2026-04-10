@@ -151,9 +151,9 @@ meadow.doCount(
 
 | Use Case | Recommendation |
 |----------|---------------|
-| Local development | Great — no server setup required |
-| Unit testing | Good — fast, in-process database |
-| Small production apps | Good — for low-concurrency workloads |
+| Local development | Great -- no server setup required |
+| Unit testing | Good -- fast, in-process database |
+| Small production apps | Good -- for low-concurrency workloads |
 | High-concurrency production | Consider MySQL or MSSQL instead |
 | Browser applications | Use ALASQL provider instead |
 
@@ -167,7 +167,7 @@ The SQLite provider follows the same error handling pattern as MySQL:
 
 ## Related Documentation
 
-- [Providers Overview](providers/README.md) — Comparison of all providers
-- [MySQL Provider](providers/mysql.md) — MySQL/MariaDB for production
-- [ALASQL Provider](providers/alasql.md) — In-memory alternative
-- [meadow-connection-sqlite](https://github.com/stevenvelozo/meadow-connection-sqlite) — Connection module source
+- [Providers Overview](providers/README.md) -- Comparison of all providers
+- [MySQL Provider](providers/mysql.md) -- MySQL/MariaDB for production
+- [ALASQL Provider](providers/alasql.md) -- In-memory alternative
+- [meadow-connection-sqlite](https://github.com/stevenvelozo/meadow-connection-sqlite) -- Connection module source

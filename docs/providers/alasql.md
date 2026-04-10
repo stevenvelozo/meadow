@@ -253,9 +253,9 @@ meadow.doCreate(
 
 | Use Case | Recommendation |
 |----------|---------------|
-| Unit testing | Excellent — no database setup, fast, deterministic |
-| Browser applications | Excellent — full SQL in the browser |
-| Rapid prototyping | Excellent — start coding immediately |
+| Unit testing | Excellent -- no database setup, fast, deterministic |
+| Browser applications | Excellent -- full SQL in the browser |
+| Rapid prototyping | Excellent -- start coding immediately |
 | Production server | Consider MySQL or MSSQL instead |
 | Data persistence | Data is in-memory only (lost on refresh/restart) |
 
@@ -265,7 +265,7 @@ All operations are wrapped in try-catch blocks. Errors are stored in `pQuery.par
 
 ## Related Documentation
 
-- [Providers Overview](providers/README.md) — Comparison of all providers
-- [MySQL Provider](providers/mysql.md) — Production MySQL alternative
-- [SQLite Provider](providers/sqlite.md) — Lightweight embedded alternative
-- [Schema](schema/README.md) — Schema definitions that drive table creation
+- [Providers Overview](providers/README.md) -- Comparison of all providers
+- [MySQL Provider](providers/mysql.md) -- Production MySQL alternative
+- [SQLite Provider](providers/sqlite.md) -- Lightweight embedded alternative
+- [Schema](schema/README.md) -- Schema definitions that drive table creation

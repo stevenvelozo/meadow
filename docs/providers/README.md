@@ -2,19 +2,19 @@
 
 > Pluggable database backends through a consistent interface
 
-Meadow's provider system abstracts database communication behind a unified CRUD interface. You write your data access code once, then swap providers to target MySQL, MSSQL, SQLite, an in-browser IndexedDB store, or even a remote REST API — all without changing your application logic.
+Meadow's provider system abstracts database communication behind a unified CRUD interface. You write your data access code once, then swap providers to target MySQL, MSSQL, SQLite, an in-browser IndexedDB store, or even a remote REST API -- all without changing your application logic.
 
 ## Overview
 
 ```
 Meadow (Data Access Layer)
   └── Provider Interface
-        ├── MySQL       → mysql2 connection pool, named placeholders
-        ├── MSSQL       → mssql prepared statements, SCOPE_IDENTITY()
-        ├── SQLite      → Lightweight embedded SQL
-        ├── ALASQL      → In-memory JavaScript SQL engine (browser/Node)
-        ├── MeadowEndpoints → HTTP proxy to remote Meadow REST API
-        └── None        → No-op stub for testing
+        ├── MySQL       -> mysql2 connection pool, named placeholders
+        ├── MSSQL       -> mssql prepared statements, SCOPE_IDENTITY()
+        ├── SQLite      -> Lightweight embedded SQL
+        ├── ALASQL      -> In-memory JavaScript SQL engine (browser/Node)
+        ├── MeadowEndpoints -> HTTP proxy to remote Meadow REST API
+        └── None        -> No-op stub for testing
 ```
 
 Every provider implements the same operation set:
@@ -113,7 +113,7 @@ All providers store their results in a consistent structure on the query object:
 pQuery.parameters.result =
 {
 	error: null,        // Error object if operation failed, null on success
-	value: false,       // Result value (varies by operation — see below)
+	value: false,       // Result value (varies by operation -- see below)
 	executed: true      // Whether the provider attempted execution
 };
 ```
@@ -198,7 +198,7 @@ tmpConnection.connectAsync(
 
 ## MeadowEndpoints Provider
 
-The MeadowEndpoints provider is unique — it doesn't connect to a database directly. Instead, it acts as an HTTP proxy to a remote Meadow REST API. This enables client-side code to use the same Meadow interface while the actual data operations happen on a server.
+The MeadowEndpoints provider is unique -- it doesn't connect to a database directly. Instead, it acts as an HTTP proxy to a remote Meadow REST API. This enables client-side code to use the same Meadow interface while the actual data operations happen on a server.
 
 ```javascript
 meadow.setProvider('MeadowEndpoints');
@@ -235,19 +235,19 @@ meadow.setProvider('None');
 meadow.doRead(meadow.query.addFilter('IDBook', 1),
 	(pError, pQuery, pRecord) =>
 	{
-		// pRecord will be minimal/empty — no actual data
+		// pRecord will be minimal/empty -- no actual data
 	});
 ```
 
 ## Provider-Specific Documentation
 
-- [MySQL](providers/mysql.md) — Connection pooling, named placeholders, configuration
-- [MSSQL](providers/mssql.md) — Prepared statements, type mapping, identity handling
-- [SQLite](providers/sqlite.md) — Embedded database, lightweight deployment
-- [ALASQL](providers/alasql.md) — In-memory SQL, dynamic table creation, browser support
+- [MySQL](providers/mysql.md) -- Connection pooling, named placeholders, configuration
+- [MSSQL](providers/mssql.md) -- Prepared statements, type mapping, identity handling
+- [SQLite](providers/sqlite.md) -- Embedded database, lightweight deployment
+- [ALASQL](providers/alasql.md) -- In-memory SQL, dynamic table creation, browser support
 
 ## Related Documentation
 
-- [Schema](schema/README.md) — How schema definitions drive provider behavior
-- [Query Overview](query/README.md) — FoxHound query DSL and dialect generation
-- [Meadow-Endpoints](https://github.com/stevenvelozo/meadow-endpoints) — REST API generation on top of Meadow providers
+- [Schema](schema/README.md) -- How schema definitions drive provider behavior
+- [Query Overview](query/README.md) -- FoxHound query DSL and dialect generation
+- [Meadow-Endpoints](https://github.com/stevenvelozo/meadow-endpoints) -- REST API generation on top of Meadow providers

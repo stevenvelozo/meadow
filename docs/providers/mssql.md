@@ -84,11 +84,11 @@ Unlike MySQL, MSSQL connections are fully asynchronous. The connection module pr
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `MSSQL.server` | string | — | SQL Server hostname |
+| `MSSQL.server` | string | -- | SQL Server hostname |
 | `MSSQL.port` | number | `1433` | SQL Server port |
-| `MSSQL.user` | string | — | Database user |
-| `MSSQL.password` | string | — | Database password |
-| `MSSQL.database` | string | — | Database name |
+| `MSSQL.user` | string | -- | Database user |
+| `MSSQL.password` | string | -- | Database password |
+| `MSSQL.database` | string | -- | Database name |
 
 ### Pool Configuration (Internal Defaults)
 
@@ -105,9 +105,9 @@ Unlike MySQL, MSSQL connections are fully asynchronous. The connection module pr
 
 The MSSQL provider uses prepared statements for **every** CRUD operation. This provides:
 
-- **Security** — Parameters are bound separately from SQL, preventing injection
-- **Performance** — SQL Server can cache execution plans
-- **Type Safety** — Parameters are explicitly typed
+- **Security** -- Parameters are bound separately from SQL, preventing injection
+- **Performance** -- SQL Server can cache execution plans
+- **Type Safety** -- Parameters are explicitly typed
 
 ### Execution Lifecycle
 
@@ -291,6 +291,6 @@ docker run -d \
 
 ## Related Documentation
 
-- [Providers Overview](providers/README.md) — Comparison of all providers
-- [MySQL Provider](providers/mysql.md) — MySQL/MariaDB alternative
-- [meadow-connection-mssql](https://github.com/stevenvelozo/meadow-connection-mssql) — Connection module source
+- [Providers Overview](providers/README.md) -- Comparison of all providers
+- [MySQL Provider](providers/mysql.md) -- MySQL/MariaDB alternative
+- [meadow-connection-mssql](https://github.com/stevenvelozo/meadow-connection-mssql) -- Connection module source

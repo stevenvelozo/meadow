@@ -109,11 +109,11 @@ By default, queries automatically exclude records where the `Deleted` column is 
 When you pass a query to a CRUD method, Meadow handles the rest:
 
 ```
-1. meadow.query          → Clone a fresh FoxHound query with scope and schema
-2. .addFilter(...)       → Configure the query parameters
-3. .addRecord(...)       → Attach data (for create/update)
-4. meadow.doRead(query)  → Meadow sets the dialect, builds SQL, executes via provider
-5. callback(error, ...)  → Results returned through callback
+1. meadow.query          -> Clone a fresh FoxHound query with scope and schema
+2. .addFilter(...)       -> Configure the query parameters
+3. .addRecord(...)       -> Attach data (for create/update)
+4. meadow.doRead(query)  -> Meadow sets the dialect, builds SQL, executes via provider
+5. callback(error, ...)  -> Results returned through callback
 ```
 
 You never need to call `setDialect()` or `buildReadQuery()` yourself -- Meadow's behavior modules handle dialect selection and SQL generation based on the configured provider.

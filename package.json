@@ -96,6 +96,7 @@
     "meadow-connection-sqlite-browser": "^1.0.1",
     "mongodb": "^6.12.0",
     "mysql2": "^3.18.2",
+    "pict-docuserve": "^0.1.5",
     "puppeteer": "^24.38.0",
     "quackage": "^1.1.0",
     "solr-client": "^0.9.0"

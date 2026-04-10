@@ -1,4 +1,4 @@
-# Meadow <small>v2.0.23</small>
+# Meadow
 
 > A data access library providing magic where you want it, programmability where you don't
 

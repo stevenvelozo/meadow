@@ -219,16 +219,19 @@ GET http://127.0.0.1:8086/1.0/Books/Count
 
 The primary use case for MeadowEndpoints is enabling client-side JavaScript to use the same Meadow data access interface that the server uses. This means your application logic can be written once and run in either context:
 
-```
-Browser / Client                        Server
-┌──────────────────┐                   ┌──────────────────┐
-│  Application Code │                   │  Application Code │
-│                   │                   │                   │
-│  Meadow DAL       │                   │  Meadow DAL       │
-│  Provider:        │    HTTP/REST      │  Provider:        │
-│  MeadowEndpoints ─┼──────────────────>│  MySQL            │
-│                   │                   │                   │
-└──────────────────┘                   └──────────────────┘
+```mermaid
+graph LR
+    subgraph Browser["Browser / Client"]
+        AC1["Application Code"]
+        ME["Meadow DAL<br/>Provider: MeadowEndpoints"]
+        AC1 --- ME
+    end
+    subgraph Server["Server"]
+        AC2["Application Code"]
+        MY["Meadow DAL<br/>Provider: MySQL"]
+        AC2 --- MY
+    end
+    ME -- "HTTP / REST" --> MY
 ```
 
 - **Server side:** Meadow uses a database provider (MySQL, MSSQL, PostgreSQL, etc.) to interact with the database directly

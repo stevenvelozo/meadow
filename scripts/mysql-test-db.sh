@@ -18,7 +18,7 @@ MYSQL_PORT="33306"
 MYSQL_IMAGE="mysql:8.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEED_SQL="${SCRIPT_DIR}/bookstore-seed.sql"
+SEED_GENERATOR="${SCRIPT_DIR}/bookstore-seed.js"
 
 start_mysql() {
 	# Check if container already exists
@@ -61,18 +61,18 @@ start_mysql() {
 		sleep 2
 	done
 
-	# Load bookstore schema and seed data
-	if [ -f "${SEED_SQL}" ]; then
+	# Load bookstore schema and seed data (GUIDs minted at generation time via fable-uuid)
+	if [ -f "${SEED_GENERATOR}" ]; then
 		echo "Loading bookstore schema and seed data..."
-		docker cp "${SEED_SQL}" "${CONTAINER_NAME}:/tmp/bookstore-seed.sql"
-		docker exec "${CONTAINER_NAME}" mysql -u root -p"${MYSQL_ROOT_PASSWORD}" "${MYSQL_DATABASE}" -e "source /tmp/bookstore-seed.sql"
+		node "${SEED_GENERATOR}" --dialect mysql | \
+			docker exec -i "${CONTAINER_NAME}" mysql -u root -p"${MYSQL_ROOT_PASSWORD}" "${MYSQL_DATABASE}"
 		if [ $? -ne 0 ]; then
 			echo "WARNING: Failed to load seed data. Tests requiring pre-populated data may fail."
 		else
 			echo "Bookstore schema and seed data loaded successfully."
 		fi
 	else
-		echo "WARNING: Seed file not found at ${SEED_SQL}. Skipping schema/data loading."
+		echo "WARNING: Seed generator not found at ${SEED_GENERATOR}. Skipping schema/data loading."
 	fi
 
 	echo ""

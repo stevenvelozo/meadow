@@ -19,7 +19,7 @@ POSTGRES_PORT="35432"
 POSTGRES_IMAGE="postgres:16"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEED_SQL="${SCRIPT_DIR}/bookstore-seed-postgresql.sql"
+SEED_GENERATOR="${SCRIPT_DIR}/bookstore-seed.js"
 
 start_postgresql() {
 	# Check if container already exists
@@ -60,18 +60,18 @@ start_postgresql() {
 		sleep 2
 	done
 
-	# Load bookstore schema and seed data
-	if [ -f "${SEED_SQL}" ]; then
+	# Load bookstore schema and seed data (GUIDs minted at generation time via fable-uuid)
+	if [ -f "${SEED_GENERATOR}" ]; then
 		echo "Loading bookstore schema and seed data..."
-		docker cp "${SEED_SQL}" "${CONTAINER_NAME}:/tmp/bookstore-seed.sql"
-		docker exec "${CONTAINER_NAME}" psql -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}" -f /tmp/bookstore-seed.sql
+		node "${SEED_GENERATOR}" --dialect postgresql | \
+			docker exec -i "${CONTAINER_NAME}" psql -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}"
 		if [ $? -ne 0 ]; then
 			echo "WARNING: Failed to load seed data. Tests requiring pre-populated data may fail."
 		else
 			echo "Bookstore schema and seed data loaded successfully."
 		fi
 	else
-		echo "WARNING: Seed file not found at ${SEED_SQL}. Skipping schema/data loading."
+		echo "WARNING: Seed generator not found at ${SEED_GENERATOR}. Skipping schema/data loading."
 	fi
 
 	echo ""

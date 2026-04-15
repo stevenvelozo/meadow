@@ -17,6 +17,9 @@ MSSQL_DATABASE="bookstore"
 MSSQL_PORT="31433"
 MSSQL_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SEED_GENERATOR="${SCRIPT_DIR}/bookstore-seed.js"
+
 start_mssql() {
 	# Check if container already exists
 	if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
@@ -60,6 +63,21 @@ start_mssql() {
 	docker exec "${CONTAINER_NAME}" /opt/mssql-tools18/bin/sqlcmd \
 		-S localhost -U sa -P "${SA_PASSWORD}" -C \
 		-Q "IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '${MSSQL_DATABASE}') BEGIN CREATE DATABASE [${MSSQL_DATABASE}] END"
+
+	# Load bookstore schema and seed data (GUIDs minted at generation time via fable-uuid)
+	if [ -f "${SEED_GENERATOR}" ]; then
+		echo "Loading bookstore schema and seed data..."
+		node "${SEED_GENERATOR}" --dialect mssql | \
+			docker exec -i "${CONTAINER_NAME}" /opt/mssql-tools18/bin/sqlcmd \
+				-S localhost -U sa -P "${SA_PASSWORD}" -C -d "${MSSQL_DATABASE}"
+		if [ $? -ne 0 ]; then
+			echo "WARNING: Failed to load seed data. Tests requiring pre-populated data may fail."
+		else
+			echo "Bookstore schema and seed data loaded successfully."
+		fi
+	else
+		echo "WARNING: Seed generator not found at ${SEED_GENERATOR}. Skipping schema/data loading."
+	fi
 
 	echo ""
 	echo "MSSQL test database is ready!"

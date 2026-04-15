@@ -226,6 +226,17 @@ var MeadowProvider = function ()
 		{
 			var tmpResult = pQuery.parameters.result;
 
+			// Propagate the MSSQL LegacyPagination setting (configured on
+			// meadow-connection-mssql) onto the FoxHound parameters so the
+			// dialect can emit a ROW_NUMBER() wrapper instead of OFFSET/FETCH
+			// for customers whose database compatibility level is < 110
+			// (SQL Server 2008 R2 and earlier, or older compat levels on
+			// newer servers).
+			if (_Fable.settings.MSSQL && _Fable.settings.MSSQL.LegacyPagination)
+			{
+				pQuery.parameters.legacyPagination = true;
+			}
+
 			pQuery.setDialect('MSSQL').buildReadQuery();
 
 			if (pQuery.logLevel > 0 ||

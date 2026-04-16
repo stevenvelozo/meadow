@@ -43,10 +43,22 @@ var MeadowProvider = function ()
 				return fCallback();
 			}
 
-			var tmpPath = pQuery.query.body;
-			if (tmpPath && tmpPath.charAt(0) !== '/')
+			// Build the path with the connection hash prefix so the remote
+			// databeacon's hash-namespaced route receives the request.
+			var tmpHash = tmpConn._TargetConnectionHash || '';
+			var tmpRelative = pQuery.query.body || '';
+			var tmpPath;
+			if (tmpHash)
 			{
-				tmpPath = '/1.0/' + tmpPath;
+				tmpPath = '/1.0/' + tmpHash + '/' + tmpRelative;
+			}
+			else if (tmpRelative.charAt(0) !== '/')
+			{
+				tmpPath = '/1.0/' + tmpRelative;
+			}
+			else
+			{
+				tmpPath = tmpRelative;
 			}
 
 			var tmpBody = null;

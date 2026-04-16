@@ -1,6 +1,6 @@
 {
   "name": "meadow",
-  "version": "2.0.35",
+  "version": "2.0.36",
   "description": "A data access library.",
   "main": "source/Meadow.js",
   "scripts": {
@@ -87,9 +87,9 @@
     "gulp-util": "^3.0.8",
     "meadow-connection-dgraph": "^1.0.2",
     "meadow-connection-mongodb": "^1.0.2",
-    "meadow-connection-mssql": "^1.0.17",
-    "meadow-connection-mysql": "^1.0.14",
-    "meadow-connection-postgresql": "^1.0.2",
+    "meadow-connection-mssql": "^1.0.21",
+    "meadow-connection-mysql": "^1.0.17",
+    "meadow-connection-postgresql": "^1.0.3",
     "meadow-connection-rocksdb": "^0.0.2",
     "meadow-connection-solr": "^1.0.2",
     "meadow-connection-sqlite": "^1.0.18",
@@ -98,7 +98,7 @@
     "mysql2": "^3.18.2",
     "pict-docuserve": "^0.1.5",
     "puppeteer": "^24.38.0",
-    "quackage": "^1.1.0",
+    "quackage": "^1.1.2",
     "solr-client": "^0.9.0"
   },
   "dependencies": {

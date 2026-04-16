@@ -142,6 +142,7 @@ var Meadow = function()
 			'DGraph': require(`./providers/Meadow-Provider-DGraph.js`),
 			'Solr': require(`./providers/Meadow-Provider-Solr.js`),
 			'RocksDB': require(`./providers/Meadow-Provider-RocksDB.js`),
+			'RetoldDataBeacon': require(`./providers/Meadow-Provider-RetoldDataBeacon.js`),
 			'None': require(`./providers/Meadow-Provider-None.js`),
 		});
 		var setProvider = function(pProviderName)

@@ -965,5 +965,120 @@ suite
 				);
 			}
 		);
+		suite
+		(
+			'Soft-Deleted Collision Rename (DAL layer)',
+			function ()
+			{
+				// Schema for a separate Gadget table that exercises the rename
+				// at the meadow DAL layer (no meadow-endpoints in the loop).
+				// Uses a plain UNIQUE INDEX on Code — no `WHERE Deleted=0`
+				// partial-index syntax — so the rename is what keeps the slot
+				// reusable after a soft-delete.
+				var _GadgetSchema =
+				[
+					{ Column: 'IDGadget',       Type: 'AutoIdentity' },
+					{ Column: 'GUIDGadget',     Type: 'AutoGUID' },
+					{ Column: 'CreateDate',     Type: 'CreateDate' },
+					{ Column: 'CreatingIDUser', Type: 'CreateIDUser' },
+					{ Column: 'UpdateDate',     Type: 'UpdateDate' },
+					{ Column: 'UpdatingIDUser', Type: 'UpdateIDUser' },
+					{ Column: 'Deleted',        Type: 'Deleted' },
+					{ Column: 'DeleteDate',     Type: 'DeleteDate' },
+					{ Column: 'DeletingIDUser', Type: 'DeleteIDUser' },
+					{ Column: 'Code',           Type: 'String', Unique: true },
+					{ Column: 'Name',           Type: 'String' }
+				];
+				var _GadgetDefault =
+				{
+					IDGadget: 0,
+					GUIDGadget: '',
+					CreateDate: false,
+					CreatingIDUser: 0,
+					UpdateDate: false,
+					UpdatingIDUser: 0,
+					Deleted: 0,
+					DeleteDate: false,
+					DeletingIDUser: 0,
+					Code: '',
+					Name: ''
+				};
+
+				var newGadgetMeadow = function ()
+				{
+					return require('../source/Meadow.js').new(libFable, 'Gadget')
+						.setProvider('SQLite')
+						.setSchema(_GadgetSchema)
+						.setJsonSchema({ title: 'Gadget', type: 'object', properties: {}, required: [] })
+						.setDefaultIdentifier('IDGadget')
+						.setDefault(_GadgetDefault);
+				};
+
+				suiteSetup(function (fDone)
+				{
+					var tmpDB = libFable.MeadowSQLiteProvider.db;
+					tmpDB.exec(
+						'CREATE TABLE IF NOT EXISTS Gadget (' +
+						'  IDGadget INTEGER PRIMARY KEY AUTOINCREMENT,' +
+						'  GUIDGadget TEXT NOT NULL DEFAULT \'\',' +
+						'  CreateDate TEXT,' +
+						'  CreatingIDUser INTEGER NOT NULL DEFAULT 0,' +
+						'  UpdateDate TEXT,' +
+						'  UpdatingIDUser INTEGER NOT NULL DEFAULT 0,' +
+						'  Deleted INTEGER NOT NULL DEFAULT 0,' +
+						'  DeleteDate TEXT,' +
+						'  DeletingIDUser INTEGER NOT NULL DEFAULT 0,' +
+						'  Code TEXT NOT NULL DEFAULT \'\',' +
+						'  Name TEXT NOT NULL DEFAULT \'\'' +
+						');' +
+						'CREATE UNIQUE INDEX IF NOT EXISTS gadget_code_unique ON Gadget(Code);'
+					);
+					return fDone();
+				});
+
+				test
+				(
+					'Create → soft-delete → Create-with-same-Code: rename frees the slot at the DAL layer',
+					function (fDone)
+					{
+						var libRename = require('../source/behaviors/Meadow-CollisionRename.js');
+						var tmpMeadow = newGadgetMeadow().setIDUser(1);
+
+						var tmpFirstQuery = tmpMeadow.query.addRecord({ Code: 'orig', Name: 'first' });
+						tmpMeadow.doCreate(tmpFirstQuery, function (pCreateError, pQuery, pQueryRead, pFirstRecord)
+						{
+							Expect(pCreateError, pCreateError && pCreateError.message ? pCreateError.message : pCreateError).to.not.exist;
+							var tmpFirstID = pFirstRecord.IDGadget;
+							Expect(pFirstRecord.Code).to.equal('orig');
+							Expect(tmpFirstID).to.be.above(0);
+
+							var tmpDeleteQuery = tmpMeadow.query.addFilter('IDGadget', tmpFirstID);
+							tmpMeadow.doDelete(tmpDeleteQuery, function (pDeleteError, pDelQuery, pDelCount)
+							{
+								Expect(pDelCount).to.equal(1);
+
+								var tmpSecondQuery = newGadgetMeadow().setIDUser(1).query.addRecord({ Code: 'orig', Name: 'second' });
+								newGadgetMeadow().setIDUser(1).doCreate(tmpSecondQuery, function (pSecondError, pQuery2, pRead2, pSecond)
+								{
+									Expect(pSecondError, pSecondError && pSecondError.message ? pSecondError.message : pSecondError).to.not.exist;
+									Expect(pSecond.Code).to.equal('orig');
+									Expect(pSecond.IDGadget).to.not.equal(tmpFirstID);
+
+									// Direct DB inspection to verify the soft-deleted
+									// row's Code was renamed to the deterministic
+									// __mdsd_<16hex> shape, and that the suffix matches
+									// sha1("{IDRecord}:{Column}:{OriginalValue}").
+									var tmpRow = libFable.MeadowSQLiteProvider.db.prepare('SELECT IDGadget, Code, Deleted FROM Gadget WHERE IDGadget = ?').get(tmpFirstID);
+									Expect(tmpRow.Deleted).to.equal(1);
+									var tmpExpected = libRename.buildRenamedValue(tmpFirstID, 'Code', 'orig');
+									Expect(tmpRow.Code).to.equal(tmpExpected);
+									fDone();
+								});
+							});
+						});
+					}
+				);
+			}
+		);
 	}
 );

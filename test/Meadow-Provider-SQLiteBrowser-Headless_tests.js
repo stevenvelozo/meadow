@@ -26,6 +26,7 @@ var Expect = Chai.expect;
 var libHTTP = require('http');
 var libFS = require('fs');
 var libPath = require('path');
+var libChildProcess = require('child_process');
 
 var _MeadowRoot = libPath.resolve(__dirname, '..');
 var _MeadowDistDir = libPath.join(_MeadowRoot, 'dist');
@@ -508,12 +509,37 @@ suite
 					));
 				}
 
-				// Verify sql.js dist exists
+				// Auto-bootstrap the sister package's sql.js dep if missing.
+				// This is monorepo dev tooling — `test-all-providers` is run by
+				// the maintainer from a fresh checkout, where transitive deps
+				// of sibling packages aren't installed by meadow's own
+				// `npm install`. Self-bootstrapping here avoids the manual
+				// `cd ../meadow-connection-sqlite-browser && npm install`
+				// step. If you want the same treatment for the sister's dist
+				// (currently still a manual `npm run build`), extend this hook
+				// to invoke quack build the same way.
 				if (!libFS.existsSync(libPath.join(_SqlJsDistDir, 'sql-wasm.js')))
 				{
-					return fDone(new Error(
-						'sql.js dist files not found. Run "npm install" in meadow-connection-sqlite-browser first.'
-					));
+					console.log(`  sql.js not found in ${_ConnectionPackageRoot}; running "npm install" there...`);
+					try
+					{
+						libChildProcess.execSync('npm install', {
+							cwd: _ConnectionPackageRoot,
+							stdio: 'inherit'
+						});
+					}
+					catch (pInstallError)
+					{
+						return fDone(new Error(
+							`Failed to npm-install sister package at ${_ConnectionPackageRoot}: ${pInstallError.message}`
+						));
+					}
+					if (!libFS.existsSync(libPath.join(_SqlJsDistDir, 'sql-wasm.js')))
+					{
+						return fDone(new Error(
+							`sql.js dist files still missing after install in ${_ConnectionPackageRoot}.`
+						));
+					}
 				}
 
 				// Start the test server

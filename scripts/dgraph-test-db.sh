@@ -39,16 +39,36 @@ start_dgraph() {
 		exit 1
 	fi
 
-	echo "Waiting for DGraph to be ready..."
+	# Two-stage readiness probe. /health turns 200 as soon as Zero is up, but
+	# Alpha (the write/schema endpoint) can take many seconds longer to start
+	# accepting /alter — under Colima/QEMU this gap is wide enough that the
+	# downstream test's drop_all + applyDGraphSchema hangs and burns the
+	# 30s mocha hook budget. Probe /alter with a no-op so we don't return
+	# until the full write path is alive.
+	echo "Waiting for DGraph /health..."
 	RETRIES=30
-	until curl -sf "http://localhost:${DGRAPH_HTTP_PORT}/health" > /dev/null 2>&1; do
+	until curl -sf --max-time 2 "http://localhost:${DGRAPH_HTTP_PORT}/health" > /dev/null 2>&1; do
 		RETRIES=$((RETRIES - 1))
 		if [ $RETRIES -le 0 ]; then
-			echo "ERROR: DGraph failed to become ready in time."
+			echo "ERROR: DGraph /health failed to become ready in time."
 			docker logs "${CONTAINER_NAME}" 2>&1 | tail -20
 			exit 1
 		fi
 		echo "  ...waiting (${RETRIES} retries left)"
+		sleep 2
+	done
+
+	echo "Waiting for DGraph /alter (Alpha write path)..."
+	RETRIES=30
+	# Empty schema is a valid alter — round-trips through Alpha without changing state.
+	until curl -sf --max-time 5 -X POST -H "Content-Type: application/json" -d '{"schema":""}' "http://localhost:${DGRAPH_HTTP_PORT}/alter" > /dev/null 2>&1; do
+		RETRIES=$((RETRIES - 1))
+		if [ $RETRIES -le 0 ]; then
+			echo "ERROR: DGraph /alter never accepted writes in time."
+			docker logs "${CONTAINER_NAME}" 2>&1 | tail -30
+			exit 1
+		fi
+		echo "  ...waiting on alter (${RETRIES} retries left)"
 		sleep 2
 	done
 

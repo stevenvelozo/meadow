@@ -94,6 +94,13 @@ var _AnimalDefault = (
 		Type: 'Unclassified'
 	});
 
+// Per-request timeout cap. A stuck Alpha (e.g. /alter accepted by the
+// kernel but never answered while DGraph finishes initializing) used to
+// silently consume the whole 30s mocha hook budget here. With this
+// cap, a hang surfaces as a clear callback error in ~10s and the hook
+// fails fast with a useful message instead of hitting the mocha timeout.
+var DGRAPH_HTTP_TIMEOUT_MS = 10000;
+
 // Helper to drop all DGraph data via the HTTP API
 var dropAllDGraphData = function (fCallback)
 {
@@ -103,7 +110,8 @@ var dropAllDGraphData = function (fCallback)
 		port: 38080,
 		path: '/alter',
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' }
+		headers: { 'Content-Type': 'application/json' },
+		timeout: DGRAPH_HTTP_TIMEOUT_MS
 	};
 	var tmpReq = http.request(tmpOptions, function (pRes)
 	{
@@ -111,6 +119,7 @@ var dropAllDGraphData = function (fCallback)
 		pRes.on('end', function () { fCallback(); });
 	});
 	tmpReq.on('error', function (pError) { fCallback(pError); });
+	tmpReq.on('timeout', function () { tmpReq.destroy(new Error(`DGraph /alter (drop_all) timed out after ${DGRAPH_HTTP_TIMEOUT_MS}ms`)); });
 	tmpReq.write(JSON.stringify({ drop_all: true }));
 	tmpReq.end();
 };
@@ -159,7 +168,8 @@ var applyDGraphSchema = function (fCallback)
 		port: 38080,
 		path: '/alter',
 		method: 'POST',
-		headers: { 'Content-Type': 'application/octet-stream' }
+		headers: { 'Content-Type': 'application/octet-stream' },
+		timeout: DGRAPH_HTTP_TIMEOUT_MS
 	};
 	var tmpReq = http.request(tmpOptions, function (pRes)
 	{
@@ -167,6 +177,7 @@ var applyDGraphSchema = function (fCallback)
 		pRes.on('end', function () { fCallback(); });
 	});
 	tmpReq.on('error', function (pError) { fCallback(pError); });
+	tmpReq.on('timeout', function () { tmpReq.destroy(new Error(`DGraph /alter (schema apply) timed out after ${DGRAPH_HTTP_TIMEOUT_MS}ms`)); });
 	tmpReq.write(tmpSchema);
 	tmpReq.end();
 };

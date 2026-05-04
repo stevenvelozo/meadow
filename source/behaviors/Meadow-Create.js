@@ -5,6 +5,8 @@
 */
 var libAsyncWaterfall = require('async/waterfall');
 
+var libRenameSoftDeletedConflicts = require('./Meadow-CollisionRename.js');
+
 /**
 * Meadow Behavior - Create
 *
@@ -14,51 +16,39 @@ var meadowBehaviorCreate = function(pMeadow, pQuery, fCallBack)
 {
 	libAsyncWaterfall(
 		[
-			// Step 0: If GUID is specified, make sure the record does not already exist
+			// Step 0: Unique-constraint pre-flight. Single Read per constraint
+			// (AutoGUID + any user-declared Unique/UniqueGroup columns) covers
+			// both behaviors that used to live here:
+			//   - soft-deleted collisions get the conflicting columns renamed
+			//     so the new INSERT can take the slot (the soft-delete /
+			//     dialect-specific WHERE-Deleted=0 partial-index workaround
+			//     downstream consumers used to need)
+			//   - live AutoGUID collisions return the legacy "Record with
+			//     GUID X already exists!" error before the INSERT fires
+			// No-op when the schema declares no Unique/UniqueGroup columns
+			// AND no Deleted-tracking column. Live conflicts on user-declared
+			// Unique columns still defer to the DB unique-index error.
 			function (fStageComplete)
 			{
-				// Make sure the user submitted a record
-				if (!pQuery.query.records)
+				// Reject missing records here — the old Step 0 owned this
+				// error and downstream steps assume pQuery.query.records[0]
+				// exists. Same string and trailing-args shape as before so
+				// existing callers' expectations are preserved.
+				if (!pQuery.query.records || !pQuery.query.records[0])
 				{
 					return fStageComplete('No record submitted', pQuery, false);
 				}
 
-				if (pQuery.query.records[0][pMeadow.defaultGUIdentifier] &&
-					pQuery.query.records[0][pMeadow.defaultGUIdentifier].length >= 5) //see Foxhound mysql build create query: GUID min len must be 5
+				libRenameSoftDeletedConflicts(pMeadow, pQuery.query.records[0], function (pPreflightError)
 				{
-					var tmpGUIDRecord = pQuery.query.records[0][pMeadow.defaultGUIdentifier];
-
-					var tmpQueryRead = pQuery.clone().addFilter(pMeadow.defaultGUIdentifier, tmpGUIDRecord)
-												 .setDisableDeleteTracking(true); //this check is to guarantee uniqueness across the entire table, so always do this
-
-					if (pMeadow.rawQueries.checkQuery('Read'))
+					if (pPreflightError)
 					{
-						tmpQueryRead.parameters.queryOverride = pMeadow.rawQueries.getQuery('Read');
+						pMeadow.fable.log.warn('Error during the unique-constraint pre-flight',
+							{ Error: pPreflightError, Message: pPreflightError && pPreflightError.message });
+						return fStageComplete(pPreflightError, pQuery, false);
 					}
-					pMeadow.provider.Read(tmpQueryRead, function()
-						{
-							var tmpError = tmpQueryRead.error;
-
-							if (!tmpError &&
-								tmpQueryRead.result.value.length > 0)
-							{
-								tmpError = 'Record with GUID ' + tmpGUIDRecord + ' already exists!';
-							}
-
-							if (tmpError)
-							{
-								return fStageComplete(tmpError, tmpQueryRead, tmpQueryRead, null);
-							}
-							else
-							{
-								return fStageComplete();
-							}
-						});
-				}
-				else
-				{
 					return fStageComplete();
-				}
+				});
 			},
 			// Step 1: Create the record in the data source
 			function (fStageComplete)

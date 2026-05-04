@@ -15,10 +15,27 @@ CONTAINER_NAME="meadow-mssql-test"
 SA_PASSWORD="1234567890abc."
 MSSQL_DATABASE="bookstore"
 MSSQL_PORT="31433"
-MSSQL_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
+# Azure SQL Edge — multi-arch (amd64 + arm64). The full SQL Server image
+# (mcr.microsoft.com/mssql/server) ships amd64 only, which crashes on
+# Apple Silicon under Colima/QEMU because of address-layout assumptions
+# the SQL Server binary makes. Azure SQL Edge speaks the same wire
+# protocol and T-SQL surface the meadow tests need.
+MSSQL_IMAGE="mcr.microsoft.com/azure-sql-edge:latest"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SEED_GENERATOR="${SCRIPT_DIR}/bookstore-seed.js"
+# Host-side TDS runner — replaces `docker exec <ctn> sqlcmd ...`. Recent
+# Azure SQL Edge images strip the in-container sqlcmd binary, and the
+# stand-alone `mcr.microsoft.com/mssql-tools` image is amd64-only (crashes
+# under Colima/QEMU on Apple Silicon). Going host-side via tedious sidesteps
+# both — connection works against the mapped port regardless of image arch.
+MSSQL_RUNNER="${SCRIPT_DIR}/mssql-runner.js"
+
+# Connection params for the runner (and matched by the test config).
+export MSSQL_HOST="127.0.0.1"
+export MSSQL_PORT
+export MSSQL_USER="sa"
+export MSSQL_PASSWORD="${SA_PASSWORD}"
 
 start_mssql() {
 	# Check if container already exists
@@ -46,30 +63,22 @@ start_mssql() {
 	fi
 
 	echo "Waiting for MSSQL to be ready..."
-	RETRIES=30
-	until docker exec "${CONTAINER_NAME}" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${SA_PASSWORD}" -C -Q "SELECT 1" > /dev/null 2>&1; do
-		RETRIES=$((RETRIES - 1))
-		if [ $RETRIES -le 0 ]; then
-			echo "ERROR: MSSQL failed to become ready in time."
-			docker logs "${CONTAINER_NAME}" 2>&1 | tail -20
-			exit 1
-		fi
-		echo "  ...waiting (${RETRIES} retries left)"
-		sleep 2
-	done
+	if ! node "${MSSQL_RUNNER}" --readiness; then
+		echo "ERROR: MSSQL failed to become ready in time."
+		docker logs "${CONTAINER_NAME}" 2>&1 | tail -20
+		exit 1
+	fi
 
 	# Create the bookstore database
 	echo "Creating database '${MSSQL_DATABASE}'..."
-	docker exec "${CONTAINER_NAME}" /opt/mssql-tools18/bin/sqlcmd \
-		-S localhost -U sa -P "${SA_PASSWORD}" -C \
-		-Q "IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '${MSSQL_DATABASE}') BEGIN CREATE DATABASE [${MSSQL_DATABASE}] END"
+	node "${MSSQL_RUNNER}" --db master --query \
+		"IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '${MSSQL_DATABASE}') BEGIN CREATE DATABASE [${MSSQL_DATABASE}] END"
 
 	# Load bookstore schema and seed data (GUIDs minted at generation time via fable-uuid)
 	if [ -f "${SEED_GENERATOR}" ]; then
 		echo "Loading bookstore schema and seed data..."
 		node "${SEED_GENERATOR}" --dialect mssql | \
-			docker exec -i "${CONTAINER_NAME}" /opt/mssql-tools18/bin/sqlcmd \
-				-S localhost -U sa -P "${SA_PASSWORD}" -C -d "${MSSQL_DATABASE}"
+			node "${MSSQL_RUNNER}" --db "${MSSQL_DATABASE}"
 		if [ $? -ne 0 ]; then
 			echo "WARNING: Failed to load seed data. Tests requiring pre-populated data may fail."
 		else

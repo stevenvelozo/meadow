@@ -131,6 +131,13 @@ suite
 				(
 					function (fDone)
 					{
+						// Container-backed setup: connect + create-db + create-
+						// table + 5 inserts is ~9 sequential round trips. The
+						// global mocha timeout (5s) is too tight when the
+						// container is freshly started (cold connection adds
+						// 2-3s on its own under emulation). Match the DGraph
+						// hook's 30s budget.
+						this.timeout(30000);
 						// Only do this for the first test.
 						if (!_SpooledUp)
 						{
